@@ -26,13 +26,11 @@ public final class BuiltInPacket extends SACPacket {
 
     @Override
     public void serverHandle(C2SNetworkContext context) {
-        System.out.println("BuiltInPacket.serverHandle");
         BrickEventBus.postEvent(new NetworkMessageEvent.ServerReceive(id,message,context.getSender()));
     }
 
     @Override
     public void clientHandle(S2CNetworkContext context) {
-        System.out.println("BuiltInPacket.clientHandle");
         BrickEventBus.postEvent(new NetworkMessageEvent.ClientReceive(id,message));
     }
 

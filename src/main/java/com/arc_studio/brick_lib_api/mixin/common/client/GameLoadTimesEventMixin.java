@@ -23,11 +23,8 @@ public abstract class GameLoadTimesEventMixin {
     @Inject(method = "beginStep(Lnet/minecraft/client/telemetry/TelemetryProperty;)V", at = @At("TAIL"))
     public void inject16(TelemetryProperty<GameLoadTimesEvent.Measurement> measurement, CallbackInfo ci) {
         if(!brick_lib$checked){
-            System.out.println("GameLoadTimesEventMixin.inject16");
-            System.out.println("BrickRegistries.UPDATE_CHECK.count() = " + BrickRegistries.UPDATE_CHECK.count());
             BrickRegistries.UPDATE_CHECK.forEach(entry -> {
                 if (entry.isModrinth()) {
-                    System.out.println("GameLoadTimesEventMixin.inject16 modrinth");
                     UpdateChecker.checkFromModrinthAsync(entry.url()).thenAccept(modrinthModInfos -> {
                         if (modrinthModInfos != null) {
                             entry.modrinth().accept(modrinthModInfos);
@@ -37,7 +34,6 @@ public abstract class GameLoadTimesEventMixin {
                         return null;
                     });
                 } else {
-                    System.out.println("GameLoadTimesEventMixin.inject16 other");
                     UpdateChecker.checkFromCustomAsync(entry.url()).thenAccept(s -> entry.custom().accept(s));
                 }
             });

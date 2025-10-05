@@ -206,7 +206,6 @@ public class NeoForgePlatform {
                 if (event.getListener().isConnected(config.id())) {
                     if (config instanceof PacketConfig.Login login) {
                         if(!DemoReplyPacket.class.isAssignableFrom(login.type())) {
-                            System.out.println(config.id() + " connected");
                             event.register(new MyICustomConfigurationTask(login, event));
                         }
                     }
@@ -223,7 +222,6 @@ public class NeoForgePlatform {
                 if (event.getListener().hasChannel(config.id())) {
                     if (config instanceof PacketConfig.Login login) {
                         if(!DemoReplyPacket.class.isAssignableFrom(login.type())) {
-                            System.out.println(config.id() + " connected");
                             event.register(new MyICustomConfigurationTask(login, event));
                         }
                     }

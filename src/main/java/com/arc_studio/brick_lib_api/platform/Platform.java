@@ -422,7 +422,7 @@ public class Platform {
         /*//? if <=1.20.4 {
         PacketDistributor.SERVER.noArg().send(packet);
         //?} else {
-        /^System.out.println("About to send "+packet.id());
+        /^
         PacketDistributor.sendToServer(packet);
         ^///?}
         *///?}
@@ -494,7 +494,6 @@ public class Platform {
                 List<Pair<String, ? extends LoginPacket>> apply0 = (List<Pair<String, ? extends LoginPacket>>) s2CLogin.packetGenerator().apply(false);
                 apply0.forEach(stringPair -> {
                     final String path = stringPair.getLeft();
-                    System.out.println("REG BrickLib.ofPath()(path) = " + BrickLibAPI.ofPath(path));
                     SideExecutor.runOnClient(()->()->{
                         ClientLoginNetworking.registerGlobalReceiver(BrickLibAPI.ofPath(path),
                                 (client, handler1, buf, listenerAdder) -> {
@@ -515,7 +514,6 @@ public class Platform {
                 ServerLoginConnectionEvents.QUERY_START.register((handler, server, sender, synchronizer) -> {
                     List<Pair<String, ? extends LoginPacket>> apply = (List<Pair<String, ? extends LoginPacket>>) s2CLogin.packetGenerator().apply(false);
                     apply.forEach(stringPair -> {
-                        System.out.println("SEND stringPair.getLeft() = " + stringPair.getLeft());
                         sender.sendPacket(BrickLibAPI.ofPath(stringPair.getLeft()), stringPair.getRight().getEncodedPacketContent(new PacketContent()).friendlyByteBuf());
                     });
                 });
@@ -581,7 +579,6 @@ public class Platform {
         });
     }
     private static <T extends LoginPacket> void login(PacketConfig.Login<T> s2CLogin) {
-        System.out.println("Platform.login");
         List<Pair<String, T>> apply0 = s2CLogin.packetGenerator().apply(false);
         apply0.forEach(stringPair -> {
             SideExecutor.runOnClient(()->()->{

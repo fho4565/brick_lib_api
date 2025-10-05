@@ -26,7 +26,6 @@ public class ConfigSyncPacket extends LoginPacket {
     private byte[] fileData;
 
     public ConfigSyncPacket(PacketContent content) {
-        System.out.println("ConfigSyncPacket.ConfigSyncPacket");
         SideExecutor.runSeparately(()->()->{
             CompoundTag decompress = null;
             if (content.friendlyByteBuf().readableBytes() > 0) {
@@ -60,21 +59,14 @@ public class ConfigSyncPacket extends LoginPacket {
     }
 
 /*    public static List<Pair<String, ConfigSyncPacket>> generatePackets(boolean isLocal) {
-        System.out.println("ConfigSyncPacket.generatePackets");
         Map<String, byte[]> configData = tracker.configSets().get(ModConfig.Type.SERVER).stream().collect(Collectors.toMap(ModConfig::getFileName, mc -> {
             try {
-                if (mc.getConfigData() == null) {
-                    System.out.println("ConfigSyncPacket.generatePackets = NULL");
-                }else{
-                    System.out.println("ConfigSyncPacket.generatePackets = YES");
-                }
                 return mc.getConfigData() == null ? new byte[0] : Files.readAllBytes(mc.getFullPath());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }));
         return configData.entrySet().stream().map(e-> {
-            System.out.println("ConfigSyncPacket.generatePackets Name = config_" + e.getKey());
             return Pair.of("config_" + e.getKey(), new ConfigSyncPacket(e.getKey(), e.getValue()));
         }).collect(Collectors.toList());
     }*/
@@ -82,16 +74,12 @@ public class ConfigSyncPacket extends LoginPacket {
 
     @Override
     public void serverHandle(C2SNetworkContext context) {
-        System.out.println("ConfigSyncPacket.serverHandle");
     }
 
     @Override
     public void clientHandle(S2CNetworkContext context) {
-        System.out.println("ConfigSyncPacket.clientHandle");
         if (!Minecraft.getInstance().isLocalServer()) {
-            System.out.println("fileName = " + fileName);
             Optional.ofNullable(ConfigTracker.fileMap().get(fileName)).ifPresent(mc -> {
-                System.out.println("fileData = " + Arrays.toString(fileData));
                 mc.acceptSyncedConfig(fileData);
             });
         }
@@ -99,7 +87,6 @@ public class ConfigSyncPacket extends LoginPacket {
 
     @Override
     public void encoder(PacketContent content) {
-        System.out.println("ConfigSyncPacket.encoder");
         try {
             CompoundTag tag = new CompoundTag();
             tag.putByteArray(fileName,fileData);

@@ -1,7 +1,6 @@
 package com.arc_studio.brick_lib_api.mixin.common.server;
 
 import com.arc_studio.brick_lib_api.BrickLibAPI;
-import com.arc_studio.brick_lib_api.core.task.TaskExecutor;
 import com.arc_studio.brick_lib_api.core.data.BlockAdditionalData;
 import com.arc_studio.brick_lib_api.core.data.EntityAdditionalData;
 import com.arc_studio.brick_lib_api.core.data.LevelAdditionalData;
@@ -35,7 +34,6 @@ public abstract class MinecraftServerMixin {
         BlockAdditionalData.tick();
         EntityAdditionalData.tick();
         LevelAdditionalData.tick();
-        TaskExecutor.tick();
     }
 
     @Inject(method = "tickServer", at = @At("TAIL"))

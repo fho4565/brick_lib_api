@@ -19,7 +19,6 @@ import static com.arc_studio.brick_lib_api.BrickLibAPI.LOGGER;
 public abstract class MainMixin {
     @Inject(method = "main", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;spin(Ljava/util/function/Function;)Lnet/minecraft/server/MinecraftServer;"))
     private static void inject40(String[] strings, CallbackInfo ci) {
-        System.out.println("BrickRegistries.UPDATE_CHECK.count() = " + BrickRegistries.UPDATE_CHECK.count());
         SideExecutor.runOnServer(()->()-> BrickRegistries.UPDATE_CHECK.foreachRegisteredValue(entry -> {
             if (entry.isModrinth()) {
                 UpdateChecker.checkFromModrinthAsync(entry.url()).thenAccept(modrinthModInfos -> {

@@ -63,7 +63,6 @@ public class ConfigTracker {
     public static void loadConfigs(ModConfig.Type type, Path configBasePath) {
         LOGGER.debug(CONFIG, "Loading configs type {}", type);
         configSets.get(type).forEach(config -> {
-            System.out.println("config.getFileName() = " + config.getFileName());
             openConfig(config, configBasePath);
         });
     }

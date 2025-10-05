@@ -19,7 +19,7 @@ public class LoginPacketDemo extends LoginPacket {
 
     @Override
     public void clientHandle(S2CNetworkContext context) {
-        System.out.println("Client Local : "+msg);
+
     }
 
     @Override
@@ -29,6 +29,6 @@ public class LoginPacketDemo extends LoginPacket {
 
     @Override
     public void serverHandle(C2SNetworkContext context) {
-        System.out.println("Server Local : "+msg);
+
     }
 }

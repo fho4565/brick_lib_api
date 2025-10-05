@@ -1,6 +1,5 @@
 package com.arc_studio.brick_lib_api.core;
 
-import com.arc_studio.brick_lib_api.codecs.CodecTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;

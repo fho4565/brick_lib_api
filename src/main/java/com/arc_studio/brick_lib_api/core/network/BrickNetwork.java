@@ -53,7 +53,6 @@ public class BrickNetwork {
      * @see C2SPacket
      */
     public static <MSG extends ISHandlePacket> void sendToServer(MSG packet) {
-        System.out.println("BrickNetwork.sendToServer");
         Platform.sendToServer(packet);
     }
 
