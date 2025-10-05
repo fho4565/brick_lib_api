@@ -49,7 +49,7 @@ import static com.arc_studio.brick_lib_api.client.command.ClientCommands.literal
  *  <li>Modified to support cross-version requirements.</li>
  *  </ol>
  */
-public final class ClientCommandInternals {
+final class ClientCommandInternals {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ClientCommandInternals.class);
     private static @Nullable CommandDispatcher<ClientSuggestionProvider> activeDispatcher;
 
