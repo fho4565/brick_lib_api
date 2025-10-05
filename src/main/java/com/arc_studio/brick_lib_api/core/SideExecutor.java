@@ -9,11 +9,11 @@ import java.util.function.Supplier;
  */
 public final class SideExecutor implements Runnable {
     private final Supplier<Runnable> runnableSupplier;
-    private final EnvType envType;
+    private final PlatformInfo platformInfo;
 
-    public SideExecutor(Supplier<Runnable> runnableSupplier, EnvType envType) {
+    public SideExecutor(Supplier<Runnable> runnableSupplier, PlatformInfo platformInfo) {
         this.runnableSupplier = runnableSupplier;
-        this.envType = envType;
+        this.platformInfo = platformInfo;
     }
 
     /**
@@ -165,7 +165,7 @@ public final class SideExecutor implements Runnable {
      * @param toRun  需要执行的操作
      * @return 操作是否被执行
      */
-    public static boolean runOnLoader(EnvType loader, Runnable toRun) {
+    public static boolean runOnLoader(PlatformInfo loader, Runnable toRun) {
         if (Platform.platform().loaderEquals(loader) != 0) {
             toRun.run();
             return true;
@@ -180,7 +180,7 @@ public final class SideExecutor implements Runnable {
      * @param toRun  需要执行的操作的提供者
      * @return 操作是否被执行
      */
-    public static boolean runOnLoader(EnvType loader, Supplier<Runnable> toRun) {
+    public static boolean runOnLoader(PlatformInfo loader, Supplier<Runnable> toRun) {
         return runOnLoader(loader, toRun.get());
     }
 
@@ -191,7 +191,7 @@ public final class SideExecutor implements Runnable {
      * @param toRun 需要执行的操作
      * @return 操作是否被执行
      */
-    public static boolean runOnSide(EnvType side, Runnable toRun) {
+    public static boolean runOnSide(PlatformInfo side, Runnable toRun) {
         if (Platform.platform().sideEquals(side) != 0) {
             toRun.run();
             return true;
@@ -206,13 +206,13 @@ public final class SideExecutor implements Runnable {
      * @param toRun 需要执行的操作
      * @return 操作是否被执行
      */
-    public static boolean runOnSide(EnvType side, Supplier<Runnable> toRun) {
+    public static boolean runOnSide(PlatformInfo side, Supplier<Runnable> toRun) {
         return runOnSide(side, toRun.get());
     }
 
     @Override
     public void run() {
-        if (envType.sideEquals(Platform.platform()) != EnvType.FALSE) {
+        if (platformInfo.sideEquals(Platform.platform()) != PlatformInfo.FALSE) {
             runnableSupplier.get().run();
         }
     }

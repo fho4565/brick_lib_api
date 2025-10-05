@@ -1,9 +1,7 @@
 package com.arc_studio.brick_lib_api.platform;
 
-import com.arc_studio.brick_lib_api.BrickLibAPI;
-import com.arc_studio.brick_lib_api.core.EnvType;
+import com.arc_studio.brick_lib_api.core.PlatformInfo;
 import com.arc_studio.brick_lib_api.core.Version;
-import com.arc_studio.brick_lib_api.core.network.PacketContent;
 import com.arc_studio.brick_lib_api.core.network.type.*;
 import com.arc_studio.brick_lib_api.Constants;
 import com.arc_studio.brick_lib_api.core.network.context.C2SNetworkContext;
@@ -50,7 +48,6 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 *///?}
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.thread.BlockableEventLoop;
 import net.minecraft.world.item.ItemStack;
@@ -91,7 +88,6 @@ import net.neoforged.fml.ModContainer;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.mutable.MutableObject;
-import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.nio.file.Path;
@@ -278,8 +274,8 @@ public class Platform {
         //?}
     }
 
-    public static EnvType platform() {
-        EnvType type = new EnvType();
+    public static PlatformInfo platform() {
+        PlatformInfo type = new PlatformInfo();
         //? if fabric {
         /*type.setFabric();
         *///?} else if forge {

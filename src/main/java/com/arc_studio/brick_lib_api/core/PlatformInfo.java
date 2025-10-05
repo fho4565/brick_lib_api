@@ -5,7 +5,7 @@ import java.util.Map;
 /**
  * @author fho4565
  */
-public final class EnvType {
+public final class PlatformInfo {
     public static final int
             FALSE = 0,
             CLIENT = 1,
@@ -25,64 +25,64 @@ public final class EnvType {
     );
     private int types = 0;
 
-    public static EnvType of(){
-        return new EnvType();
+    public static PlatformInfo of(){
+        return new PlatformInfo();
     }
 
-    public EnvType setClient() {
+    public PlatformInfo setClient() {
         this.types |= CLIENT;
         return this;
     }
 
-    public EnvType setOnlyClient() {
+    public PlatformInfo setOnlyClient() {
         removeServer();
         setClient();
         return this;
     }
 
-    public EnvType setServer() {
+    public PlatformInfo setServer() {
         this.types |= SERVER;
         return this;
     }
 
-    public EnvType setOnlyServer() {
+    public PlatformInfo setOnlyServer() {
         removeClient();
         setServer();
         return this;
     }
 
-    public EnvType setForge() {
+    public PlatformInfo setForge() {
         this.types |= FORGE;
         return this;
     }
 
-    public EnvType setOnlyForge() {
+    public PlatformInfo setOnlyForge() {
         removeFabric();
         removeNeoForge();
         setForge();
         return this;
     }
 
-    public EnvType setOnlyFabric() {
+    public PlatformInfo setOnlyFabric() {
         removeForge();
         removeNeoForge();
         setFabric();
         return this;
     }
 
-    public EnvType setOnlyNeoForge() {
+    public PlatformInfo setOnlyNeoForge() {
         removeForge();
         removeFabric();
         setNeoForge();
         return this;
     }
 
-    public EnvType setFabric() {
+    public PlatformInfo setFabric() {
         this.types |= FABRIC;
         return this;
     }
 
-    public EnvType setNeoForge() {
+    public PlatformInfo setNeoForge() {
         this.types |= NEOFORGE;
         return this;
     }
@@ -113,32 +113,32 @@ public final class EnvType {
         return (types & NEOFORGE) == NEOFORGE;
     }
 
-    public EnvType removeClient() {
+    public PlatformInfo removeClient() {
         this.types &= ~CLIENT;
         return this;
     }
 
-    public EnvType removeServer() {
+    public PlatformInfo removeServer() {
         this.types &= ~SERVER;
         return this;
     }
 
-    public EnvType removeForge() {
+    public PlatformInfo removeForge() {
         this.types &= ~FORGE;
         return this;
     }
 
-    public EnvType removeFabric() {
+    public PlatformInfo removeFabric() {
         this.types &= ~FABRIC;
         return this;
     }
 
-    public EnvType removeNeoForge() {
+    public PlatformInfo removeNeoForge() {
         this.types &= ~NEOFORGE;
         return this;
     }
 
-    public EnvType removeAll() {
+    public PlatformInfo removeAll() {
         this.types = 0;
         return this;
     }
@@ -164,13 +164,13 @@ public final class EnvType {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof EnvType envType) {
-            return types == envType.types;
+        if (obj instanceof PlatformInfo platformInfo) {
+            return types == platformInfo.types;
         }
         return false;
     }
 
-    public int loaderEquals(EnvType other){
+    public int loaderEquals(PlatformInfo other){
         if (this.isFabric()) {
             if (other.isFabric()) {
                 return FABRIC;
@@ -193,7 +193,7 @@ public final class EnvType {
         return FALSE;
     }
 
-    public int sideEquals(EnvType other) {
+    public int sideEquals(PlatformInfo other) {
         boolean c = this.isClient() && other.isClient();
         boolean s = this.isServer() && other.isServer();
         if (c && s) {

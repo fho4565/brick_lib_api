@@ -1,7 +1,5 @@
 package com.arc_studio.brick_lib_api.codecs;
 
-import com.arc_studio.brick_lib_api.Constants;
-import com.arc_studio.brick_lib_api.core.GameNumber;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -500,17 +498,6 @@ public class CodecTypes {
     public static Codec<UUID> LENIENT_UUID_CODEC = Codec.either(UUID_CODEC, STRING_UUID_CODEC)
             .xmap(either -> either.map(uUID -> uUID, uUID -> uUID), Either::left);
 
-    public static final Codec<GameNumber> GAME_NUMBER = Codec.of(new Encoder<>() {
-        @Override
-        public <T> DataResult<T> encode(GameNumber input, DynamicOps<T> ops, T prefix) {
-            return DataResult.success(ops.createString(GameNumber.save(input)));
-        }
-    }, new Decoder<>() {
-        @Override
-        public <T> DataResult<Pair<GameNumber, T>> decode(DynamicOps<T> ops, T input) {
-            return DataResult.success(Pair.of(GameNumber.load(ops.getStringValue(input).result().orElseThrow()), input));
-        }
-    });
 
     public static <F, S> Codec<Either<F, S>> xor(Codec<F> first, Codec<S> second) {
         return new CodecTypes.XorCodec<>(first, second);

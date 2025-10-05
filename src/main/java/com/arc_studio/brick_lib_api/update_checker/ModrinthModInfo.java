@@ -1,6 +1,6 @@
 package com.arc_studio.brick_lib_api.update_checker;
 
-import com.arc_studio.brick_lib_api.core.EnvType;
+import com.arc_studio.brick_lib_api.core.PlatformInfo;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
@@ -41,7 +41,7 @@ public final class ModrinthModInfo {
     @SerializedName("status")
     private final String status;
 
-    private transient EnvType platform;
+    private transient PlatformInfo platform;
 
     public ModrinthModInfo(
             boolean featured,
@@ -203,9 +203,9 @@ public final class ModrinthModInfo {
                 "status=" + status + ']';
     }
 
-    public EnvType platform(){
+    public PlatformInfo platform(){
         if(this.platform == null){
-            EnvType type = new EnvType();
+            PlatformInfo type = new PlatformInfo();
             type.removeAll();
             for (String s : loaders) {
                 if ("forge".equals(s)) {

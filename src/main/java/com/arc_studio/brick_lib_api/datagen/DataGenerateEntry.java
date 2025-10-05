@@ -1,6 +1,6 @@
 package com.arc_studio.brick_lib_api.datagen;
 
-import com.arc_studio.brick_lib_api.core.EnvType;
+import com.arc_studio.brick_lib_api.core.PlatformInfo;
 import net.minecraft.data.DataProvider;
 
 import java.nio.file.Path;
@@ -8,7 +8,7 @@ import java.util.Collection;
 import java.util.function.Function;
 
 public record DataGenerateEntry(
-        EnvType side,
+        PlatformInfo side,
         Function<Collection<Path>, DataProvider.Factory<?>> factory
 ) {
 }

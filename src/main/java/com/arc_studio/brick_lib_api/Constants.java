@@ -1,7 +1,7 @@
 package com.arc_studio.brick_lib_api;
 
 
-import com.arc_studio.brick_lib_api.core.EnvType;
+import com.arc_studio.brick_lib_api.core.PlatformInfo;
 import com.arc_studio.brick_lib_api.platform.Platform;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.storage.LevelResource;
@@ -31,7 +31,7 @@ public class Constants {
     private static Path brickLibPlacersFolder;
     private static MinecraftServer currentServer;
     private static boolean isInDevelopEnvironment = false;
-    private static EnvType platform;
+    private static PlatformInfo platform;
 
     /**
      * <p>获取当前游戏版本文件夹，在模组初始化时调用</p>
@@ -168,7 +168,7 @@ public class Constants {
     /**
      * 获取模组运行的平台
      * */
-    public static EnvType platform() {
+    public static PlatformInfo platform() {
         return platform;
     }
 
