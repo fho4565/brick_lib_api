@@ -32,12 +32,12 @@ import java.util.stream.Collectors;
 public final class BrickLibAPI {
     public static final Logger LOGGER = LogUtils.getLogger();
     public static final String MOD_ID = "brick_lib_api";
-    public static final Version BRICK_LIB_API_VERSION = new Version.Builder(1, 0, 0).preRelease(Version.PreReleaseType.ALPHA,1).build();
+    public static final Version BRICK_LIB_API_VERSION = new Version.Builder(1, 0, 0).preRelease(Version.PreReleaseType.BETA).build();
 
     public static void init() {
         MixinExtrasBootstrap.init();
         Constants.initGeneral();
-        BrickLibAPI.LOGGER.info("You are using Brick Lib version {}", BRICK_LIB_API_VERSION);
+        BrickLibAPI.LOGGER.info("You are using Brick Lib API version {}", BRICK_LIB_API_VERSION);
         preLoad();
         brickLibApiFinalize();
     }
@@ -95,9 +95,7 @@ public final class BrickLibAPI {
                                     throw new RuntimeException(e);
                                 }
                             }));
-                            return configData.entrySet().stream().map(e-> {
-                                return Pair.of("config_" + e.getKey(), new ConfigSyncPacket(e.getKey(), e.getValue()));
-                            }).collect(Collectors.toList());
+                            return configData.entrySet().stream().map(e-> Pair.of("config_" + e.getKey(), new ConfigSyncPacket(e.getKey(), e.getValue()))).collect(Collectors.toList());
                         }
                 )
         );
