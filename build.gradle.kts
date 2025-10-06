@@ -1,5 +1,3 @@
-import org.gradle.api.tasks.Input
-import org.gradle.kotlin.dsl.resolver.buildSrcSourceRootsFilePath
 import java.util.Optional
 import java.util.function.BiConsumer
 import java.util.function.Consumer
@@ -631,9 +629,9 @@ abstract class ProcessResourcesExtension : ProcessResources() {
     val autoPluralize = arrayListOf(
         "/data/minecraft/tags/block",
         "/data/minecraft/tags/item",
-        "/data/brick_lib/loot_table",
-        "/data/brick_lib/recipe",
-        "/data/brick_lib/tags/item",
+        "/data/brick_lib_api/loot_table",
+        "/data/brick_lib_api/recipe",
+        "/data/brick_lib_api/tags/item",
     )
     override fun copy() {
         super.copy()
@@ -699,6 +697,15 @@ tasks.test {
     useJUnitPlatform()
     testLogging {
         events("passed", "skipped", "failed")
+    }
+}
+
+tasks {
+    register<Copy>("buildAndCollect") {
+        group = "build"
+        from(remapJar.map { it.archiveFile }, remapSourcesJar.map { it.archiveFile })
+        into(rootProject.layout.buildDirectory.file("libs/${project.property("mod.version")}"))
+        dependsOn("build")
     }
 }
 

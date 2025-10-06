@@ -7,31 +7,3 @@ plugins {
 }
 
 stonecutter active "1.20.1-forge" /* You may have to edit this. Make sure it matches one of the versions present in settings.gradle.kts */
-
-// 将每个版本构建到 'build/libs/{mod.version}/' 中
-stonecutter registerChiseled tasks.register("chiseledBuild", stonecutter.chiseled) {
-    group = "project"
-    ofTask("build")
-}
-
-stonecutter registerChiseled tasks.register("chiseledClean", stonecutter.chiseled) {
-    group = "project"
-    ofTask("clean")
-}
-
-stonecutter registerChiseled tasks.register("chiseledPublishMods", stonecutter.chiseled) {
-    group = "project"
-    ofTask("publishMods")
-}
-
-stonecutter registerChiseled tasks.register("chiseledPublishMaven", stonecutter.chiseled) {
-    group = "project"
-    ofTask("publish")
-}
-
-stonecutter registerChiseled tasks.register("chiseledPublishModrinth", stonecutter.chiseled) {
-    group = "project"
-    ofTask("publishModrinth")
-}
-
-

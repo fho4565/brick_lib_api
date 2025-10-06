@@ -1,5 +1,3 @@
-import dev.kikugie.stonecutter.settings.StonecutterSettings
-
 pluginManagement {
     repositories {
         gradlePluginPortal()
@@ -18,8 +16,8 @@ pluginManagement {
         maven("https://maven.minecraftforge.net/")
         maven("https://maven.neoforged.net/releases/")
         maven("https://repo.spongepowered.org/maven")
-        maven("https://maven.kikugie.dev/snapshots")
         maven("https://maven.kikugie.dev/releases")
+        maven("https://maven.kikugie.dev/snapshots")
         maven("https://maven.aliyun.com/repository/google")
         maven("https://maven.aliyun.com/repository/public")
         maven("https://maven.aliyun.com/repository/gradle-plugin")
@@ -40,15 +38,12 @@ pluginManagement {
 }
 
 plugins {
-    id("dev.kikugie.stonecutter") version "0.6-beta.1"
+    id("dev.kikugie.stonecutter") version "0.7.10"
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
 }
-extensions.configure<StonecutterSettings> {
-    kotlinController = true
-    centralScript = "build.gradle.kts"
 
-    // 此处列出的版本，无论是注释掉还是其他方式，都有预制的 gradle.properties。
-    shared {
+stonecutter {
+    create(rootProject){
         /*vers("1.16.5-fabric","1.16.5")
         vers("1.16.5-forge","1.16.5")
         vers("1.18.2-fabric","1.18.2")
@@ -76,7 +71,6 @@ extensions.configure<StonecutterSettings> {
         vers("1.21.5-neoforge","1.21.5")*/
         vcsVersion="1.20.1-forge"
     }
-    create(rootProject)
 }
 
 rootProject.name = "brick_lib_api"

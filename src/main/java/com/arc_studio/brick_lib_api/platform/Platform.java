@@ -1,7 +1,9 @@
 package com.arc_studio.brick_lib_api.platform;
 
+import com.arc_studio.brick_lib_api.BrickLibAPI;
 import com.arc_studio.brick_lib_api.core.PlatformInfo;
 import com.arc_studio.brick_lib_api.core.Version;
+import com.arc_studio.brick_lib_api.core.network.PacketContent;
 import com.arc_studio.brick_lib_api.core.network.type.*;
 import com.arc_studio.brick_lib_api.Constants;
 import com.arc_studio.brick_lib_api.core.network.context.C2SNetworkContext;
@@ -48,6 +50,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 *///?}
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.thread.BlockableEventLoop;
 import net.minecraft.world.item.ItemStack;
@@ -88,6 +91,7 @@ import net.neoforged.fml.ModContainer;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.mutable.MutableObject;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.nio.file.Path;
@@ -391,7 +395,13 @@ public class Platform {
             /^ServerPlayNetworking.send(serverPlayer, packet);
             ^///?}
             *///?} else if forge {
-            ForgePlatform.s2cPlayChannel.send(/*? <1.20.4 {*/ PacketDistributor.PLAYER.with(() -> serverPlayer), packet /*?} else {*//*packet,PacketDistributor.PLAYER.with(serverPlayer)*//*?}*/);
+            ForgePlatform.s2cPlayChannel.send(
+            //? if >= 1.20.4 {
+                    /*packet,PacketDistributor.PLAYER.with(serverPlayer)*/
+            //? } else {
+                    PacketDistributor.PLAYER.with(() -> serverPlayer), packet
+            //? }
+            );
             //?} else if neoforge {
             /*//? if <=1.20.4 {
             PacketDistributor.PLAYER.with(serverPlayer).send(packet);
@@ -416,8 +426,13 @@ public class Platform {
         /^ClientPlayNetworking.send(packet);
         ^///?}
         *///?} else if forge {
-        
-        ForgePlatform.c2sPlayChannel/*? <1.20.4 {*/ .sendToServer(packet) /*?} else {*//*.send(packet,PacketDistributor.SERVER.noArg())*//*?}*/;
+        ForgePlatform.c2sPlayChannel
+        //? if >=1.20.4 {
+                /*.send(packet,PacketDistributor.SERVER.noArg())*/
+        //? } else {
+                .sendToServer(packet)
+        //? }
+        ;
         //?} else if neoforge {
         /*//? if <=1.20.4 {
         PacketDistributor.SERVER.noArg().send(packet);
