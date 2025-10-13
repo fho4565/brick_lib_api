@@ -23,7 +23,7 @@ interface IHandleablePacket
     void encoder(PacketContent content);
 
     //? if =1.20.4 {
-    /*/^@Override^/
+    /*@Override
     default void write(FriendlyByteBuf arg){
         encoder(new PacketContent(arg));
     }

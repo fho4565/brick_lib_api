@@ -32,7 +32,7 @@ import static com.arc_studio.brick_lib_api.config.ConfigTracker.CONFIG;
  * <li>Refactor the code by changing instance fields and methods to static fields and methods and hiding the constructor</li>
  * </ol>
  */
-public class ConfigFileTypeHandler {
+class ConfigFileTypeHandler {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final Path defaultConfigPath = Constants.defaultConfigFolderPath();
 

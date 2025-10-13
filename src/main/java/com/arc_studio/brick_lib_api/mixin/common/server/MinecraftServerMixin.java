@@ -1,6 +1,8 @@
 package com.arc_studio.brick_lib_api.mixin.common.server;
 
 import com.arc_studio.brick_lib_api.BrickLibAPI;
+import com.arc_studio.brick_lib_api.config.ConfigTracker;
+import com.arc_studio.brick_lib_api.config.ModConfig;
 import com.arc_studio.brick_lib_api.core.data.BlockAdditionalData;
 import com.arc_studio.brick_lib_api.core.data.EntityAdditionalData;
 import com.arc_studio.brick_lib_api.core.data.LevelAdditionalData;
@@ -20,7 +22,6 @@ import java.util.function.BooleanSupplier;
 /**
  * @author fho4565
  */
-@SuppressWarnings({"rawtypes"})
 @Mixin(MinecraftServer.class)
 public abstract class MinecraftServerMixin {
 
@@ -34,11 +35,6 @@ public abstract class MinecraftServerMixin {
         BlockAdditionalData.tick();
         EntityAdditionalData.tick();
         LevelAdditionalData.tick();
-    }
-
-    @Inject(method = "tickServer", at = @At("TAIL"))
-    public void onServerTickEnd(BooleanSupplier hasTimeLeft, CallbackInfo ci) {
-
     }
     @Inject(method = "saveEverything", at = @At("HEAD"))
     public void save(boolean suppressLog, boolean flush, boolean forced, CallbackInfoReturnable<Boolean> cir) {
@@ -57,6 +53,7 @@ public abstract class MinecraftServerMixin {
     @Inject(method = "loadLevel", at = @At("HEAD"))
     public void load(CallbackInfo ci) {
         try {
+            Constants.installWorldVariables(getThis());
             BrickLibAPI.LOGGER.debug("Loading Brick Lib additional data");
             BlockAdditionalData.load();
             EntityAdditionalData.load();
@@ -65,7 +62,12 @@ public abstract class MinecraftServerMixin {
         } catch (IOException e) {
             BrickLibAPI.LOGGER.error("Error when loading Brick Lib additional data");
             BrickLibAPI.LOGGER.error(e.toString());
+            e.printStackTrace();
         }
+    }
+    @Inject(method = "runServer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;onServerExit()V"))
+    public void inject67(CallbackInfo ci) {
+        ConfigTracker.unloadConfigs(ModConfig.Type.SERVER, Constants.serverConfigFolder());
     }
     @Unique
     private MinecraftServer getThis(){

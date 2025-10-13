@@ -8,5 +8,4 @@ public abstract class BaseAdditionalData {
     public CompoundTag getData() {
         return data;
     }
-    public abstract void onDelete();
 }

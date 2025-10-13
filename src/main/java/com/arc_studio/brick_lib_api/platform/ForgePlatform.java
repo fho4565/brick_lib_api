@@ -18,9 +18,15 @@ import net.minecraftforge.network.*;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
+import java.util.function.IntSupplier;
+import java.util.function.Supplier;
 //? if forge && < 1.20.4 {
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.simple.SimpleChannel;
+
+import static com.arc_studio.brick_lib_api.BrickLibAPI.LOGGER;
+import static net.minecraftforge.network.HandshakeHandler.biConsumerFor;
 //?}
 
 //? if forge && >=1.20.4 {
@@ -74,12 +80,20 @@ public class ForgePlatform {
             .simpleChannel();
     *///?}
 
-    public static final SimpleChannel c2sLoginChannel = //? if < 1.20.4 {
-            NetworkRegistry.newSimpleChannel(
-                    new ResourceLocation(BrickLibAPI.MOD_ID, "c2s_login"),
+    public static final SimpleChannel c2sLoginChannel =
+        //? if <= 1.19.4 {
+        /*NetworkRegistry.ChannelBuilder
+            .named(BrickLibAPI.ofPath("c2s_login"))
+            .networkProtocolVersion(()->PROTOCOL_VERSION)
+            .serverAcceptedVersions(s -> true)
+            .clientAcceptedVersions(s -> true)
+            .simpleChannel();
+    *///?} elif < 1.20.4 {
+    NetworkRegistry.newSimpleChannel(
+        new ResourceLocation(BrickLibAPI.MOD_ID, "c2s_login"),
                     () -> PROTOCOL_VERSION,
-                    PROTOCOL_VERSION::equals,
-                    PROTOCOL_VERSION::equals
+    PROTOCOL_VERSION::equals,
+    PROTOCOL_VERSION::equals
             );
     //?} else {
     /*ChannelBuilder.named(BrickLibAPI.ofPath("c2s_login"))
@@ -88,6 +102,7 @@ public class ForgePlatform {
             .serverAcceptedVersions(Channel.VersionTest.exact(1))
             .clientAcceptedVersions(Channel.VersionTest.exact(1))
             .simpleChannel();
+
     *///?}
 
     public static final SimpleChannel s2cPlayChannel = //? if <1.20.4 {
@@ -134,11 +149,35 @@ public class ForgePlatform {
                         .encoder((msg, buf) -> c2S.encoder().accept(msg, new PacketContent((FriendlyByteBuf) buf)))
                         .decoder(buf -> c2S.decoder().apply(new PacketContent((FriendlyByteBuf) buf)));
                 if (c2S.netHandle()) {
+                    //? if > 1.18.2 {
                     command.consumerNetworkThread((msg, contextSupplier) -> {
-                        c2S.packetHandler().accept(msg, new C2SNetworkContext(/*? <1.20.4 {*/ contextSupplier.get().getSender() /*?} else {*//*contextSupplier.getSender()*//*?}*/));
+                        c2S.packetHandler().accept(msg, new C2SNetworkContext(
+                            //? if <1.20.4 {
+                            contextSupplier.get().getSender()
+                            //?} else {
+                            /*contextSupplier.getSender()
+                            *///?}
+                        ));
                     });
+                    //?} else {
+                    /*command.consumer((msg, contextSupplier) -> {
+                        c2S.packetHandler().accept(msg, new C2SNetworkContext(/^? <1.20.4 {^/ contextSupplier.get().getSender() /^?} else {^//^contextSupplier.getSender()^//^?}^/));
+                    });
+                    *///?}
                 } else {
-                    command.consumerMainThread((msg, contextSupplier) -> c2S.packetHandler().accept(msg, new C2SNetworkContext(/*? <1.20.4 {*/ contextSupplier.get().getSender() /*?} else {*//*contextSupplier.getSender()*//*?}*/)));
+                    //? if > 1.18.2 {
+                    command.consumerMainThread((msg, contextSupplier) -> c2S.packetHandler().accept(msg, new C2SNetworkContext(
+                        //? if <1.20.4 {
+                        contextSupplier.get().getSender()
+                        //?} else {
+                        /*contextSupplier.getSender()
+                        *///?}
+                    )));
+                    //?} else {
+                    /*command.consumer((c2SPacket, contextSupplier) -> {
+                        c2S.packetHandler().accept(c2SPacket, new C2SNetworkContext(/^? <1.20.4 {^/ contextSupplier.get().getSender() /^?} else {^//^contextSupplier.getSender()^//^?}^/));
+                    });
+                    *///?}
                 }
                 command.add();
             }
@@ -147,6 +186,7 @@ public class ForgePlatform {
                         .messageBuilder(s2C.type(), s2cID.getAndIncrement(), NetworkDirection.PLAY_TO_CLIENT)
                         .encoder((msg, buf) -> s2C.encoder().accept(msg, new PacketContent((FriendlyByteBuf) buf)))
                         .decoder(buf -> s2C.decoder().apply(new PacketContent((FriendlyByteBuf) buf)));
+                //? if > 1.18.2 {
                 if (s2C.netHandle()) {
                     command.consumerNetworkThread((msg, contextSupplier) -> {
                         s2C.packetHandler().accept(msg, new S2CNetworkContext());
@@ -156,6 +196,17 @@ public class ForgePlatform {
                         s2C.packetHandler().accept(msg, new S2CNetworkContext());
                     });
                 }
+                //?} else {
+                /*if (s2C.netHandle()) {
+                    command.consumer((msg, contextSupplier) -> {
+                        s2C.packetHandler().accept(msg, new S2CNetworkContext());
+                    });
+                } else {
+                    command.consumer((msg, contextSupplier) -> {
+                        s2C.packetHandler().accept(msg, new S2CNetworkContext());
+                    });
+                }
+                *///?}
                 command.add();
             }
             else if (packetConfig instanceof PacketConfig.SAC sac) {
@@ -163,6 +214,7 @@ public class ForgePlatform {
                         .messageBuilder(sac.type(), s2cID.getAndIncrement(), NetworkDirection.PLAY_TO_CLIENT)
                         .encoder((msg, buf) -> sac.encoder().accept(msg, new PacketContent((FriendlyByteBuf) buf)))
                         .decoder(buf -> sac.decoder().apply(new PacketContent((FriendlyByteBuf) buf)));
+                //? if > 1.18.2 {
                 if (sac.netHandle()) {
                     s2cBuilder.consumerNetworkThread((msg, contextSupplier) -> {
                         sac.clientHandler().accept(msg, new S2CNetworkContext());
@@ -172,32 +224,75 @@ public class ForgePlatform {
                         sac.clientHandler().accept(msg, new S2CNetworkContext());
                     });
                 }
+                //?} else {
+                /*if (sac.netHandle()) {
+                    s2cBuilder.consumer((msg, contextSupplier) -> {
+                        sac.clientHandler().accept(msg, new S2CNetworkContext());
+                    });
+                } else {
+                    s2cBuilder.consumer((msg, contextSupplier) -> {
+                        sac.clientHandler().accept(msg, new S2CNetworkContext());
+                    });
+                }
+                *///?}
                 s2cBuilder.add();
                 SimpleChannel.MessageBuilder<? extends SACPacket> c2sBuilder = c2sPlayChannel
                         .messageBuilder(sac.type(), c2sID.getAndIncrement(), NetworkDirection.PLAY_TO_SERVER)
                         .encoder((msg, buf) -> sac.encoder().accept(msg, new PacketContent((FriendlyByteBuf) buf)))
                         .decoder(buf -> sac.decoder().apply(new PacketContent((FriendlyByteBuf) buf)));
+                //? if > 1.18.2 {
                 if (sac.netHandle()) {
                     c2sBuilder.consumerNetworkThread((msg, contextSupplier) -> {
-                        sac.serverHandler().accept(msg, new C2SNetworkContext(/*? <1.20.4 {*/ contextSupplier.get().getSender() /*?} else {*//*contextSupplier.getSender()*//*?}*/));
+                        sac.serverHandler().accept(msg, new C2SNetworkContext(
+                                //? if <1.20.4 {
+                                contextSupplier.get().getSender()
+                                //?} else {
+                                /*contextSupplier.getSender()
+                                *///?}
+                        ));
                     });
                 } else {
-                    c2sBuilder.consumerMainThread((msg, contextSupplier) -> sac.serverHandler().accept(msg, new C2SNetworkContext(/*? <1.20.4 {*/ contextSupplier.get().getSender() /*?} else {*//*contextSupplier.getSender()*//*?}*/)));
+                    c2sBuilder.consumerMainThread((msg, contextSupplier) -> sac.serverHandler().accept(msg, new C2SNetworkContext(
+                        //? if <1.20.4 {
+                        contextSupplier.get().getSender()
+                        //?} else {
+                        /*contextSupplier.getSender()
+                        *///?}
+                    )));
                 }
+                //?} else {
+                /*if (sac.netHandle()) {
+                    c2sBuilder.consumer((msg, contextSupplier) -> {
+                        sac.serverHandler().accept(msg, new C2SNetworkContext(/^? <1.20.4 {^/ contextSupplier.get().getSender() /^?} else {^//^contextSupplier.getSender()^//^?}^/));
+                    });
+                } else {
+                    c2sBuilder.consumer((sacPacket, contextSupplier) -> {
+                        sac.serverHandler().accept(sacPacket, new C2SNetworkContext(/^? <1.20.4 {^/ contextSupplier.get().getSender() /^?} else {^//^contextSupplier.getSender()^//^?}^/));
+                    });
+                }
+                *///?}
                 c2sBuilder.add();
             }
             else if (packetConfig instanceof PacketConfig.Login login) {
                 //? if < 1.20.4 {
                 if(DemoReplyPacket.class.isAssignableFrom(login.type())){
                     SimpleChannel.MessageBuilder<? extends LoginPacket> c2sBuilder = c2sLoginChannel
-                            .messageBuilder(login.type(), c2sID.getAndIncrement(), NetworkDirection.LOGIN_TO_SERVER)
-                            .encoder((o, o2) -> login.encoder().accept(o,new PacketContent((FriendlyByteBuf) o2)))
-                            .decoder(buf -> login.c2sDecoder().apply(new PacketContent((FriendlyByteBuf) buf)));
-                    c2sBuilder.loginIndex(LoginPacket::getLoginIndex, LoginPacket::setLoginIndex)
-                            .buildLoginPacketList(login.packetGenerator());
-                    c2sBuilder.consumerNetworkThread(HandshakeHandler.indexFirst((handshakeHandler, intSupplier, supplier) -> {
-                        supplier.get().setPacketHandled(true);
-                    })).add();
+                            .messageBuilder(DemoReplyPacket.class, 999, NetworkDirection.LOGIN_TO_SERVER)
+                            .encoder((o, o2) -> {})
+                            .decoder(buf -> new DemoReplyPacket());
+                    c2sBuilder.loginIndex(LoginPacket::getLoginIndex, LoginPacket::setLoginIndex);
+                    //? if > 1.18.2 {
+                    c2sBuilder.consumerNetworkThread(
+                        HandshakeHandler.indexFirst((handshakeHandler, intSupplier, supplier) ->
+                            supplier.get().setPacketHandled(true)));
+                    //?} else {
+                    /*c2sBuilder.consumer(
+                        HandshakeHandler.indexFirst((handshakeHandler, intSupplier, supplier) -> {
+                            supplier.get().setPacketHandled(true);
+                        }));
+                    *///?}
+                    c2sBuilder.add();
+
                 }
                 SimpleChannel.MessageBuilder<? extends LoginPacket> s2cBuilder = s2cLoginChannel
                         .messageBuilder(login.type(), s2cID.getAndIncrement(), NetworkDirection.LOGIN_TO_CLIENT)
@@ -205,10 +300,19 @@ public class ForgePlatform {
                         .decoder( buf -> login.s2cDecoder().apply(new PacketContent((FriendlyByteBuf) buf)));
                 s2cBuilder.loginIndex(LoginPacket::getLoginIndex, LoginPacket::setLoginIndex)
                         .buildLoginPacketList(login.packetGenerator());
+                //? if > 1.18.2 {
                 s2cBuilder.consumerMainThread((s2CLoginPacket, contextSupplier) -> {
-                    login.clientHandler().accept(s2CLoginPacket,new S2CNetworkContext());
-                    c2sLoginChannel.reply(new DemoReplyPacket(),contextSupplier.get());
-                }).add();
+                    login.clientHandler().accept(s2CLoginPacket, new S2CNetworkContext());
+                    c2sLoginChannel.reply(new DemoReplyPacket(), contextSupplier.get());
+                })
+                //?} else {
+                /*s2cBuilder.consumer((s2CLoginPacket, contextSupplier) -> {
+                        login.clientHandler().accept(s2CLoginPacket, new S2CNetworkContext());
+                        contextSupplier.get().setPacketHandled(true);
+                        c2sLoginChannel.reply(new DemoReplyPacket(), contextSupplier.get());
+                    })
+                    *///?}
+                    .add();
                 //?} else {
                 /*loginPacket(login);
                 *///?}

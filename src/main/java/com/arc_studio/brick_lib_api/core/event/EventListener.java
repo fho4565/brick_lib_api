@@ -2,7 +2,9 @@ package com.arc_studio.brick_lib_api.core.event;
 
 @FunctionalInterface
 public interface EventListener<T extends BaseEvent> {
-    // 事件处理方法
+    /**
+     * 事件处理方法
+     * */
     void handle(T event);
 
     default Priority getPriority() {

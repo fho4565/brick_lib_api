@@ -13,11 +13,12 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
 
 //? if < 1.20.4 {
 //?} else if <1.20.6 {
-import net.neoforged.bus.api.SubscribeEvent;
+/^import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.network.configuration.ICustomConfigurationTask;
 import net.neoforged.neoforge.network.event.OnGameConfigurationEvent;
@@ -28,7 +29,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.List;
 import java.util.function.Consumer;
 
-//?} else {
+^///?} else {
 /^import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.network.configuration.ICustomConfigurationTask;
 import net.neoforged.neoforge.network.event.RegisterConfigurationTasksEvent;
@@ -48,7 +49,11 @@ import java.util.function.Consumer;
 //? if < 1.20.6 {
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
 //?} else {
-/^@EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD)
+/^@EventBusSubscriber(
+        //? if < 1.21.1 {
+        bus = EventBusSubscriber.Bus.MOD
+        //?}
+)
 ^///?}
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class NeoForgePlatform {

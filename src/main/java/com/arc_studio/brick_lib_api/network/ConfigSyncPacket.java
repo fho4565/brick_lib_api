@@ -41,8 +41,13 @@ public class ConfigSyncPacket extends LoginPacket {
                 }
             }
             if (decompress != null) {
+                //? if >= 1.21.5 {
+                /*fileName = decompress.keySet().stream().findFirst().orElseThrow();
+                fileData = decompress.getByteArray(fileName).orElseThrow();
+                *///?} else {
                 fileName = decompress.getAllKeys().stream().findFirst().orElseThrow();
                 fileData = decompress.getByteArray(fileName);
+                //?}
             } else {
                 fileName = "";
                 fileData = new byte[0];

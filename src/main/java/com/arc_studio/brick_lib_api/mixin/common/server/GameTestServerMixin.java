@@ -14,7 +14,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class GameTestServerMixin {
     @Inject(method = "initServer",at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;setWeatherParameters(IIZZ)V"))
     public void serverAboutToStart(CallbackInfoReturnable<Boolean> cir){
-        Constants.installWorldVariables(getThis());
         ConfigTracker.loadConfigs(ModConfig.Type.SERVER, Constants.serverConfigFolder());
     }
     @Unique

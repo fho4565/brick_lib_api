@@ -53,7 +53,11 @@ public final class UpdateChecker {
             }
 
             TypeToken<List<ModrinthModInfo>> typeAdapter = new TypeToken<>() {};
-            List<ModrinthModInfo> infos = GSON.fromJson(body, typeAdapter);
+            List<ModrinthModInfo> infos = GSON.fromJson(body, typeAdapter
+                    //? if <= 1.19.2 {
+                    /*.getType()
+                    *///?}
+            );
             return infos != null ? infos : List.of();
         } catch (Exception e) {
             LOGGER.error("Unexpected error during Modrinth update check for project {}", projectId, e);
@@ -88,7 +92,11 @@ public final class UpdateChecker {
 
                         try {
                             TypeToken<List<ModrinthModInfo>> typeAdapter = new TypeToken<>() {};
-                            List<ModrinthModInfo> infos = GSON.fromJson(body, typeAdapter);
+                            List<ModrinthModInfo> infos = GSON.fromJson(body, typeAdapter
+                                    //? if <= 1.19.2 {
+                                    /*.getType()
+                                    *///?}
+                            );
                             LOGGER.debug("UpdateChecker.checkFromModrinth result {}",
                                     infos != null ? "not null" : "is null");
                             return infos != null ? infos : List.of();

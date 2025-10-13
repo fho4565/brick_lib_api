@@ -14,9 +14,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.IntSupplier;
 
 public abstract class LoginPacket extends Packet implements IntSupplier , IHandleablePacket
-//? if = 1.20.4 {
-/*, net.minecraft.network.protocol.Packet<ClientLoginPacketListener>
-*///?}
 {
     private int loginIndex;
 
@@ -43,30 +40,4 @@ public abstract class LoginPacket extends Packet implements IntSupplier , IHandl
     public abstract void serverHandle(C2SNetworkContext context);
 
     public abstract void clientHandle(S2CNetworkContext context);
-
-    //? if = 1.20.4 {
-    /*@Override
-    public void write(FriendlyByteBuf arg) {
-        encoder(new PacketContent(arg));
-    }
-
-    //? if < 1.20.6 {
-    @Override
-    public void handle(ClientLoginPacketListener handler) {
-
-    }
-    //?}
-    *///?}
-
-    /*@Override
-    public void handle(ClientLoginPacketListener handler) {
-        clientHandle(new S2CNetworkContext());
-    }*/
-
-    //? if < 1.20.6 && >=1.20.4 {
-    /*@Override
-    public @Nullable ConnectionProtocol nextProtocol() {
-        return ConnectionProtocol.LOGIN;
-    }
-    *///?}
 }

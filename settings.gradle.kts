@@ -33,7 +33,7 @@ pluginManagement {
         maven("https://mirrors.qlu.edu.cn/bmclapi/")
     }
     plugins {
-        kotlin("jvm") version "1.9.24"
+        kotlin("jvm") version "2.2.0"
     }
 }
 
@@ -43,32 +43,32 @@ plugins {
 }
 
 stonecutter {
+    kotlinController = true
+    centralScript = "build.gradle.kts"
     create(rootProject){
-        /*vers("1.16.5-fabric","1.16.5")
-        vers("1.16.5-forge","1.16.5")
-        vers("1.18.2-fabric","1.18.2")
-        vers("1.18.2-forge","1.18.2")
-        vers("1.19.2-fabric","1.19.2")
-        vers("1.19.2-forge","1.19.2")
-        vers("1.19.4-fabric","1.19.4")
-        vers("1.19.4-forge","1.19.4")*/
-        vers("1.20.1-fabric","1.20.1")
-        vers("1.20.1-forge","1.20.1")
-        vers("1.20.4-fabric","1.20.4")
-        vers("1.20.4-forge","1.20.4")
-        vers("1.20.4-neoforge","1.20.4")
-        vers("1.20.6-fabric","1.20.6")
-        vers("1.20.6-neoforge","1.20.6")
-        vers("1.21-fabric","1.21")
-        vers("1.21-neoforge","1.21")
-        vers("1.21.1-fabric","1.21.1")
-        vers("1.21.1-neoforge","1.21.1")
-        /*vers("1.21.2+3-fabric","1.21.2")
-        vers("1.21.2+3-neoforge","1.21.2")
-        vers("1.21.4-fabric","1.21.4")
-        vers("1.21.4-neoforge","1.21.4")
-        vers("1.21.5-fabric","1.21.5")
-        vers("1.21.5-neoforge","1.21.5")*/
+        version("1.18.2-fabric","1.18.2")
+        version("1.18.2-forge","1.18.2")
+        version("1.19.2-fabric","1.19.2")
+        version("1.19.2-forge","1.19.2")
+        version("1.19.4-fabric","1.19.4")
+        version("1.19.4-forge","1.19.4")
+        version("1.20.1-fabric","1.20.1")
+        version("1.20.1-forge","1.20.1")
+        version("1.20.4-fabric","1.20.4")
+        version("1.20.4-forge","1.20.4")
+        version("1.20.4-neoforge","1.20.4")
+        version("1.20.6-fabric","1.20.6")
+        version("1.20.6-neoforge","1.20.6")
+        version("1.21-fabric","1.21")
+        version("1.21-neoforge","1.21")
+        version("1.21.1-fabric","1.21.1")
+        version("1.21.1-neoforge","1.21.1")
+        version("1.21.2+3-fabric","1.21.3")
+        version("1.21.2+3-neoforge","1.21.3")
+        version("1.21.4-fabric","1.21.4")
+        version("1.21.4-neoforge","1.21.4")
+        version("1.21.5-fabric","1.21.5")
+        version("1.21.5-neoforge","1.21.5")
         vcsVersion="1.20.1-forge"
     }
 }

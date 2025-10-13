@@ -35,7 +35,6 @@ public class ModConfig {
         this.spec = spec;
         this.fileName = fileName;
         this.modId = modId;
-        ConfigTracker.trackConfig(this);
     }
 
     public static String defaultConfigName(Type type, String modId) {
@@ -75,7 +74,7 @@ public class ModConfig {
     }
 
     public void acceptSyncedConfig(byte[] bytes) {
-        this.setConfigData((CommentedConfig)TomlFormat.instance().createParser().parse(new ByteArrayInputStream(bytes)));
+        this.setConfigData(TomlFormat.instance().createParser().parse(new ByteArrayInputStream(bytes)));
         BrickEventBus.postEvent(new ConfigEvent.Reload(this));
     }
 

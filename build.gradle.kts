@@ -1,3 +1,4 @@
+import net.fabricmc.loom.util.Constants
 import java.util.Optional
 import java.util.function.BiConsumer
 import java.util.function.Consumer
@@ -22,11 +23,12 @@ import kotlin.text.substring
 // TODO 确认此处添加的插件
 plugins {
     `maven-publish`
-    //kotlin("jvm") version "1.9.22"
+    kotlin("jvm") version "2.2.0"
     //id("fabric-loom") // Leaving this here if you want to swap loom.
+    id("dev.kikugie.stonecutter")
     id("dev.architectury.loom")
     //id("dev.kikugie.j52j") // Recommended by kiku if using swaps in json5.
-    id("me.modmuss50.mod-publish-plugin")
+    //id("me.modmuss50.mod-publish-plugin")
 }
 
 // 依赖项仓库，在下面的会被优先解析
@@ -41,7 +43,7 @@ repositories {
     maven("https://maven.aliyun.com/repository/gradle-plugin")
     maven("https://maven.parchmentmc.org")
     maven("https://modmaven.dev/")
-    maven("https://mirrors.imucraft.cn")
+    //maven("https://mirrors.imucraft.cn")
     maven("https://mirror.nyist.edu.cn")
     maven("https://mirrors.qlu.edu.cn/")
     exclusiveContent {
@@ -513,25 +515,21 @@ val dynamics = SpecialMultiversionedConstants()
 version = "${mod.version}+${env.mcVersion.min}+${env.loader}"
 group = property("group").toString()
 
-// Adds both optional and required dependencies to stonecutter version checking.
-dependencies.forEachAfter{mid, ver ->
-    stonecutter.dependency(mid,ver.min)
-}
 apis.forEach{ src ->
     src.modInfo.modid?.let {
-        stonecutter.const(it,src.enabled)
+        stonecutter.constants[it] = src.enabled
         src.versionRange.ifPresent{ ver ->
-            stonecutter.dependency(it,ver.min)
+            stonecutter.dependencies[it] = ver.min;
         }
     }
 }
 
 //TODO: 在此处添加更多 stonecutter 常量。
-stonecutter.const("fabric",env.isFabric)
-stonecutter.const("forge",env.isForge)
-stonecutter.const("neoforge",env.isNeo)
-stonecutter.const("newnf",env.isNeo && env.atLeast("1.20.4"))
-stonecutter.const("oldnf",env.isNeo && env.atMost("1.20.3"))
+stonecutter.constants["fabric"] = env.isFabric
+stonecutter.constants["forge"] = env.isForge
+stonecutter.constants["neoforge"] = env.isNeo
+stonecutter.constants["newnf"] = env.isNeo && env.atLeast("1.20.4")
+stonecutter.constants["oldnf"] = env.isNeo && env.atMost("1.20.3")
 
 
 
@@ -553,7 +551,7 @@ loom {
     }
 
     runConfigs.all {
-        ideConfigGenerated(stonecutter.current.isActive)
+        ideConfigGenerated(true)
         vmArgs("-Dmixin.debug.export=true")
         runDir = "../../run"
     }
@@ -569,7 +567,9 @@ dependencies {
 
     mappings(loom.layered() {
         officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-${env.mcVersion.min}:${env.parchmentVersions[env.mcVersion.min]}@zip")
+        if (env.atLeast("1.16.5")){
+            parchment("org.parchmentmc.data:parchment-${env.mcVersion.min}:${env.parchmentVersions[env.mcVersion.min]}@zip")
+        }
     })
 
     if(env.isFabric) {
@@ -650,153 +650,66 @@ if(env.atMost("1.20.6")){
     tasks.replace("processResources",ProcessResourcesExtension::class)
 }
 
-tasks.processResources {
-    val map = mapOf<String,String>(
-        "modid" to mod.id,
-        "id" to mod.id,
-        "name" to mod.displayName,
-        "display_name" to mod.displayName,
-        "version" to mod.version,
-        "description" to mod.description,
-        "authors" to mod.authors,
-        "github_url" to mod.sourceUrl,
-        "source_url" to mod.sourceUrl,
-        "website" to mod.generalWebsite,
-        "icon" to mod.icon,
-        "fabric_common_entry" to modFabric.commonEntry,
-        "fabric_client_entry" to modFabric.clientEntry,
-        "mc_min" to env.mcVersion.min,
-        "mc_max" to env.mcVersion.max,
-        "issue_tracker" to mod.issueTracker,
-        "java_ver" to env.javaVer.toString(),
-        "forgelike_loader_ver" to dynamics.forgelikeLoaderVer,
-        "forgelike_api_ver" to dynamics.forgelikeAPIVer,
-        "loader_id" to env.loader,
-        "license" to mod.license,
-        "mixin_field" to dynamics.mixinField,
-        "aw_field" to dynamics.awField,
-        "dependencies_field" to dynamics.dependenciesField
-    )
-    map.forEach{ (key, value) ->
-        inputs.property(key,value)
+tasks {
+    processResources {
+        val map = mapOf<String,String>(
+            "modid" to mod.id,
+            "id" to mod.id,
+            "name" to mod.displayName,
+            "display_name" to mod.displayName,
+            "version" to mod.version,
+            "description" to mod.description,
+            "authors" to mod.authors,
+            "github_url" to mod.sourceUrl,
+            "source_url" to mod.sourceUrl,
+            "website" to mod.generalWebsite,
+            "icon" to mod.icon,
+            "fabric_common_entry" to modFabric.commonEntry,
+            "fabric_client_entry" to modFabric.clientEntry,
+            "mc_min" to env.mcVersion.min,
+            "mc_max" to env.mcVersion.max,
+            "issue_tracker" to mod.issueTracker,
+            "java_ver" to env.javaVer.toString(),
+            "forgelike_loader_ver" to dynamics.forgelikeLoaderVer,
+            "forgelike_api_ver" to dynamics.forgelikeAPIVer,
+            "loader_id" to env.loader,
+            "license" to mod.license,
+            "mixin_field" to dynamics.mixinField,
+            "aw_field" to dynamics.awField,
+            "dependencies_field" to dynamics.dependenciesField
+        )
+        map.forEach{ (key, value) ->
+            inputs.property(key,value)
+        }
+        dynamics.excludes.forEach{file->
+            exclude(file)
+        }
+        filesMatching("pack.mcmeta") {
+            expand(map)
+        }
+        filesMatching("fabric.mod.json") {
+            expand(map)
+        }
+        filesMatching("META-INF/mods.toml") { expand(map) }
+        filesMatching("META-INF/neoforge.mods.toml") { expand(map) }
+        for (str in modMixins.getMixins(env.type)) {
+            filesMatching(str) { expand(map) }
+        }
+        filesMatching(modAWs.vanillaAW) { expand(map) }
     }
-    dynamics.excludes.forEach{file->
-        exclude(file)
+    register<Copy>("buildAndCollect") {
+        group = "build"
+        from(remapJar.map { it.archiveFile }, remapSourcesJar.map { it.archiveFile })
+        into(rootProject.layout.buildDirectory.file("libs/${mod.id}-${project.property("version")}"))
+        dependsOn("build")
     }
-    filesMatching("pack.mcmeta") { expand(map) }
-    filesMatching("fabric.mod.json") { expand(map) }
-    filesMatching("META-INF/mods.toml") { expand(map) }
-    filesMatching("META-INF/neoforge.mods.toml") { expand(map) }
-    for (str in modMixins.getMixins(env.type)) {
-        filesMatching(str) { expand(map) }
-    }
-    filesMatching(modAWs.vanillaAW) { expand(map) }
 }
-
+tasks.named("processResources") {
+    dependsOn(":${stonecutter.current.project}:stonecutterGenerate")
+}
 tasks.test {
     useJUnitPlatform()
     testLogging {
         events("passed", "skipped", "failed")
     }
 }
-
-tasks {
-    register<Copy>("buildAndCollect") {
-        group = "build"
-        from(remapJar.map { it.archiveFile }, remapSourcesJar.map { it.archiveFile })
-        into(rootProject.layout.buildDirectory.file("libs/${project.property("mod.version")}"))
-        dependsOn("build")
-    }
-}
-
-//TODO: 启用自动发布。
-/*publishMods {
-    file = tasks.remapJar.get().archiveFile
-    additionalFiles.from(tasks.remapSourcesJar.get().archiveFile)
-    displayName = "${mod.displayName} ${mod.version} for ${env.mcVersion.min}"
-    version = mod.version
-    changelog = rootProject.file("CHANGELOG.md").readText()
-    type = STABLE
-    modLoaders.add(env.loader)
-
-    dryRun = modPublish.dryRunMode
-
-    modrinth {
-        projectId = modPublish.modrinthProjectToken
-        // Get one here: https://modrinth.com/settings/pats, enable read, write, and create Versions ONLY!
-        accessToken = providers.environmentVariable("MODRINTH_TOKEN")
-        minecraftVersions.addAll(modPublish.mcTargets)
-        apis.forEach{ src ->
-            if(src.enabled) src.versionRange.ifPresent{ ver ->
-                if(src.type.isOptional()){
-                    src.modInfo.rinthSlug?.let {
-                        optional {
-                            slug = it
-                            version = ver.min
-
-                        }
-                    }
-                }
-                else{
-                    src.modInfo.rinthSlug?.let {
-                        requires {
-                            slug = it
-                            version = ver.min
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    curseforge {
-        projectId = modPublish.curseforgeProjectToken
-        // Get one here: https://legacy.curseforge.com/account/api-tokens
-        accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
-        minecraftVersions.addAll(modPublish.mcTargets)
-        apis.forEach{ src ->
-            if(src.enabled) src.versionRange.ifPresent{ ver ->
-                if(src.type.isOptional()){
-                    src.modInfo.curseSlug?.let {
-                        optional {
-                            slug = it
-                            version = ver.min
-
-                        }
-                    }
-                }
-                else{
-                    src.modInfo.curseSlug?.let {
-                        requires {
-                            slug = it
-                            version = ver.min
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-// TODO 如果不上传到 Maven，则禁用
-publishing {
-    repositories {
-        // TODO 我建议您怎么做的示例
-        if(modPublish.mavenURL.isPresent) {
-            maven {
-                url = uri(modPublish.mavenURL.get())
-                credentials {
-                    username = System.getenv("MVN_NAME")
-                    password = System.getenv("MVN_KEY")
-                }
-            }
-        }
-    }
-    publications {
-        create<MavenPublication>("mavenJava"){
-            groupId = project.group.toString()
-            artifactId = env.archivesBaseName
-            version = project.version.toString()
-            from(components["java"])
-        }
-    }
-}*/

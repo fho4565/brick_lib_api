@@ -2,6 +2,9 @@ package com.arc_studio.brick_lib_api.core.data;
 
 import com.arc_studio.brick_lib_api.BrickLibAPI;
 import com.arc_studio.brick_lib_api.Constants;
+//? if >= 1.21.5 {
+/*import net.minecraft.core.UUIDUtil;*/
+//?}
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtIo;
@@ -18,7 +21,7 @@ import java.util.function.Consumer;
  * 在实体上的额外数据
  * <p color = "red">当UUID对应的实体丢失时，储存的数据会丢失</p>
  * */
-public abstract class EntityAdditionalData extends BaseAdditionalData {
+public class EntityAdditionalData extends BaseAdditionalData {
     private static final HashMap<UUID, EntityAdditionalData> map = new HashMap<>();
 
     public static EntityAdditionalData getData(UUID uuid) {
@@ -52,7 +55,11 @@ public abstract class EntityAdditionalData extends BaseAdditionalData {
         for (UUID uuid : map.keySet()) {
             EntityAdditionalData extraData = map.get(uuid);
             CompoundTag compoundTag = new CompoundTag();
-            compoundTag.putUUID("uuid",uuid);
+            //? if >= 1.21.5 {
+            /*compoundTag.putIntArray("uuid", UUIDUtil.uuidToIntArray(uuid));
+            *///?} else {
+            compoundTag.putUUID("uuid", uuid);
+            //?}
             compoundTag.put("data",extraData.data);
             list.add(compoundTag);
         }
@@ -85,16 +92,29 @@ public abstract class EntityAdditionalData extends BaseAdditionalData {
             BrickLibAPI.LOGGER.error(e.toString());
             root = new CompoundTag();
         }
-        ListTag list = root.getList("data", 10);
+        ListTag list = //? if >= 1.21.5 {
+            /*root.getList("data").orElse(new ListTag());
+        *///?} else {
+         root.getList("data", 10);
+        //?}
         for (int i = 0; i < list.size(); i++) {
-            CompoundTag compoundTag = list.getCompound(i);
-            UUID uuid = compoundTag.getUUID("uuid");
-            CompoundTag data = compoundTag.getCompound("data");
-            EntityAdditionalData extraData = new EntityAdditionalData() {
-                @Override
-                public void onDelete() {
-                }
-            };
+            CompoundTag compoundTag = list.getCompound(i)
+                //? if >= 1.21.5 {
+                /*.orElse(new CompoundTag())
+                *///?}
+                ;
+            UUID uuid =
+                //? if >= 1.21.5 {
+                /*UUIDUtil.uuidFromIntArray(compoundTag.getIntArray("uuid").orElseThrow());
+            *///?} else {
+            compoundTag.getUUID("uuid");
+            //?}
+            CompoundTag data = compoundTag.getCompound("data")
+                //? if >= 1.21.5 {
+                /*.orElse(new CompoundTag())
+                *///?}
+                ;
+            EntityAdditionalData extraData = new EntityAdditionalData();
             extraData.data = data;
             map.put(uuid,extraData);
         }

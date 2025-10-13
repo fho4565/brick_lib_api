@@ -9,11 +9,14 @@
     "ReloadableResourceManagerMixin",
     "server.DedicatedServerMixin",
     "server.GameTestServerMixin",
-    "server.MainMixin"
+    "server.MainMixin",
+    "server.MinecraftServerMixin"
   ],
   "client": [
     "client.ClientHandshakePacketListenerImplMixin",
+    "client.ClientPacketListenerMixin",
     "client.GameLoadTimesEventMixin",
+    "client.LocalPlayerMixin",
     "client.MinecraftMixin",
     "server.IntegratedServerMixin"
   ],

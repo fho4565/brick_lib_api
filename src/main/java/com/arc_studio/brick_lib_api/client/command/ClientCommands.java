@@ -21,9 +21,15 @@ import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
+import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.Component;
+//? if <= 1.18.2 {
+/*import net.minecraft.network.chat.TextComponent;
+
+*///?}
 import org.jetbrains.annotations.Nullable;
 /**
  * This class includes a modified version of Minecraft Fabric API, which is licensed under the Apache License, Version 2.0.
@@ -37,31 +43,53 @@ public final class ClientCommands {
 	private ClientCommands() {
 	}
 
+    /**
+     * 核心命令调度程序，用于注册、解析和执行客户端命令。
+     * */
 	public static @Nullable CommandDispatcher<ClientSuggestionProvider> getActiveDispatcher() {
 		return ClientCommandInternals.getActiveDispatcher();
 	}
 
+    /**
+     * 一个字面量
+     * */
 	public static LiteralArgumentBuilder<ClientSuggestionProvider> literal(String name) {
 		return LiteralArgumentBuilder.literal(name);
 	}
-
+    /**
+     * 一个参数
+     * */
 	public static <T> RequiredArgumentBuilder<ClientSuggestionProvider, T> argument(String name, ArgumentType<T> type) {
 		return RequiredArgumentBuilder.argument(name, type);
 	}
 
+    /**
+     * 发送命令反馈
+     * */
 	public static void sendFeedback(Component message){
         SideExecutor.runOnClient(() -> () -> {
             Minecraft client = Minecraft.getInstance();
+            //? if > 1.18.2 {
             client.gui.getChat().addMessage(message);
             client.getNarrator().sayNow(message);
+            //?} else {
+            /*client.gui.handleChat(ChatType.SYSTEM,message, Util.NIL_UUID);
+            *///?}
         });
 	}
 
+    /**
+     * 发送错误反馈
+     * */
 	public static void sendError(Component message){
         SideExecutor.runOnClient(() -> () -> {
             Minecraft client = Minecraft.getInstance();
+            //? if > 1.18.2 {
             client.gui.getChat().addMessage(Component.literal("").append(message).withStyle(ChatFormatting.RED));
             client.getNarrator().sayNow(Component.literal("").append(message).withStyle(ChatFormatting.RED));
+            //?} else {
+            /*client.gui.handleChat(ChatType.SYSTEM,new TextComponent("").append(message).withStyle(ChatFormatting.RED), Util.NIL_UUID);
+            *///?}
         });
 	}
 }

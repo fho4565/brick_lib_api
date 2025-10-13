@@ -10,6 +10,7 @@ import java.util.Set;
  * 跨平台通用的事件总线
  * <p>事件总线会自动匹配事件类型和相应的处理器，高优先级的处理器会被优先调用。当优先级更高的处理器尝试取消事件时，其后面的事件处理器均不会被调用</p>
  */
+@SuppressWarnings({"unchecked"})
 public final class BrickEventBus {
     private static final HashMap<Class<?>, HashSet<EventWrapper<?>>[]> SERVER_LISTENERS = new HashMap<>();
     private static final HashMap<Class<?>, HashSet<EventWrapper<?>>[]> CLIENT_LISTENERS = new HashMap<>();

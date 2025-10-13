@@ -17,7 +17,7 @@ import java.util.function.Consumer;
 /**
  * 在维度上的额外数据
  * */
-public abstract class LevelAdditionalData extends BaseAdditionalData {
+public class LevelAdditionalData extends BaseAdditionalData {
     private static final HashMap<ResourceKey<Level>, LevelAdditionalData> map = new HashMap<>();
     public static LevelAdditionalData getData(ResourceKey<Level> level) {
         return map.get(level);
@@ -82,16 +82,24 @@ public abstract class LevelAdditionalData extends BaseAdditionalData {
             BrickLibAPI.LOGGER.error(e.toString());
             root = new CompoundTag();
         }
-        ListTag list = root.getList("data", 10);
+        ListTag list = //? if >= 1.21.5 {
+            /*root.getList("data").orElse(new ListTag());
+        *///?} else {
+         root.getList("data", 10);
+        //?}
         for (int i = 0; i < list.size(); i++) {
-            CompoundTag compoundTag = list.getCompound(i);
+            CompoundTag compoundTag = list.getCompound(i)
+                //? if >= 1.21.5 {
+                /*.orElse(new CompoundTag())
+                *///?}
+                ;
             Tag level = compoundTag.get("level");
-            CompoundTag data = compoundTag.getCompound("data");
-            LevelAdditionalData levelExtraData = new LevelAdditionalData() {
-                @Override
-                public void onDelete() {
-                }
-            };
+            CompoundTag data = compoundTag.getCompound("data")
+                //? if >= 1.21.5 {
+                /*.orElse(new CompoundTag())
+                *///?}
+                ;
+            LevelAdditionalData levelExtraData = new LevelAdditionalData();
             levelExtraData.data = data;
             addData(Level.RESOURCE_KEY_CODEC.decode(NbtOps.INSTANCE,level).result().orElseThrow().getFirst(),levelExtraData);
         }

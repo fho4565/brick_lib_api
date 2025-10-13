@@ -14,7 +14,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class DedicatedServerMixin {
     @Inject(method = "initServer",at = @At(value = "INVOKE", target = "Lnet/minecraft/server/dedicated/DedicatedServer;setPlayerList(Lnet/minecraft/server/players/PlayerList;)V", shift = At.Shift.AFTER))
     public void serverAboutToStart(CallbackInfoReturnable<Boolean> cir){
-        Constants.installWorldVariables(getThis());
         ConfigTracker.loadConfigs(ModConfig.Type.SERVER, Constants.serverConfigFolder());
 
     }

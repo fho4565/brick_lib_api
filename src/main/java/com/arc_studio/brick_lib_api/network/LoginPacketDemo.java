@@ -4,6 +4,7 @@ import com.arc_studio.brick_lib_api.core.network.PacketContent;
 import com.arc_studio.brick_lib_api.core.network.context.C2SNetworkContext;
 import com.arc_studio.brick_lib_api.core.network.context.S2CNetworkContext;
 import com.arc_studio.brick_lib_api.core.network.type.LoginPacket;
+import com.arc_studio.brick_lib_api.platform.Platform;
 
 public class LoginPacketDemo extends LoginPacket {
     String msg = "";
@@ -19,7 +20,7 @@ public class LoginPacketDemo extends LoginPacket {
 
     @Override
     public void clientHandle(S2CNetworkContext context) {
-
+        System.out.println("LoginPacketDemo.clientHandle : msg = "+msg);
     }
 
     @Override

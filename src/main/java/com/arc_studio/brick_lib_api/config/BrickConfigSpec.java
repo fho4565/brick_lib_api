@@ -143,7 +143,7 @@ public class BrickConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableConfi
     }
 
     public synchronized int correct(CommentedConfig config, CorrectionListener listener, CorrectionListener commentListener) {
-        LinkedList<String> parentPath = new LinkedList<>(); //Linked list for fast add/removes
+        LinkedList<String> parentPath = new LinkedList<>();
         int ret = -1;
         try {
             isCorrecting = true;
@@ -256,6 +256,9 @@ public class BrickConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableConfi
         return Objects.equals(obj1, obj2);
     }
 
+    /**
+     * 快速创建BrickConfigSpec对象
+     * */
     public static class Builder {
         private final Config storage = Config.of(LinkedHashMap::new, InMemoryFormat.withUniversalSupport()); // Use LinkedHashMap for consistent ordering
         private final Map<List<String>, String> levelComments = new HashMap<>();
@@ -264,38 +267,93 @@ public class BrickConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableConfi
         private final List<ConfigValue<?>> values = new ArrayList<>();
         private BuilderContext context = new BuilderContext();
 
-        //Object
+        /**
+         * 定义配置项，指定路径和默认值
+         *
+         * @param <T> 值的类型
+         * @param path 配置项的路径，可以使用"."来分割多个路径
+         * @param defaultValue 配置项的默认值
+         * @return ConfigValue对象，用于获取和操作配置值
+         */
         public <T> ConfigValue<T> define(String path, T defaultValue) {
             return define(split(path), defaultValue);
         }
 
+        /**
+         * 定义配置项，指定路径和默认值
+         *
+         * @param <T> 值的类型
+         * @param path 配置项的路径
+         * @param defaultValue 配置项的默认值
+         * @return ConfigValue对象，用于获取和操作配置值
+         */
         public <T> ConfigValue<T> define(List<String> path, T defaultValue) {
             return define(path, defaultValue, o -> o != null && defaultValue.getClass().isAssignableFrom(o.getClass()));
         }
-
+        /**
+         * 定义配置项，指定路径，默认值和验证器
+         *
+         * @param <T> 值的类型
+         * @param path 配置项的路径，可以使用"."来分割多个路径
+         * @param defaultValue 配置项的默认值
+         * @param validator 配置项值的验证器
+         * @return ConfigValue对象，用于获取和操作配置值
+         */
         public <T> ConfigValue<T> define(String path, T defaultValue, Predicate<Object> validator) {
             return define(split(path), defaultValue, validator);
         }
-
+        /**
+         * 定义配置项，指定路径，默认值和验证器
+         *
+         * @param <T> 值的类型
+         * @param path 配置项的路径
+         * @param defaultValue 配置项的默认值
+         * @return ConfigValue对象，用于获取和操作配置值
+         */
         public <T> ConfigValue<T> define(List<String> path, T defaultValue, Predicate<Object> validator) {
             Objects.requireNonNull(defaultValue, "Default value can not be null");
             return define(path, () -> defaultValue, validator);
         }
-
+        /**
+         * 定义配置项，指定路径，默认值和验证器
+         *
+         * @param <T> 值的类型
+         * @param path 配置项的路径，可以使用"."来分割多个路径
+         * @param defaultSupplier 配置项的默认值的提供者
+         * @param validator 配置项值的验证器
+         * @return ConfigValue对象，用于获取和操作配置值
+         */
         public <T> ConfigValue<T> define(String path, Supplier<T> defaultSupplier, Predicate<Object> validator) {
             return define(split(path), defaultSupplier, validator);
         }
-
+        /**
+         * 定义配置项，指定路径，默认值和验证器
+         *
+         * @param <T> 值的类型
+         * @param path 配置项的路径
+         * @param defaultSupplier 配置项的默认值的提供者
+         * @param validator 配置项值的验证器
+         * @return ConfigValue对象，用于获取和操作配置值
+         */
         public <T> ConfigValue<T> define(List<String> path, Supplier<T> defaultSupplier, Predicate<Object> validator) {
             return define(path, defaultSupplier, validator, Object.class);
         }
-
+        /**
+         * 定义配置项，指定路径，默认值，验证器和类型
+         *
+         * @param <T> 值的类型
+         * @param path 配置项的路径
+         * @param defaultSupplier 配置项的默认值的提供者
+         * @param validator 配置项值的验证器
+         * @param clazz 值的类型
+         * @return ConfigValue对象，用于获取和操作配置值
+         */
         public <T> ConfigValue<T> define(List<String> path, Supplier<T> defaultSupplier, Predicate<Object> validator, Class<?> clazz) {
             context.setClazz(clazz);
             return define(path, new ValueSpec(defaultSupplier, validator, context, path), defaultSupplier);
         }
 
-        public <T> ConfigValue<T> define(List<String> path, ValueSpec value, Supplier<T> defaultSupplier) { // This is the root where everything at the end of the day ends up.
+        public <T> ConfigValue<T> define(List<String> path, ValueSpec value, Supplier<T> defaultSupplier) {
             if (!currentPath.isEmpty()) {
                 List<String> tmp = new ArrayList<>(currentPath.size() + path.size());
                 tmp.addAll(currentPath);

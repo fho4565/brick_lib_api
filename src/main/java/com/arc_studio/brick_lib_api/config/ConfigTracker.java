@@ -2,6 +2,7 @@ package com.arc_studio.brick_lib_api.config;
 
 import com.arc_studio.brick_lib_api.core.event.BrickEventBus;
 import com.arc_studio.brick_lib_api.events.ConfigEvent;
+import com.arc_studio.brick_lib_api.register.BrickRegistries;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.mojang.logging.LogUtils;
@@ -12,6 +13,8 @@ import org.slf4j.MarkerFactory;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static com.arc_studio.brick_lib_api.BrickLibAPI.LOGGER;
 
 /**
  * This class is a modified version of ConfigTracker from the Minecraft Forge API,
@@ -61,10 +64,15 @@ public class ConfigTracker {
     }
 
     public static void loadConfigs(ModConfig.Type type, Path configBasePath) {
-        LOGGER.debug(CONFIG, "Loading configs type {}", type);
-        configSets.get(type).forEach(config -> {
-            openConfig(config, configBasePath);
+        BrickRegistries.CONFIG.forEach(config -> {
+            if (!config.getSpec().isEmpty()) {
+                ConfigTracker.trackConfig(config);
+            } else {
+                LOGGER.debug("Attempted to register an empty config {} ", config.getFileName());
+            }
         });
+        LOGGER.debug(CONFIG, "Loading configs type {}", type);
+        configSets.get(type).forEach(config -> openConfig(config, configBasePath));
     }
 
     public static void unloadConfigs(ModConfig.Type type, Path configBasePath) {

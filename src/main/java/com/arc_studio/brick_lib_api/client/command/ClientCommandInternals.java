@@ -31,6 +31,15 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentUtils;
+//? if >=1.21.2 {
+/*import net.minecraft.util.profiling.Profiler;
+import net.minecraft.util.profiling.ProfilerFiller;
+*///?}
+//? if <= 1.18.2 {
+/*import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+*///?}
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +58,8 @@ import static com.arc_studio.brick_lib_api.client.command.ClientCommands.literal
  *  <li>Modified to support cross-version requirements.</li>
  *  </ol>
  */
-final class ClientCommandInternals {
+@ApiStatus.Internal
+public final class ClientCommandInternals {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ClientCommandInternals.class);
     private static @Nullable CommandDispatcher<ClientSuggestionProvider> activeDispatcher;
 
@@ -77,7 +87,12 @@ final class ClientCommandInternals {
 
 		ClientSuggestionProvider commandSource = client.getConnection().getSuggestionsProvider();
 
-		client.getProfiler().push("[CLIENT COMMAND]"+command);
+        //? if >= 1.21.2 {
+        /*ProfilerFiller filler = Profiler.get();
+        filler.push("[CLIENT COMMAND]" + command);
+        *///?} else {
+        client.getProfiler().push("[CLIENT COMMAND]" + command);
+        //?}
 
 		try {
             if (activeDispatcher != null) {
@@ -102,7 +117,11 @@ final class ClientCommandInternals {
 			ClientCommands.sendError(Component.nullToEmpty(e.getMessage()));
 			return true;
 		} finally {
-			client.getProfiler().pop();
+            //? if >= 1.21.2 {
+            /*filler.pop();
+            *///?} else {
+            client.getProfiler().pop();
+            //?}
 		}
 	}
 
@@ -121,7 +140,13 @@ final class ClientCommandInternals {
 		Component message = ComponentUtils.fromMessage(e.getRawMessage());
 		String context = e.getContext();
 
-		return context != null ? Component.translatable("command.context.parse_error", message, e.getCursor(), context) : message;
+		return context != null ?
+            //? if > 1.18.2 {
+            Component.translatable("command.context.parse_error", message, e.getCursor(), context)
+            //?} else {
+            /*new TranslatableComponent("command.context.parse_error", message, e.getCursor(), context)
+            *///?}
+            : message;
 	}
 
 	public static void finalizeInit() {
@@ -135,8 +160,6 @@ final class ClientCommandInternals {
 												.executes(ClientCommandInternals::executeArgumentHelp)))
 				);
 			}
-
-
 			activeDispatcher.findAmbiguities((parent, child, sibling, inputs) -> LOGGER.warn("Ambiguity between arguments {} and {} with inputs: {}", activeDispatcher.getPath(child), activeDispatcher.getPath(sibling), inputs));
 		}else{
 			LOGGER.error("Error when finalizeInit,Dispatcher is null!");
@@ -152,7 +175,13 @@ final class ClientCommandInternals {
 		List<ParsedCommandNode<ClientSuggestionProvider>> nodes = parseResults.getContext().getNodes();
 
 		if (nodes.isEmpty()) {
-			throw new SimpleCommandExceptionType(Component.literal("AbstractNode is empty!")).create();
+			throw new SimpleCommandExceptionType(
+                //? if > 1.18.2 {
+                Component.literal("AbstractNode is empty!")
+                //?} else {
+                /*new TextComponent("AbstractNode is empty!")
+                *///?}
+            ).create();
 		}
 
 		return executeHelp(Iterables.getLast(nodes).getNode(), context);
@@ -162,7 +191,13 @@ final class ClientCommandInternals {
 		Map<CommandNode<ClientSuggestionProvider>, String> commands = activeDispatcher.getSmartUsage(startNode, context.getSource());
 
 		for (String command : commands.values()) {
-			ClientCommands.sendFeedback(Component.literal("/" + command));
+			ClientCommands.sendFeedback(
+                //? if > 1.18.2 {
+                Component.literal("/" + command)
+                //?} else {
+                /*new TextComponent("/" + command)
+                *///?}
+            );
 		}
 
 		return commands.size();

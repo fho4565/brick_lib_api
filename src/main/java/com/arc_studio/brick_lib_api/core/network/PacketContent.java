@@ -3,14 +3,21 @@ package com.arc_studio.brick_lib_api.core.network;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import com.mojang.authlib.properties.PropertyMap;
 import com.mojang.datafixers.util.Pair;
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 //? if > 1.20.4 {
-/*import net.minecraft.core.component.DataComponentMap;*/
-//?}
+/*import net.minecraft.core.component.DataComponentMap;
+*///?}
+//? if > 1.19.2 {
 import net.minecraft.core.registries.BuiltInRegistries;
+import org.joml.Vector3f;
+
+//?} else {
+/*import com.mojang.math.Vector3f;
+*///?}
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
@@ -20,10 +27,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
-import org.joml.Vector3f;
+
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -124,8 +132,27 @@ public class PacketContent {
         return this;
     }
 
+    /**
+     * mojang在1.19.2+版本改用了"org.joml.Vector3f"类，而在1.19.2及更早使用了com.mojang.math.Vector3f类
+     * <p color = "red">此处的Vector3f会随着版本改变而修改Vector3f类！</p>
+     * <p>建议使用{@link PacketContent#writeVector3f2(float, float, float)}</p>
+     * */
+    @Deprecated(since = "1.19.2")
     public PacketContent writeVector3f(Vector3f vector3f) {
+        //? if > 1.19.2 {
         friendlyByteBuf.writeVector3f(vector3f);
+        //?} else {
+        /*friendlyByteBuf.writeFloat(vector3f.x());
+        friendlyByteBuf.writeFloat(vector3f.y());
+        friendlyByteBuf.writeFloat(vector3f.z());
+        *///?}
+        return this;
+    }
+
+    public PacketContent writeVector3f2(float x,float y,float z){
+        friendlyByteBuf.writeFloat(x);
+        friendlyByteBuf.writeFloat(y);
+        friendlyByteBuf.writeFloat(z);
         return this;
     }
 
@@ -135,7 +162,11 @@ public class PacketContent {
     }
 
     public PacketContent writeResourceKey(ResourceKey<?> resourceKey) {
+        //? if > 1.18.2 {
         friendlyByteBuf.writeResourceKey(resourceKey);
+        //?} else {
+        /*friendlyByteBuf.writeResourceLocation(resourceKey.location());
+        *///?}
         return this;
     }
 
@@ -160,9 +191,22 @@ public class PacketContent {
                 buf.writeBoolean(false);
             }
         });
-        *///?} else {
+        *///?} elif > 1.18.2 {
         friendlyByteBuf.writeGameProfile(gameProfile);
-        //?}
+        //?} else {
+        /*friendlyByteBuf.writeUUID(gameProfile.getId());
+        friendlyByteBuf.writeUtf(gameProfile.getName());
+        friendlyByteBuf.writeCollection(gameProfile.getProperties().values(), (friendlyByteBuf, property) -> {
+            friendlyByteBuf.writeUtf(property.getName());
+            friendlyByteBuf.writeUtf(property.getValue());
+            if (property.hasSignature()) {
+                friendlyByteBuf.writeBoolean(true);
+                friendlyByteBuf.writeUtf(property.getSignature());
+            } else {
+                friendlyByteBuf.writeBoolean(false);
+            }
+        });
+        *///?}
         return this;
     }
 
@@ -229,8 +273,22 @@ public class PacketContent {
         return friendlyByteBuf.readBlockPos();
     }
 
+    /**
+     * mojang在1.19.2+版本改用了"org.joml.Vector3f"类，而在1.19.2及更早使用了com.mojang.math.Vector3f类
+     * <p color = "red">此处的Vector3f会随着版本改变而修改Vector3f类！</p>
+     * <p>建议使用{@link PacketContent#readVector3f2()}</p>
+     * */
+    @Deprecated(since = "1.19.2")
     public Vector3f readVector3f() {
+        //? if > 1.19.2 {
         return friendlyByteBuf.readVector3f();
+        //?} else {
+        /*return new Vector3f(friendlyByteBuf.readFloat(), friendlyByteBuf.readFloat(), friendlyByteBuf.readFloat());
+        *///?}
+    }
+
+    public float[] readVector3f2(){
+        return new float[]{friendlyByteBuf.readFloat(), friendlyByteBuf.readFloat(), friendlyByteBuf.readFloat()};
     }
 
     public ResourceLocation readResourceLocation() {
@@ -238,7 +296,12 @@ public class PacketContent {
     }
 
     public <T> ResourceKey<T> readResourceKey(ResourceKey<? extends Registry<T>> registryKey) {
+        //? if > 1.18.2 {
         return friendlyByteBuf.readResourceKey(registryKey);
+        //?} else {
+        /*ResourceLocation resourceLocation = this.readResourceLocation();
+        return ResourceKey.create(registryKey, resourceLocation);
+        *///?}
     }
 
     public CompoundTag readNBT() {
@@ -263,9 +326,28 @@ public class PacketContent {
             gameprofile.getProperties().put(property.name(), property);
         });
         return gameprofile;
-        *///?} else {
+        *///?} elif > 1.18.2 {
         return friendlyByteBuf.readGameProfile();
-        //?}
+        //?} else {
+        /*UUID uUID = friendlyByteBuf.readUUID();
+        String string = friendlyByteBuf.readUtf(16);
+        GameProfile gameProfile = new GameProfile(uUID, string);
+        PropertyMap propertyMap = new PropertyMap();
+        friendlyByteBuf.readWithCount(friendlyByteBuf -> {
+            String string1 = friendlyByteBuf.readUtf();
+            String string2 = friendlyByteBuf.readUtf();
+            Property property;
+            if (this.readBoolean()) {
+                String string3 = friendlyByteBuf.readUtf();
+                property = new Property(string1, string2, string3);
+            } else {
+                property = new Property(string1, string2);
+            }
+            propertyMap.put(property.getName(), property);
+        });
+        gameProfile.getProperties().putAll(propertyMap);
+        return gameProfile;
+        *///?}
     }
 
     public ChunkPos readChunkPos() {

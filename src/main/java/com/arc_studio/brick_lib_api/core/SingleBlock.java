@@ -23,7 +23,13 @@ public record SingleBlock(BlockPos blockPos,@Nullable BlockState blockState) {
         long pos = blockPos.asLong();
         compoundTag.putLong("pos", pos);
         if (this.blockState != null) {
-            Tag blockState = BlockState.CODEC.encodeStart(NbtOps.INSTANCE, this.blockState)/*? >=1.20.6 {*/ /*.getOrThrow() *//*?} else {*/.get().orThrow()/*?}*/;
+            Tag blockState = BlockState.CODEC.encodeStart(NbtOps.INSTANCE, this.blockState)
+                //? if >=1.20.6 {
+                /*.getOrThrow()
+                *///?} else {
+                .get().orThrow()
+                //?}
+                ;
             compoundTag.put("state", blockState);
         }
         return compoundTag;
@@ -33,7 +39,11 @@ public record SingleBlock(BlockPos blockPos,@Nullable BlockState blockState) {
      * 将CompoundTag对象反序列化成SingleBlock对象
      */
     public static SingleBlock deserialize(CompoundTag compoundTag) {
-        long pos = compoundTag.getLong("pos");
+        long pos = compoundTag.getLong("pos")
+            //? if >= 1.21.5 {
+            /*.orElse(0L)
+            *///?}
+            ;
         BlockState state = null;
         if (compoundTag.contains("state")) {
             state = BlockState.CODEC.decode(NbtOps.INSTANCE, compoundTag.get("state")).result().orElseThrow().getFirst();

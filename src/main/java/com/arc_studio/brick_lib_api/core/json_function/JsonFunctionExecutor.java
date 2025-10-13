@@ -10,6 +10,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * @author fho4565
@@ -81,7 +82,14 @@ public final class JsonFunctionExecutor {
         }
         JsonArray processed = new JsonArray();
         if (args != null) {
+            //? if > 1.19.2 {
             ArrayList<JsonElement> copied = new ArrayList<>(args.asList());
+            //?} else {
+            /*ArrayList<JsonElement> copied = new ArrayList<>();
+            for (JsonElement element : args) {
+                copied.add(element);
+            }
+            *///?}
             for (JsonElement value : copied) {
                 if(value.isJsonObject()) {
                     final Object obj = execute(String.valueOf(value));
@@ -143,7 +151,7 @@ public final class JsonFunctionExecutor {
 
         return function.execute(processed);
     }
-    
+
     private static Object handleValueAssignment(JsonObject jsonObject, String valueKey) {
         JsonElement value = jsonObject.get(valueKey);
         if (value == null) {
@@ -151,7 +159,7 @@ public final class JsonFunctionExecutor {
         }
         return jsonValueToJava(value);
     }
-    
+
     // 将JsonValue转换为Java对象
     private static Object jsonValueToJava(JsonElement value) {
         if (value.isJsonPrimitive()) {
@@ -194,19 +202,30 @@ public final class JsonFunctionExecutor {
             return new JsonParseException("Unknown Json type "+value);
         }
     }
-    
+
     // 将JsonArray转换为Java数组
     private static Object[] jsonArrayToJava(JsonArray array) {
-        return array.asList().stream()
+        //? if > 1.19.2 {
+        ArrayList<JsonElement> copied = new ArrayList<>(array.asList());
+        //?} else {
+        /*ArrayList<JsonElement> copied = new ArrayList<>();
+        for (JsonElement element : array) {
+            copied.add(element);
+        }
+        *///?}
+        return copied.stream()
             .map(JsonFunctionExecutor::jsonValueToJava)
             .toArray();
     }
-    
+
     // 将JsonObject转换为Java Map
     private static Map<String, Object> jsonObjectToMap(JsonObject jsonObject) {
         Map<String, Object> map = new HashMap<>();
-        jsonObject.asMap().forEach((key, value) ->
-            map.put(key, jsonValueToJava(value)));
+        //? if > 1.19.2 {
+        jsonObject.asMap().forEach((key, value) -> map.put(key, jsonValueToJava(value)));
+        //?} else {
+        /*jsonObject.entrySet().forEach(entry -> map.put(entry.getKey(), jsonValueToJava(entry.getValue())));
+        *///?}
         return map;
     }
 }

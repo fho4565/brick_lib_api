@@ -25,12 +25,20 @@ public record SingleBlockWithNbt(BlockPos blockPos, BlockState blockState, Compo
      * 将CompoundTag对象反序列化成SingleBlockWithNbt对象
      */
     public static SingleBlockWithNbt deserialize(CompoundTag compoundTag) {
-        long pos = compoundTag.getLong("pos");
+        long pos = compoundTag.getLong("pos")
+            //? if >= 1.21.5 {
+            /*.orElse(0L)
+            *///?}
+            ;
         BlockState state = null;
         if (compoundTag.contains("state")) {
             state = BlockState.CODEC.decode(NbtOps.INSTANCE, compoundTag.get("state")).result().orElseThrow().getFirst();
         }
-        return SingleBlockWithNbt.of(BlockPos.of(pos), state, compoundTag.getCompound("nbt"));
+        return SingleBlockWithNbt.of(BlockPos.of(pos), state, compoundTag.getCompound("nbt")
+                //? if >= 1.21.5 {
+                /*.orElse(new CompoundTag())
+            *///?}
+        );
     }
 
     @Nullable
@@ -69,7 +77,13 @@ public record SingleBlockWithNbt(BlockPos blockPos, BlockState blockState, Compo
         long pos = blockPos.asLong();
         compoundTag.putLong("pos", pos);
         if (this.blockState != null) {
-            Tag blockState = BlockState.CODEC.encodeStart(NbtOps.INSTANCE, this.blockState)/*? >=1.20.6 {*/ /*.getOrThrow() *//*?} else {*/.get().orThrow()/*?}*/;
+            Tag blockState = BlockState.CODEC.encodeStart(NbtOps.INSTANCE, this.blockState)
+                //? if >=1.20.6 {
+                /*.getOrThrow()
+                *///?} else {
+                .get().orThrow()
+                //?}
+                ;
             compoundTag.put("state", blockState);
         }
         compoundTag.put("nbt", nbt);

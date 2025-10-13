@@ -14,7 +14,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class IntegratedServerMixin {
     @Inject(method = "initServer",at = @At(value = "INVOKE", target = "Lnet/minecraft/client/server/IntegratedServer;loadLevel()V", shift = At.Shift.AFTER))
     public void serverAboutToStart(CallbackInfoReturnable<Boolean> cir){
-        Constants.installWorldVariables(getThis());
         ConfigTracker.loadConfigs(ModConfig.Type.SERVER, Constants.serverConfigFolder());
     }
 

@@ -9,9 +9,6 @@ import com.arc_studio.brick_lib_api.Constants;
 import com.arc_studio.brick_lib_api.core.network.context.C2SNetworkContext;
 import com.arc_studio.brick_lib_api.core.network.context.S2CNetworkContext;
 import com.arc_studio.brick_lib_api.core.register.BrickRegisterManager;
-//? if fabric {
-/*import com.arc_studio.brick_lib_api.register.BrickRegistries;
-
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -20,8 +17,9 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
+//? if fabric {
+/*import com.arc_studio.brick_lib_api.register.BrickRegistries;
 
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -53,10 +51,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.thread.BlockableEventLoop;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.LevelResource;
 //? if forge {
 import net.minecraftforge.common.util.LogicalSidedProvider;
+//? if <= 1.18.2 {
+/*import net.minecraftforge.event.RegistryEvent;
+*///?}
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
@@ -64,7 +66,13 @@ import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.forgespi.language.ModFileScanData;
 import net.minecraftforge.network.*;
+//? if > 1.18.2 {
 import net.minecraftforge.registries.RegisterEvent;
+//?} else {
+/*import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.IForgeRegistryEntry;
+*///?}
 //?}
 //? if neoforge {
 /*import net.neoforged.bus.api.SubscribeEvent;
@@ -75,12 +83,13 @@ import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.registration.NetworkPayloadSetup;
 import net.neoforged.neoforge.registries.RegisterEvent;
+import io.netty.util.AttributeKey;
 import net.neoforged.neoforgespi.language.ModFileScanData;
 //? if <1.20.4 {
-/^import net.neoforged.bus.core.SubscribeEvent;
+import net.neoforged.bus.core.SubscribeEvent;
 import net.neoforged.fml.common.Mod.EventBusSubscriber;
 import net.neoforged.fml.ModList;
-^///?} else if <1.20.6 {
+//?} else if <1.20.6 {
 
 //?} else {
 /^import net.neoforged.fml.common.EventBusSubscriber;
@@ -89,10 +98,12 @@ import net.neoforged.fml.ModContainer;
 *///?}
 
 
+
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 
@@ -114,9 +125,13 @@ import java.util.function.Supplier;
 //? if neoforge {
 /*//? if < 1.20.6 {
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
- //? } else {
-/^@EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD)
-^///? }
+ //?} else {
+/^@EventBusSubscriber(
+        //? if < 1.21.1 {
+        bus = EventBusSubscriber.Bus.MOD
+        //?}
+)
+^///?}
 *///?}
 public class Platform {
     //? if !fabric {
@@ -129,11 +144,11 @@ public class Platform {
         /*return FabricLoader.getInstance().getConfigDir();
         *///?} else if forge {
         return FMLPaths.CONFIGDIR.get();
-        
+
         //?} else if neoforge {
         /*return FMLPaths.CONFIGDIR.get();
-        */
-        //?}
+
+        *///?}
     }
 
     public static Path getServerConfigDirectory() {
@@ -247,9 +262,11 @@ public class Platform {
                 return !i2.isEmpty() && i1.getCount() == i2.getCount() && i1.getItem() == i2.getItem() &&
                         (Objects.equals(i1.getComponentsPatch(), i2.getComponentsPatch()));
             }
-            *///?} else {
+            *///?} elif > 1.19.4 {
             return ItemStack.isSameItem(i1,i2);
-            //?}
+            //?} else {
+            /*return ItemStack.isSameItemSameTags(i1,i2);
+            *///?}
         }
         //?}
     }
@@ -383,7 +400,7 @@ public class Platform {
 
     public static void sendToPlayer(ICHandlePacket packet, Iterable<ServerPlayer> serverPlayers) {
         //? if fabric {
-        
+
         /*ResourceLocation id = Optional.ofNullable(packet.id()).orElseGet(() -> BrickLibAPI.ofPath(packet.getClass().getName().replace(".", "_").toLowerCase() + "_s2c"));
 
         *///?}
@@ -397,10 +414,10 @@ public class Platform {
             *///?} else if forge {
             ForgePlatform.s2cPlayChannel.send(
             //? if >= 1.20.4 {
-                    /*packet,PacketDistributor.PLAYER.with(serverPlayer)*/
-            //? } else {
+                    /*packet,PacketDistributor.PLAYER.with(serverPlayer)
+            *///?} else {
                     PacketDistributor.PLAYER.with(() -> serverPlayer), packet
-            //? }
+            //?}
             );
             //?} else if neoforge {
             /*//? if <=1.20.4 {
@@ -428,17 +445,17 @@ public class Platform {
         *///?} else if forge {
         ForgePlatform.c2sPlayChannel
         //? if >=1.20.4 {
-                /*.send(packet,PacketDistributor.SERVER.noArg())*/
-        //? } else {
+                /*.send(packet,PacketDistributor.SERVER.noArg())
+        *///?} else {
                 .sendToServer(packet)
-        //? }
+        //?}
         ;
         //?} else if neoforge {
         /*//? if <=1.20.4 {
         PacketDistributor.SERVER.noArg().send(packet);
         //?} else {
-        /^
-        PacketDistributor.sendToServer(packet);
+
+        /^PacketDistributor.sendToServer(packet);
         ^///?}
         *///?}
     }
@@ -506,6 +523,8 @@ public class Platform {
                 });
             }
             else if (packetConfig instanceof PacketConfig.Login s2CLogin) {
+                System.out.println("Fabric Login Packet Register");
+                System.out.println("s2CLogin.type() = " + s2CLogin.type());
                 List<Pair<String, ? extends LoginPacket>> apply0 = (List<Pair<String, ? extends LoginPacket>>) s2CLogin.packetGenerator().apply(false);
                 apply0.forEach(stringPair -> {
                     final String path = stringPair.getLeft();
@@ -528,6 +547,7 @@ public class Platform {
                 });
                 ServerLoginConnectionEvents.QUERY_START.register((handler, server, sender, synchronizer) -> {
                     List<Pair<String, ? extends LoginPacket>> apply = (List<Pair<String, ? extends LoginPacket>>) s2CLogin.packetGenerator().apply(false);
+                    System.out.println("Ready to send to client : "+s2CLogin.type());
                     apply.forEach(stringPair -> {
                         sender.sendPacket(BrickLibAPI.ofPath(stringPair.getLeft()), stringPair.getRight().getEncodedPacketContent(new PacketContent()).friendlyByteBuf());
                     });
@@ -677,21 +697,21 @@ public class Platform {
         }
         if (protocol != null) {
             //? if =1.20.4 {
-            HashSet<ResourceLocation> set = new HashSet<>();
+            /^HashSet<ResourceLocation> set = new HashSet<>();
             set.addAll(payloadSetup.play().keySet());
             set.addAll(payloadSetup.configuration().keySet());
             return set;
-            //?} else {
-            /^return payloadSetup.getChannels(protocol).keySet();
-            ^///?}
+            ^///?} else {
+            return payloadSetup.getChannels(protocol).keySet();
+            //?}
         } else{
             HashSet<ResourceLocation> set = new HashSet<>();
             //? if =1.20.4 {
-            set.addAll(payloadSetup.play().keySet());
+            /^set.addAll(payloadSetup.play().keySet());
             set.addAll(payloadSetup.configuration().keySet());
-            //?} else {
-            /^payloadSetup.channels().values().stream().map(Map::keySet).forEach(set::addAll);
-            ^///?}
+            ^///?} else {
+            payloadSetup.channels().values().stream().map(Map::keySet).forEach(set::addAll);
+            //?}
             return set;
         }
         *///?} else {
@@ -700,6 +720,7 @@ public class Platform {
     }
 
     //? if forge || neoforge {
+    //? if > 1.18.2 {
     @SubscribeEvent
     public static <T> void onRegister(RegisterEvent event) {
         ResourceKey<? extends Registry<T>> registeringKey = (ResourceKey<? extends Registry<T>>) event.getRegistryKey();
@@ -713,6 +734,23 @@ public class Platform {
         }
     }
 
+    //?} else {
+    /*@SubscribeEvent
+    public static <T extends IForgeRegistryEntry<T>> void onRegister(RegistryEvent.Register event) {
+        ResourceKey<? extends Registry<T>> registeringKey = event.getRegistry().getRegistryKey();
+        for (Map.Entry<Registry<?>, Map<ResourceLocation, Supplier<?>>> entry : BrickRegisterManager.getVanillaEntries().entrySet()) {
+            if (entry.getKey().key().equals(registeringKey)) {
+                entry.getValue().forEach((resourceLocation, supplier) -> {
+                    T value = (T) supplier.get();
+                    value.setRegistryName(resourceLocation);
+                    event.getRegistry().register(value);
+                });
+                return;
+            }
+        }
+    }
+    *///?}
+
 
     //?}
     //? if neoforge {
@@ -725,6 +763,6 @@ public class Platform {
         }
 
         return (Set<ResourceLocation>) map;
-    }  
+    }
     *///?}
 }

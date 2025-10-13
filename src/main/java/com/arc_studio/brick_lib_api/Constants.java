@@ -25,10 +25,8 @@ public class Constants {
     private static Path defaultConfigFolderPath;
     private static Path brickLibWorldFolder;
     private static Path versionDataFolder;
-    private static Path globalPackPath;
     private static Path worldFolder;
     private static Path serverConfigFolder;
-    private static Path brickLibPlacersFolder;
     private static MinecraftServer currentServer;
     private static boolean isInDevelopEnvironment = false;
     private static PlatformInfo platform;
@@ -85,13 +83,6 @@ public class Constants {
     }
 
     /**
-     * 获取BrickLib模组放置器存放的文件夹，使用命令生成的文件会存放在这里
-     */
-    public static Path brickLibPlacersFolder() {
-        return brickLibPlacersFolder;
-    }
-
-    /**
      * 检查当前游戏环境是否是开发环境
      */
     public static Boolean isInDevelopEnvironment() {
@@ -108,7 +99,6 @@ public class Constants {
             globalConfigFolderPath = versionFolderPath.resolve("config");
             defaultConfigFolderPath = versionFolderPath.resolve("defaultconfigs");
             versionDataFolder = versionFolderPath.resolve("brickLib");
-            globalPackPath = versionDataFolder.resolve("globalpacks");
             initiatedGeneral = true;
         }
     }
@@ -119,7 +109,6 @@ public class Constants {
             currentServer = server;
             worldFolder = currentServer.getWorldPath(LevelResource.ROOT).toAbsolutePath();
             brickLibWorldFolder = Constants.worldFolder().resolve("brickLib");
-            brickLibPlacersFolder = brickLibWorldFolder.resolve("placers");
             serverConfigFolder = worldFolder.resolve("serverconfig");
             if (!Files.isDirectory(serverConfigFolder)) {
                 try {
@@ -134,22 +123,10 @@ public class Constants {
                     BrickLibAPI.LOGGER.error("Failed to create brick lib folder");
                 }
             }
-            File placerDir = brickLibPlacersFolder.toFile();
-            if (!placerDir.exists()) {
-                if (!placerDir.mkdirs()) {
-                    BrickLibAPI.LOGGER.error("Failed to create brick lib placers folder");
-                }
-            }
             File versionDataDir = versionDataFolder.toFile();
             if (!versionDataDir.exists()) {
                 if (!versionDataDir.mkdirs()) {
                     BrickLibAPI.LOGGER.error("Failed to create brick lib version data folder");
-                }
-            }
-            File globalPackDir = globalPackPath.toFile();
-            if (!globalPackDir.exists()) {
-                if (!globalPackDir.mkdirs()) {
-                    BrickLibAPI.LOGGER.error("Failed to create brick lib global pack data folder");
                 }
             }
             initiatedWorld = true;
@@ -159,7 +136,6 @@ public class Constants {
     @ApiStatus.Internal
     public static void uninstallWorldVariables() {
         brickLibWorldFolder = null;
-        brickLibPlacersFolder = null;
         currentServer = null;
         serverConfigFolder = null;
         initiatedWorld = false;
@@ -177,13 +153,6 @@ public class Constants {
      * */
     public static Path versionDataFolder() {
         return versionDataFolder;
-    }
-
-    /**
-     * 获取全局包的文件夹
-     * */
-    public static Path globalPackPath() {
-        return globalPackPath;
     }
 
     public static Path globalConfigFolderPath() {

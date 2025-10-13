@@ -22,7 +22,7 @@ import java.util.function.Consumer;
  * 物品的额外数据
  * */
 @ApiStatus.Experimental
-public abstract class ItemAdditionalData extends BaseAdditionalData {
+public class ItemAdditionalData extends BaseAdditionalData {
     public static final String KEY_DATA = "brick_data";
     //? if >= 1.20.6 {
     /*public static final AdditionalDataType DATA_COMPONENT_TYPE = new AdditionalDataType(new CompoundTag());
@@ -34,12 +34,7 @@ public abstract class ItemAdditionalData extends BaseAdditionalData {
 
     public static CompoundTag getData(ItemStack itemStack) {
         //? if >= 1.20.6 {
-        /*return itemStack.getOrDefault(DATA_COMPONENT_TYPE, new ItemAdditionalData(new CompoundTag()) {
-            @Override
-            public void onDelete() {
-
-            }
-        }).data;
+        /*return itemStack.getOrDefault(DATA_COMPONENT_TYPE, new ItemAdditionalData(new CompoundTag())).data;
         *///?} else {
         return itemStack.getOrCreateTag();
         //?}
@@ -49,33 +44,19 @@ public abstract class ItemAdditionalData extends BaseAdditionalData {
         CompoundTag tag = getData(itemStack);
         consumer.accept(tag);
         //? if >= 1.20.6 {
-        /*itemStack.getOrDefault(DATA_COMPONENT_TYPE, new ItemAdditionalData(new CompoundTag()) {
-            @Override
-            public void onDelete() {
-
-            }
-        }).data = tag;
+        /*itemStack.getOrDefault(DATA_COMPONENT_TYPE, new ItemAdditionalData(new CompoundTag())).data = tag;
         *///?} else {
         itemStack.setTag(tag);
         //?}
     }
 
     //? if >= 1.20.6 {
-    /*static class AdditionalDataType implements DataComponentType<ItemAdditionalData> {
+    /*public static class AdditionalDataType implements DataComponentType<ItemAdditionalData> {
         public static final Codec<ItemAdditionalData> CODEC = RecordCodecBuilder.create(instance -> // 给定一个实例
                 instance.group(
-                        CompoundTag.CODEC.fieldOf("s").forGetter(new Function<ItemAdditionalData, CompoundTag>() {
-                            @Override
-                            public CompoundTag apply(ItemAdditionalData itemAdditionalData) {
-                                return itemAdditionalData.data;
-                            }
-                        })
-                ).apply(instance, tag -> new ItemAdditionalData(tag) {
-                    @Override
-                    public void onDelete() {
-
-                    }
-                })
+                        CompoundTag.CODEC.fieldOf("s")
+                                .forGetter(itemAdditionalData -> itemAdditionalData.data)
+                ).apply(instance, ItemAdditionalData::new)
         );
         CompoundTag tag;
 

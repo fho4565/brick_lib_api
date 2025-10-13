@@ -113,7 +113,12 @@ public class BrickRegisterManager {
      * 生成自动ID
      */
     private static ResourceLocation generateAutoId(BrickRegistry<?> registry) {
+        //? if > 1.18.2 {
         String key = registry.key().location().toLanguageKey();
+        //?} else {
+        /*ResourceLocation location = registry.key().location();
+        String key = location.getNamespace() + "." + location.getPath();
+        *///?}
         int count = registry.count();
         return BrickLibAPI.ofPath(key + count);
     }
