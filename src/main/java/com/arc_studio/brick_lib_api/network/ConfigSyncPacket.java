@@ -104,7 +104,7 @@ public class ConfigSyncPacket extends LoginPacket {
                 content.writeByteArray(new byte[0]);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            BrickLibAPI.LOGGER.error(e.toString());
         }
     }
 }

@@ -3,6 +3,7 @@ package com.arc_studio.brick_lib_api.core;
 import java.util.Map;
 
 /**
+ * 可混合保存当前端位，加载器的类
  * @author fho4565
  */
 public final class PlatformInfo {

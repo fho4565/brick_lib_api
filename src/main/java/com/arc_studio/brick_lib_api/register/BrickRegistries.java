@@ -351,10 +351,19 @@ public class BrickRegistries {
      * */
     public static final BrickRegistry<JsonFunction> JSON_FUNCTION = create("json_function");
 
+    /**
+     * 数据生成注册表
+     * */
     public static final BrickRegistry<DataGenerateEntry> DATA_GENERATE = create("data_generate");
 
+    /**
+     * 更新检查器注册表
+     * */
     public static final BrickRegistry<UpdateChecker.Entry> UPDATE_CHECK = create("update_check");
 
+    /**
+     * 配置注册表
+     * */
     public static final BrickRegistry<ModConfig> CONFIG = create("config");
 
     /**

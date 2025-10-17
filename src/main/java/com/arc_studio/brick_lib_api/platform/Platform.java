@@ -550,8 +550,6 @@ public class Platform {
                 });
             }
             else if (packetConfig instanceof PacketConfig.Login s2CLogin) {
-                System.out.println("Fabric Login Packet Register");
-                System.out.println("s2CLogin.type() = " + s2CLogin.type());
                 List<Pair<String, ? extends LoginPacket>> apply0 = (List<Pair<String, ? extends LoginPacket>>) s2CLogin.packetGenerator().apply(false);
                 apply0.forEach(stringPair -> {
                     final String path = stringPair.getLeft();
@@ -574,7 +572,6 @@ public class Platform {
                 });
                 ServerLoginConnectionEvents.QUERY_START.register((handler, server, sender, synchronizer) -> {
                     List<Pair<String, ? extends LoginPacket>> apply = (List<Pair<String, ? extends LoginPacket>>) s2CLogin.packetGenerator().apply(false);
-                    System.out.println("Ready to send to client : "+s2CLogin.type());
                     apply.forEach(stringPair -> {
                         sender.sendPacket(BrickLibAPI.ofPath(stringPair.getLeft()), stringPair.getRight().getEncodedPacketContent(new PacketContent()).friendlyByteBuf());
                     });

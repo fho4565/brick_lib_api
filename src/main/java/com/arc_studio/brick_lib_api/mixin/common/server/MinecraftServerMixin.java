@@ -64,7 +64,6 @@ public abstract class MinecraftServerMixin {
         } catch (IOException e) {
             BrickLibAPI.LOGGER.error("Error when loading Brick Lib additional data");
             BrickLibAPI.LOGGER.error(e.toString());
-            e.printStackTrace();
         }
     }
 

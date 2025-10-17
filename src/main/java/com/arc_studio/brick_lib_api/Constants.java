@@ -16,7 +16,6 @@ import java.nio.file.Path;
  * Brick Lib提供的一些变量，这些变量在某些情况下不保证一定是初始化的，在调用前需要检查值
  */
 public class Constants {
-
     private static String[] launchArgs;
     private static boolean initiatedGeneral = false;
     private static boolean initiatedWorld = false;

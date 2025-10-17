@@ -15,15 +15,18 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 /**
- * @author fho4565
+ * 解析，执行{@link JsonFunction}
  */
 public final class JsonFunctionExecutor {
-    private static final String[] FUNCTION_KEYS = new String[]{"function","func","fun","f"};
-    private static final String[] VALUE_KEYS = new String[]{"value","var","val","v"};
+    public static final String[] FUNCTION_KEYS = new String[]{"function","func","fun","f"};
+    public static final String[] VALUE_KEYS = new String[]{"value","var","val","v"};
 
     private JsonFunctionExecutor() {
     }
 
+    /**
+     * 解析{@link JsonElement}并执行
+     * */
     public static Object execute(JsonElement json) {
         JsonObject object = json.getAsJsonObject();
         String functionKey = isFunction(object);
@@ -36,7 +39,9 @@ public final class JsonFunctionExecutor {
         }
         throw new IllegalArgumentException("Unknown json function operation type");
     }
-
+    /**
+     * 解析字符串并执行
+     * */
     public static Object execute(String json) {
         try {
             return execute(JsonParser.parseString(json));
@@ -162,7 +167,6 @@ public final class JsonFunctionExecutor {
         return jsonValueToJava(value);
     }
 
-    // 将JsonValue转换为Java对象
     private static Object jsonValueToJava(JsonElement value) {
         if (value.isJsonPrimitive()) {
             JsonPrimitive primitive = value.getAsJsonPrimitive();
@@ -205,7 +209,6 @@ public final class JsonFunctionExecutor {
         }
     }
 
-    // 将JsonArray转换为Java数组
     private static Object[] jsonArrayToJava(JsonArray array) {
         //? if > 1.19.2 {
         ArrayList<JsonElement> copied = new ArrayList<>(array.asList());
@@ -220,7 +223,6 @@ public final class JsonFunctionExecutor {
             .toArray();
     }
 
-    // 将JsonObject转换为Java Map
     private static Map<String, Object> jsonObjectToMap(JsonObject jsonObject) {
         Map<String, Object> map = new HashMap<>();
         //? if > 1.19.2 {

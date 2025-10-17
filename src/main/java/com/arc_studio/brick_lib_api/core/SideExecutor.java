@@ -5,6 +5,7 @@ import com.arc_studio.brick_lib_api.platform.Platform;
 import java.util.function.Supplier;
 
 /**
+ * 在某端位或者某模组加载器平台或者{@link PlatformInfo}指定的位置执行操作的实用类
  * @author fho4565
  */
 public final class SideExecutor implements Runnable {
@@ -208,6 +209,32 @@ public final class SideExecutor implements Runnable {
      */
     public static boolean runOnSide(PlatformInfo side, Supplier<Runnable> toRun) {
         return runOnSide(side, toRun.get());
+    }
+
+    /**
+     * 在某位置执行操作
+     *
+     * @param side 指定的位置
+     * @param toRun 需要执行的操作
+     * @return 操作是否被执行
+     */
+    public static boolean runOn(PlatformInfo side, Runnable toRun) {
+        if (Platform.platform().equals(side)) {
+            toRun.run();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 在某位置执行操作
+     *
+     * @param side 指定的位置
+     * @param toRun 需要执行的操作
+     * @return 操作是否被执行
+     */
+    public static boolean runOn(PlatformInfo side, Supplier<Runnable> toRun) {
+        return runOn(side, toRun.get());
     }
 
     @Override

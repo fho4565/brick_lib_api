@@ -23,9 +23,6 @@ import java.util.Map;
 
 public abstract class BrickDataProvider implements DataProvider {
     //? if > 1.19.2 {
-    
-
-
     @Override
     public CompletableFuture<?> run(CachedOutput output) {
         List<CompletableFuture<?>> list = new ArrayList<>();
@@ -56,7 +53,7 @@ public abstract class BrickDataProvider implements DataProvider {
             DataProvider.save(GSON,output, pair.getLeft(), pair.getRight());
         }
     }
-    
+
     ^///?}
 
     *///?}
