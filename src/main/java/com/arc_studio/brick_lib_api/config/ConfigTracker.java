@@ -103,6 +103,7 @@ public class ConfigTracker {
             BrickEventBus.postEvent(new ConfigEvent.Unload(config));
             config.save();
             config.setConfigData(null);
+            fileMap.remove(config.getFileName());
         }
     }
 

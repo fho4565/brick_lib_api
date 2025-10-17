@@ -24,7 +24,7 @@ public abstract class LocalPlayerMixin {
         }
     }
     *///?} elif = 1.19.2 {
-/*    @Inject(method = "commandUnsigned(Ljava/lang/String;)Z", at = @At("HEAD"), cancellable = true)
+    /*@Inject(method = "commandUnsigned(Ljava/lang/String;)Z", at = @At("HEAD"), cancellable = true)
     private void onSendCommand(String command, CallbackInfoReturnable<Boolean> cir) {
         if (ClientCommandInternals.executeCommand(command)) {
             cir.setReturnValue(true);
@@ -36,6 +36,6 @@ public abstract class LocalPlayerMixin {
         if (ClientCommandInternals.executeCommand(command)) {
             info.cancel();
         }
-    }*/
-    //?}
+    }
+    *///?}
 }

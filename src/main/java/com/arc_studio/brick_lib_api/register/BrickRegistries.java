@@ -3,10 +3,8 @@ package com.arc_studio.brick_lib_api.register;
 import com.arc_studio.brick_lib_api.BrickLibAPI;
 
 import com.arc_studio.brick_lib_api.config.ModConfig;
-import com.arc_studio.brick_lib_api.core.register.BrickRegisterManager;
-import com.arc_studio.brick_lib_api.core.register.BrickRegistry;
-import com.arc_studio.brick_lib_api.core.register.PlaceHolderRegistry;
-import com.arc_studio.brick_lib_api.core.register.VanillaRegistry;
+import com.arc_studio.brick_lib_api.core.VillagerTradeEntry;
+import com.arc_studio.brick_lib_api.core.register.*;
 import com.arc_studio.brick_lib_api.core.json_function.JsonFunction;
 import com.arc_studio.brick_lib_api.core.network.type.PacketConfig;
 import com.arc_studio.brick_lib_api.datagen.DataGenerateEntry;
@@ -335,11 +333,11 @@ public class BrickRegistries {
     /**
      * 键位注册表
      * */
-    public static final BrickRegistry<KeyMapping> KEY_MAPPING = create("key_mapping");
+    public static final BrickRegistry<KeyMapping> KEY_MAPPING = createAutoClean("key_mapping");
     /**
      * 网络包注册表
      * */
-    public static final BrickRegistry<PacketConfig> NETWORK_PACKET = create("network_packet");
+    public static final BrickRegistry<PacketConfig> NETWORK_PACKET = createAutoClean("network_packet");
     /**
      * 命令注册表
      * */
@@ -356,11 +354,26 @@ public class BrickRegistries {
     public static final BrickRegistry<DataGenerateEntry> DATA_GENERATE = create("data_generate");
 
     public static final BrickRegistry<UpdateChecker.Entry> UPDATE_CHECK = create("update_check");
+
     public static final BrickRegistry<ModConfig> CONFIG = create("config");
+
+    /**
+     * 村民交易注册表
+     * */
+    public static final BrickRegistry<VillagerTradeEntry> VILLAGER_TRADE = createAutoClean("villager_trade");
+
+    /**
+     * 流浪商人交易注册表
+     * */
+    public static final BrickRegistry<VillagerTradeEntry> WANDERING_TRADE = createAutoClean("villager_trade");
 
 
     private static <T> BrickRegistry<T> create(String name) {
         return new BrickRegistry<>(ResourceKey.createRegistryKey(BrickLibAPI.ofPath(name)));
+    }
+
+    private static <T> BrickRegistry<T> createAutoClean(String name) {
+        return new BrickRegistry<>(ResourceKey.createRegistryKey(BrickLibAPI.ofPath(name)),true);
     }
 
     private static <T> PlaceHolderRegistry<T> placeholder(String name) {

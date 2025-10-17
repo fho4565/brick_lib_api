@@ -19,7 +19,7 @@ public class VanillaRegistry<T> extends RegistryType<T> {
     }
 
     @Override
-    public ResourceKey<? extends Registry<T>> getKey() {
+    public ResourceKey<? extends Registry<T>> getRegisterKey() {
         return vanillaRegistry.key();
     }
 }

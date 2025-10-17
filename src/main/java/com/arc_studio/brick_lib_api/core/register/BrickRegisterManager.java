@@ -114,9 +114,9 @@ public class BrickRegisterManager {
      */
     private static ResourceLocation generateAutoId(BrickRegistry<?> registry) {
         //? if > 1.18.2 {
-        String key = registry.key().location().toLanguageKey();
+        String key = registry.getRegisterKey().location().toLanguageKey();
         //?} else {
-        /*ResourceLocation location = registry.key().location();
+        /*ResourceLocation location = registry.getRegisterKey().location();
         String key = location.getNamespace() + "." + location.getPath();
         *///?}
         int count = registry.count();

@@ -4,5 +4,5 @@ import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 
 abstract class RegistryType<T> {
-    public abstract ResourceKey<? extends Registry<T>> getKey();
+    public abstract ResourceKey<? extends Registry<T>> getRegisterKey();
 }

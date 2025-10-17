@@ -16,9 +16,16 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class BrickRegistry<T> extends RegistryType<T> implements Iterable<T> {
+    public static HashSet<BrickRegistry<?>> TO_CLEAN_BRICK_REGISTRIES = new HashSet<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(BrickRegistry.class);
     protected HashMap<ResourceLocation, Supplier<T>> map = new HashMap<>();
     protected boolean registered = false;
+
+    public boolean autoClean() {
+        return autoClean;
+    }
+
+    protected boolean autoClean = false;
 
     public int count() {
         return count;
@@ -32,11 +39,16 @@ public class BrickRegistry<T> extends RegistryType<T> implements Iterable<T> {
         this.key = key;
     }
 
-    /**
-     * 创建一个自定义的注册表
-     * */
-    public static <T extends Registry<T>> BrickRegistry<T> create(ResourceKey<T> key) {
-        return new BrickRegistry<>(key);
+    public BrickRegistry(ResourceKey<? extends Registry<T>> key,boolean autoClean) {
+        this.key = key;
+        this.autoClean = autoClean;
+        if (autoClean){
+            TO_CLEAN_BRICK_REGISTRIES.add(this);
+        }
+    }
+
+    public void onClean(){
+
     }
 
     @Nullable
@@ -92,7 +104,7 @@ public class BrickRegistry<T> extends RegistryType<T> implements Iterable<T> {
     public T getOrThrow(ResourceKey<T> key) {
         T object = this.get(key);
         if (object == null) {
-            throw new IllegalStateException("Missing key in " + this.key() + ": " + key);
+            throw new IllegalStateException("Missing key in " + this.getRegisterKey() + ": " + key);
         } else {
             return object;
         }
@@ -108,10 +120,6 @@ public class BrickRegistry<T> extends RegistryType<T> implements Iterable<T> {
 
     public void remove(T value) {
         map.remove(getKey(value));
-    }
-
-    public ResourceKey<? extends Registry<T>> key() {
-        return this.key;
     }
 
     public Set<ResourceLocation> keySet() {
@@ -194,7 +202,11 @@ public class BrickRegistry<T> extends RegistryType<T> implements Iterable<T> {
     }
 
     @Override
-    public ResourceKey<? extends Registry<T>> getKey() {
+    public ResourceKey<? extends Registry<T>> getRegisterKey() {
         return key;
+    }
+
+    public void clean() {
+        this.map = null;
     }
 }

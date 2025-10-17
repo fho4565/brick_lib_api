@@ -13,7 +13,7 @@ public abstract class BaseEvent {
      * @throws UnsupportedOperationException 如果事件不可被取消
      */
     public void cancel() {
-        if (!ICancelableEvent.class.isAssignableFrom(this.getClass())) {
+        if (!(this instanceof ICancelableEvent)) {
             throw new UnsupportedOperationException("Tried to cancel " + this.getClass().getName() + " but it's not cancelable! Did you forgot interface ICancelableEvent?");
         }
         isCanceled = true;
@@ -30,7 +30,7 @@ public abstract class BaseEvent {
      * 获取事件的结果
      */
     public Result getResult() {
-        if (!IResultEvent.class.isAssignableFrom(this.getClass())) {
+        if (!(this instanceof IResultEvent)) {
             throw new UnsupportedOperationException("Tried to get the result of events " + this.getClass().getName() + ", but it didn't have result! Have you forgotten the IResultEvent interface?");
         }
         return result;
@@ -40,7 +40,7 @@ public abstract class BaseEvent {
      * 设置事件的结果
      */
     public void setResult(Result result) {
-        if (!IResultEvent.class.isAssignableFrom(this.getClass())) {
+        if (!(this instanceof IResultEvent)) {
             throw new UnsupportedOperationException("Tried to get the result of events " + this.getClass().getName() + ", but it didn't have result! Have you forgotten the IResultEvent interface?");
         }
         this.result = result;

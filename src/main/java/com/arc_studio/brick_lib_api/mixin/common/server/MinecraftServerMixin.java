@@ -8,6 +8,7 @@ import com.arc_studio.brick_lib_api.core.data.EntityAdditionalData;
 import com.arc_studio.brick_lib_api.core.data.LevelAdditionalData;
 import com.arc_studio.brick_lib_api.core.data.WorldAdditionalData;
 import com.arc_studio.brick_lib_api.Constants;
+import com.arc_studio.brick_lib_api.core.register.BrickRegistry;
 import net.minecraft.server.MinecraftServer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -27,6 +28,7 @@ public abstract class MinecraftServerMixin {
 
     @Inject(method = "runServer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;onServerExit()V"))
     public void onServerStopped(CallbackInfo ci) {
+        ConfigTracker.unloadConfigs(ModConfig.Type.SERVER, Constants.serverConfigFolder());
         Constants.uninstallWorldVariables();
     }
 
@@ -65,9 +67,20 @@ public abstract class MinecraftServerMixin {
             e.printStackTrace();
         }
     }
-    @Inject(method = "runServer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;onServerExit()V"))
-    public void inject67(CallbackInfo ci) {
-        ConfigTracker.unloadConfigs(ModConfig.Type.SERVER, Constants.serverConfigFolder());
+
+    //? if <= 1.19.2 {
+    /*@Inject(method = "runServer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;updateStatusIcon(Lnet/minecraft/network/protocol/status/ServerStatus;)V"))
+    *///?} else {
+    @Inject(method = "runServer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;buildServerStatus()Lnet/minecraft/network/protocol/status/ServerStatus;"))
+    //?}
+    public void Inject74(CallbackInfo ci) {
+        if(BrickRegistry.TO_CLEAN_BRICK_REGISTRIES != null){
+            for (BrickRegistry<?> registry : BrickRegistry.TO_CLEAN_BRICK_REGISTRIES) {
+                registry.onClean();
+                registry.clean();
+            }
+            BrickRegistry.TO_CLEAN_BRICK_REGISTRIES = null;
+        }
     }
     @Unique
     private MinecraftServer getThis(){

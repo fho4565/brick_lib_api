@@ -72,7 +72,7 @@ public class ConfigSyncPacket extends LoginPacket {
             }
         }));
         return configData.entrySet().stream().map(e-> {
-            return Pair.of("config_" + e.getKey(), new ConfigSyncPacket(e.getKey(), e.getValue()));
+            return Pair.of("config_" + e.getRegisterKey(), new ConfigSyncPacket(e.getRegisterKey(), e.getValue()));
         }).collect(Collectors.toList());
     }*/
 

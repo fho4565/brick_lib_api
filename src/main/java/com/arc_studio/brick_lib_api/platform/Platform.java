@@ -3,20 +3,20 @@ package com.arc_studio.brick_lib_api.platform;
 import com.arc_studio.brick_lib_api.BrickLibAPI;
 import com.arc_studio.brick_lib_api.core.PlatformInfo;
 import com.arc_studio.brick_lib_api.core.Version;
+import com.arc_studio.brick_lib_api.core.VillagerTradeEntry;
 import com.arc_studio.brick_lib_api.core.network.PacketContent;
 import com.arc_studio.brick_lib_api.core.network.type.*;
 import com.arc_studio.brick_lib_api.Constants;
 import com.arc_studio.brick_lib_api.core.network.context.C2SNetworkContext;
 import com.arc_studio.brick_lib_api.core.network.context.S2CNetworkContext;
 import com.arc_studio.brick_lib_api.core.register.BrickRegisterManager;
+
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BiConsumer;
-import java.util.stream.Stream;
 //? if fabric {
 /*import com.arc_studio.brick_lib_api.register.BrickRegistries;
 
@@ -37,8 +37,14 @@ import net.fabricmc.loader.api.FabricLoader;
 
 
 import com.arc_studio.brick_lib_api.core.SideExecutor;
+import com.arc_studio.brick_lib_api.register.BrickRegistries;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Registry;
+//? if > 1.19.2 {
+import net.minecraft.core.registries.BuiltInRegistries;
+//?}
 import net.minecraft.network.Connection;
 import net.minecraft.network.ConnectionProtocol;
 //? if >=1.20.6 {
@@ -51,7 +57,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.thread.BlockableEventLoop;
-import net.minecraft.world.item.Item;
+import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.LevelResource;
 //? if forge {
@@ -98,20 +105,20 @@ import net.neoforged.fml.ModContainer;
 *///?}
 
 
-
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * Brick Lib使用的平台类，Mod作者<font color = "red">不应</font>使用这个类
@@ -462,6 +469,26 @@ public class Platform {
 
 
     public static <T> void brickFinalizeRegistry() {
+        HashMap<Pair<VillagerProfession,Integer>,ArrayList<VillagerTrades.ItemListing>> map = new HashMap<>();
+        for (VillagerTradeEntry entry : BrickRegistries.VILLAGER_TRADE) {
+            //? if >= 1.21.5 {
+            /*Pair<VillagerProfession, Integer> key = Pair.of(BuiltInRegistries.VILLAGER_PROFESSION.getValueOrThrow(entry.profession()), entry.level());
+            *///?} else {
+            Pair<VillagerProfession, Integer> key = Pair.of(entry.profession(), entry.level());
+            //?}
+            ArrayList<VillagerTrades.ItemListing> list = map.getOrDefault(key, new ArrayList<>());
+            list.add(entry.trade());
+            map.put(key,list);
+        }
+        map.forEach((pair, itemListings) -> registerVillagerOffers(pair.getKey(), pair.getValue(),itemListings));
+
+        HashMap<Integer,ArrayList<VillagerTrades.ItemListing>> map1 = new HashMap<>();
+        for (VillagerTradeEntry entry : BrickRegistries.WANDERING_TRADE) {
+            ArrayList<VillagerTrades.ItemListing> list = map1.getOrDefault(entry.level(), new ArrayList<>());
+            list.add(entry.trade());
+            map1.put(entry.level(),list);
+        }
+        map1.forEach(Platform::registerWanderingOffers);
         //? if fabric {
         /*//? if >= 1.20.6 {
         /^BrickRegistries.NETWORK_PACKET.foreachRegisteredValue(packetConfig -> {
@@ -555,8 +582,8 @@ public class Platform {
             }
         });
         //?}
-        BrickRegisterManager.getVanillaEntries().forEach((registry, map) ->
-                map.forEach((resourceLocation, supplier) -> {
+        BrickRegisterManager.getVanillaEntries().forEach((registry, map2) ->
+                map2.forEach((resourceLocation, supplier) -> {
             if (!registry.containsKey(resourceLocation)) {
                 Registry.register((Registry<T>) registry, resourceLocation, (T) supplier.get());
             }
@@ -732,6 +759,25 @@ public class Platform {
                 return;
             }
         }
+        HashMap<Pair<VillagerProfession,Integer>,ArrayList<VillagerTrades.ItemListing>> map = new HashMap<>();
+        for (VillagerTradeEntry entry : BrickRegistries.VILLAGER_TRADE) {
+            //? if >= 1.21.5 {
+            /*Pair<VillagerProfession, Integer> key = Pair.of(BuiltInRegistries.VILLAGER_PROFESSION.getValueOrThrow(entry.profession()), entry.level());
+            *///?} else {
+            Pair<VillagerProfession, Integer> key = Pair.of(entry.profession(), entry.level());
+            //?}
+            ArrayList<VillagerTrades.ItemListing> list = map.getOrDefault(key, new ArrayList<>());
+            list.add(entry.trade());
+            map.put(key,list);
+        }
+        map.forEach((pair, itemListings) -> registerVillagerOffers(pair.getKey(), pair.getValue(),itemListings));
+        HashMap<Integer,ArrayList<VillagerTrades.ItemListing>> map1 = new HashMap<>();
+        for (VillagerTradeEntry entry : BrickRegistries.WANDERING_TRADE) {
+            ArrayList<VillagerTrades.ItemListing> list = map1.getOrDefault(entry.level(), new ArrayList<>());
+            list.add(entry.trade());
+            map1.put(entry.level(),list);
+        }
+        map1.forEach(Platform::registerWanderingOffers);
     }
 
     //?} else {
@@ -739,7 +785,13 @@ public class Platform {
     public static <T extends IForgeRegistryEntry<T>> void onRegister(RegistryEvent.Register event) {
         ResourceKey<? extends Registry<T>> registeringKey = event.getRegistry().getRegistryKey();
         for (Map.Entry<Registry<?>, Map<ResourceLocation, Supplier<?>>> entry : BrickRegisterManager.getVanillaEntries().entrySet()) {
-            if (entry.getKey().key().equals(registeringKey)) {
+            if (
+                //? if = 1.18.2 {
+                /^entry.getKey().key().equals(registeringKey)
+            ^///?} else {
+                entry.getRegisterKey().key().equals(registeringKey)
+            //?}
+            ) {
                 entry.getValue().forEach((resourceLocation, supplier) -> {
                     T value = (T) supplier.get();
                     value.setRegistryName(resourceLocation);
@@ -765,4 +817,49 @@ public class Platform {
         return (Set<ResourceLocation>) map;
     }
     *///?}
+
+    private static void registerVillagerOffers(VillagerProfession profession, int level, List<VillagerTrades.ItemListing> trades) {
+        //? if < 1.21.5 {
+        Int2ObjectMap<VillagerTrades.ItemListing[]> map = VillagerTrades.TRADES.getOrDefault(profession, new Int2ObjectOpenHashMap<>());
+        Optional<VillagerTrades.ItemListing[]> optional = Optional.ofNullable(map.get(level));
+        if (optional.isPresent()) {
+            ArrayList<VillagerTrades.ItemListing> list = new ArrayList<>(Arrays.asList(optional.get()));
+            list.addAll(trades);
+            map.put(level, list.toArray(new VillagerTrades.ItemListing[0]));
+            VillagerTrades.TRADES.put(profession, map);
+        }
+        //?} else {
+        /*BuiltInRegistries.VILLAGER_PROFESSION.getResourceKey(profession).ifPresentOrElse(resourceKey -> {
+            Int2ObjectMap<VillagerTrades.ItemListing[]> map = VillagerTrades.TRADES.getOrDefault(resourceKey, new Int2ObjectOpenHashMap<>());
+            Optional<VillagerTrades.ItemListing[]> optional = Optional.ofNullable(map.get(level));
+            if (optional.isPresent()) {
+                ArrayList<VillagerTrades.ItemListing> list = new ArrayList<>(Arrays.asList(optional.get()));
+                list.addAll(trades);
+                map.put(level, list.toArray(new VillagerTrades.ItemListing[0]));
+                VillagerTrades.TRADES.put(resourceKey, map);
+            }
+        }, () -> {
+            BrickLibAPI.LOGGER.error("No profession "+profession.name().toString());
+        });
+
+        *///?}
+    }
+    private static void registerWanderingOffers(int level, List<VillagerTrades.ItemListing> trades) {
+        //? if < 1.21.5 {
+        Int2ObjectMap<VillagerTrades.ItemListing[]> map = VillagerTrades.WANDERING_TRADER_TRADES;
+        Optional<VillagerTrades.ItemListing[]> optional = Optional.ofNullable(map.get(level));
+        if (optional.isPresent()) {
+            ArrayList<VillagerTrades.ItemListing> list = new ArrayList<>(Arrays.asList(optional.get()));
+            list.addAll(trades);
+            map.put(level, list.toArray(new VillagerTrades.ItemListing[0]));
+            VillagerTrades.WANDERING_TRADER_TRADES.put(level, list.toArray(new VillagerTrades.ItemListing[0]));
+        }
+        //?} else {
+        /*List<Pair<VillagerTrades.ItemListing[], Integer>> map = VillagerTrades.WANDERING_TRADER_TRADES;
+        Optional<Pair<VillagerTrades.ItemListing[], Integer>> optional = Optional.ofNullable(map.get(level));
+        if (optional.isPresent()) {
+            VillagerTrades.WANDERING_TRADER_TRADES.add(Pair.of(trades.toArray(new VillagerTrades.ItemListing[0]),level));
+        }
+        *///?}
+    }
 }

@@ -2,6 +2,7 @@ package com.arc_studio.brick_lib_api.config;
 
 import com.arc_studio.brick_lib_api.core.event.BrickEventBus;
 import com.arc_studio.brick_lib_api.events.ConfigEvent;
+import com.arc_studio.brick_lib_api.platform.Platform;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.toml.TomlFormat;
@@ -66,7 +67,9 @@ public class ModConfig {
     }
 
     public void save() {
-        ((FileConfig)this.configData).save();
+        if(!(this.type == Type.SERVER && Platform.isClient())){
+            ((FileConfig)this.configData).save();
+        }
     }
 
     public Path getFullPath() {

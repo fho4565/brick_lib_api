@@ -3,7 +3,8 @@ package com.arc_studio.brick_lib_api;
 import com.arc_studio.brick_lib_api.client.command.ClientCommands;
 import com.arc_studio.brick_lib_api.core.PlatformInfo;
 import com.arc_studio.brick_lib_api.core.Version;
-import com.arc_studio.brick_lib_api.core.data.WorldAdditionalData;
+import com.arc_studio.brick_lib_api.core.VillagerTradeEntry;
+import com.arc_studio.brick_lib_api.core.json_function.JsonFunctionExecutor;
 import com.arc_studio.brick_lib_api.core.network.BuiltInPacket;
 import com.arc_studio.brick_lib_api.core.network.type.PacketConfig;
 import com.arc_studio.brick_lib_api.core.register.BrickRegisterManager;
@@ -21,13 +22,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.llamalad7.mixinextras.MixinExtrasBootstrap;
-import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -36,8 +34,17 @@ import net.minecraft.network.chat.HoverEvent;
 /*import net.minecraft.network.chat.TextComponent;
 *///?}
 import net.minecraft.resources.ResourceLocation;
+//? if >1.18.2 {
+//?}
+import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
+//? if > 1.20.4 {
+/*import net.minecraft.world.item.trading.ItemCost;
+*///?}
+import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -71,33 +78,56 @@ public final class BrickLibAPI {
     }
 
     private static void test() {
-        BrickRegisterManager.register(BrickRegistries.COMMAND,()->buildContext->Commands.literal("dataTest")
-            .then(Commands.argument("str", StringArgumentType.greedyString())
-                .executes(context -> {
-                    String str = StringArgumentType.getString(context, "str");
-                    WorldAdditionalData.getWorldData().getData().putString("str",str);
-                    return 1;
-                })
-            )
-            .executes(context -> {
-                context.getSource().sendSuccess(
-                    //? if > 1.19.4 {
-                    () ->
-                    //?}
-                    //? if > 1.18.2 {
-                    Component.literal(WorldAdditionalData.getWorldData().getData().toString()),
-                    //?} else {
-                    /*new TextComponent(WorldAdditionalData.getWorldData().getData().toString()),
-                    *///?}
-                    true);
-                return 1;
+        BrickRegisterManager.register(BrickRegistries.VILLAGER_TRADE, () -> new VillagerTradeEntry(VillagerProfession.FARMER, 1,
+            (trader, random) -> {
+                ItemStack itemStack = new ItemStack(Items.OBSIDIAN);
+                //? if > 1.20.4 {
+                /*return new MerchantOffer(new ItemCost(itemStack.getItem(),itemStack.getCount()), new ItemStack(Items.EMERALD), 10, 1000, 0.05F);
+                *///?} else {
+                return new MerchantOffer(itemStack, new ItemStack(Items.EMERALD), 10, 1000, 0.05F);
+                //?}
             })
         );
+        BrickRegisterManager.register(BrickRegistries.WANDERING_TRADE, () -> new VillagerTradeEntry(VillagerProfession.FARMER, 1,
+            (trader, random) -> {
+                ItemStack itemStack = new ItemStack(Items.OBSIDIAN);
+
+                //? if > 1.20.4 {
+                /*return new MerchantOffer(new ItemCost(itemStack.getItem(),itemStack.getCount()), new ItemStack(Items.EMERALD,63), 10, 1000, 0.05F);
+                *///?} else {
+                return new MerchantOffer(itemStack, new ItemStack(Items.EMERALD,63), 10, 1000, 0.05F);
+                //?}
+            })
+        );
+
         BrickRegisterManager.register(BrickRegistries.CLIENT_COMMAND,()->context-> ClientCommands.literal("cl").executes(context1 -> {
             ClientCommands.sendFeedback(Component.nullToEmpty("yes!!!"));
             ClientCommands.sendError(Component.nullToEmpty("no!!!"));
             return 1;
         }));
+        BrickRegisterManager.register(BrickRegistries.JSON_FUNCTION,ofPath("helloworld"), () -> args -> {
+            Optional.ofNullable(Constants.currentServer().getPlayerList()
+                .getPlayer(UUID.fromString(args.get(0).getAsString())))
+                .ifPresent(serverPlayer -> {
+                    //? if > 1.18.2 {
+                    serverPlayer.sendSystemMessage(Component.nullToEmpty("Hello " + serverPlayer.getScoreboardName() + " !"));
+                    //?} else {
+                    /*serverPlayer.sendMessage(Component.nullToEmpty("Hello " + serverPlayer.getScoreboardName() + " !"),serverPlayer.getUUID());
+                    *///?}
+                });
+            return 1;
+        });
+        BrickRegisterManager.register(BrickRegistries.COMMAND,()->buildContext -> Commands.literal("json_func")
+            .then(Commands.argument("json",StringArgumentType.greedyString())
+                .executes(context -> {
+                    String json = StringArgumentType.getString(context, "json");
+                    Object result = JsonFunctionExecutor.execute(json);
+                    System.out.println("result.getClass() = " + result.getClass());
+                    System.out.println("result = " + result);
+                    return 1;
+                })
+            )
+        );
         BrickRegisterManager.register(BrickRegistries.ITEM,ofPath("man_item"), ()->new Item(new Item.Properties()));
         BrickRegisterManager.register(BrickRegistries.ITEM,ofPath("very_man_item"), ()->new Item(new Item.Properties().rarity(Rarity.RARE)));
         //? if <1.20.4 {
@@ -105,8 +135,8 @@ public final class BrickLibAPI {
         BrickRegisterManager.register(BrickRegistries.BLOCK, ofPath("very_man_block"), () -> new Block(BlockBehaviour.Properties.copy(Blocks.DIAMOND_BLOCK)));
         //?} else {
         /*BrickRegisterManager.register(BrickRegistries.BLOCK, ofPath("man_block"), () -> new Block(BlockBehaviour.Properties.ofFullCopy(Blocks.DIRT)));
-        BrickRegisterManager.register(BrickRegistries.BLOCK, ofPath("very_man_block"), () -> new Block(BlockBehaviour.Properties.ofFullCopy(Blocks.DIAMOND_BLOCK)));*/
-        //?}
+        BrickRegisterManager.register(BrickRegistries.BLOCK, ofPath("very_man_block"), () -> new Block(BlockBehaviour.Properties.ofFullCopy(Blocks.DIAMOND_BLOCK)));
+        *///?}
 
         BrickConfigSpec.Builder builder = new BrickConfigSpec.Builder();
         builder.define("is_man",false);
@@ -257,5 +287,6 @@ public final class BrickLibAPI {
         return new ResourceLocation(MOD_ID,path);
         //?}
     }
+
 }
 

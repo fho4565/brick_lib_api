@@ -35,6 +35,18 @@ public final class BrickEventBus {
         }
     }
 
+    public static HashMap<Class<?>, HashSet<EventWrapper<?>>[]> clientListeners() {
+        return new HashMap<>(CLIENT_LISTENERS);
+    }
+
+    public static HashMap<Class<?>, HashSet<EventWrapper<?>>[]> commonListeners() {
+        return new HashMap<>(COMMON_LISTENERS);
+    }
+
+    public static HashMap<Class<?>, HashSet<EventWrapper<?>>[]> serverListeners() {
+        return new HashMap<>(SERVER_LISTENERS);
+    }
+
     /**
      * 将带有唯一标识符的事件监听器注册到事件总线上
      *
@@ -202,9 +214,14 @@ public final class BrickEventBus {
             for (EventWrapper<?> wrapper : tiers[i]) {
                 try {
                     ((EventWrapper<E>) wrapper).listener.handle(event);
+                    if(event instanceof IOneTimeEvent){
+                        SERVER_LISTENERS.remove(event.getClass());
+                        CLIENT_LISTENERS.remove(event.getClass());
+                        COMMON_LISTENERS.remove(event.getClass());
+                    }
                 } catch (ClassCastException ignored) {
                 }
-                if ((ICancelableEvent.class.isAssignableFrom(event.getClass())) && event.isCanceled()) {
+                if ((event instanceof ICancelableEvent) && event.isCanceled()) {
                     return true;
                 }
             }

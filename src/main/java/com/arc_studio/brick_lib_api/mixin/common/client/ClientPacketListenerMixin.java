@@ -52,12 +52,13 @@ public abstract class ClientPacketListenerMixin {
     //? if > 1.20.6 && fabric {
     /*    @Shadow
         private CommandDispatcher<SharedSuggestionProvider> commands;*/
-    //?} elif > 1.20.1 {
-        /*@Shadow
+    //?} elif >= 1.20.1 {
+        @Shadow
         public CommandDispatcher<SharedSuggestionProvider> commands;
-        *///?}
-    @Shadow
-    public CommandDispatcher<SharedSuggestionProvider> commands;
+        //?} else {
+    /*@Shadow
+    private CommandDispatcher<SharedSuggestionProvider> commands;
+    *///?}
     @Shadow
     @Final
     private ClientSuggestionProvider suggestionsProvider;
@@ -139,8 +140,8 @@ public abstract class ClientPacketListenerMixin {
         ClientCommandInternals.setActiveDispatcher(dispatcher);
         BrickRegistries.CLIENT_COMMAND.foreachRegisteredValue(function -> {
             //? if =1.18.2 {
-            /^dispatcher.register(function.apply(CommandBuildContext.simple(HolderLookup.Provider.create(Stream.empty()))));^/
-            //?} else {
+            /^dispatcher.register(function.apply(CommandBuildContext.simple(HolderLookup.Provider.create(Stream.empty()))));
+            ^///?} else {
             dispatcher.register(function.apply(new CommandBuildContext(RegistryAccess.builtinCopy())));
             //?}
         });

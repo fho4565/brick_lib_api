@@ -3,8 +3,8 @@ package com.arc_studio.brick_lib_api.core.data;
 import com.arc_studio.brick_lib_api.BrickLibAPI;
 import com.arc_studio.brick_lib_api.Constants;
 //? if >= 1.21.5 {
-/*import net.minecraft.core.UUIDUtil;*/
-//?}
+/*import net.minecraft.core.UUIDUtil;
+*///?}
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtIo;
