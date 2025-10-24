@@ -1,4 +1,6 @@
-import net.fabricmc.loom.util.Constants
+import net.darkhax.curseforgegradle.TaskPublishCurseForge
+import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.Input
 import java.util.Optional
 import java.util.function.BiConsumer
 import java.util.function.Consumer
@@ -20,6 +22,7 @@ import kotlin.text.split
 import kotlin.text.startsWith
 import kotlin.text.substring
 
+
 // TODO 确认此处添加的插件
 plugins {
     `maven-publish`
@@ -28,7 +31,8 @@ plugins {
     id("dev.kikugie.stonecutter")
     id("dev.architectury.loom")
     //id("dev.kikugie.j52j") // Recommended by kiku if using swaps in json5.
-    //id("me.modmuss50.mod-publish-plugin")
+    id("me.modmuss50.mod-publish-plugin")
+    id("net.darkhax.curseforgegradle")
 }
 
 // 依赖项仓库，在下面的会被优先解析
@@ -358,8 +362,8 @@ class ModAWs {
  */
 class ModPublish {
     val mcTargets = arrayListOf<String>()
-    val modrinthProjectToken = property("publish.token.modrinth").toString()
-    val curseforgeProjectToken = property("publish.token.curseforge").toString()
+    val modrinthProjectToken = ""
+    val curseforgeProjectToken = ""
     val mavenURL = optionalStrProperty("publish.maven.url")
     val dryRunMode = boolProperty("publish.dry_run")
 
@@ -699,9 +703,32 @@ tasks {
     }
     register<Copy>("buildAndCollect") {
         group = "build"
-        from(remapJar.map { it.archiveFile }, remapSourcesJar.map { it.archiveFile })
-        into(rootProject.layout.buildDirectory.file("libs/${mod.id}-${project.property("version")}"))
+        from(remapJar.map { it.archiveFile }) {
+            into("mod")
+        }
+        from(remapSourcesJar.map { it.archiveFile }) {
+            into("source")
+        }
+        into(rootProject.layout.buildDirectory.dir("outputs"))
         dependsOn("build")
+    }
+
+    register<TaskPublishCurseForge>("publishToCurseForge") {
+        group = "publishing"
+        apiToken = System.getenv("CF_API_KEY")
+        val mainFile = upload("1367515", remapJar)
+        mainFile.releaseType = "beta"
+        mainFile.displayName = "${mod.displayName} ${mod.version} for ${env.loader} ${env.mcVersion.min}"
+        val changelogFile = rootProject.file("CHANGELOG.md")
+        if (changelogFile.exists()) {
+            mainFile.changelog = changelogFile.readText()
+        }
+        mainFile.changelogType = "markdown"
+        mainFile.gameVersions.addAll(modPublish.mcTargets)
+        mainFile.addJavaVersion("Java ${env.javaVer}")
+        mainFile.addEnvironment("server", "client")
+        mainFile.addModLoader(env.loader)
+        mainFile.withAdditionalFile(remapSourcesJar.get().archiveFile)
     }
 }
 tasks.named("processResources") {
@@ -711,5 +738,45 @@ tasks.test {
     useJUnitPlatform()
     testLogging {
         events("passed", "skipped", "failed")
+    }
+}
+
+publishMods {
+    file = tasks.remapJar.get().archiveFile
+    additionalFiles.from(tasks.remapSourcesJar.get().archiveFile)
+    displayName = "${mod.displayName} ${mod.version} for ${env.loader} ${env.mcVersion.min}"
+    version = mod.version
+    changelog = rootProject.file("CHANGELOG.md").readText()
+    type = BETA
+    modLoaders.add(env.loader)
+
+    dryRun = false
+
+    modrinth {
+        projectId = "CSKdjzLF"
+        accessToken = providers.environmentVariable("M_API_KEY")
+        minecraftVersions.addAll(modPublish.mcTargets)
+        apis.forEach { src ->
+            if (src.enabled) {
+                src.versionRange.ifPresent { ver ->
+                    if (src.type.isOptional()){
+                        src.modInfo.rinthSlug?.let {
+                            optional {
+                                slug = it
+                                version = ver.min
+
+                            }
+                        }
+                    } else {
+                        src.modInfo.rinthSlug?.let {
+                            requires {
+                                slug = it
+                                version = ver.min
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
