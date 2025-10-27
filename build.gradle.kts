@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import me.modmuss50.mpp.ReleaseType
 import net.darkhax.curseforgegradle.TaskPublishCurseForge
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Input
@@ -33,6 +35,7 @@ plugins {
     //id("dev.kikugie.j52j") // Recommended by kiku if using swaps in json5.
     id("me.modmuss50.mod-publish-plugin")
     id("net.darkhax.curseforgegradle")
+    id("com.gradleup.shadow")
 }
 
 // 依赖项仓库，在下面的会被优先解析
@@ -253,7 +256,7 @@ enum class DepType {
     open fun isOptional() : Boolean {
         return false
     }
-    open fun includeInDepsList() : Boolean{
+    open fun includeInDepsList() : Boolean {
         return true
     }
 }
@@ -580,12 +583,15 @@ dependencies {
         modImplementation("net.fabricmc:fabric-loader:${env.fabricLoaderVersion.min}")
         implementation("com.electronwill.night-config:toml:3.6.7")
         implementation("com.electronwill.night-config:core:3.6.7")
+
+        shadow("com.electronwill.night-config:toml:3.6.7")
+        shadow("com.electronwill.night-config:core:3.6.7")
     }
     if(env.isForge){
         "forge"("net.minecraftforge:forge:${env.forgeMavenVersion.min}")
         if (env.mcVersion.min>="1.18.2"){
             annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.0")?.let { compileOnly(it) }
-            include("io.github.llamalad7:mixinextras-forge:0.5.0")?.let { implementation(it) }
+            shadow("io.github.llamalad7:mixinextras-forge:0.5.0")?.let { implementation(it) }
         }
     }
     if(env.isNeo){
@@ -703,32 +709,14 @@ tasks {
     }
     register<Copy>("buildAndCollect") {
         group = "build"
-        from(remapJar.map { it.archiveFile }) {
+        from(shadowJar.map { it.archiveFile }) {
             into("mod")
         }
         from(remapSourcesJar.map { it.archiveFile }) {
             into("source")
         }
         into(rootProject.layout.buildDirectory.dir("outputs"))
-        dependsOn("build")
-    }
-
-    register<TaskPublishCurseForge>("publishToCurseForge") {
-        group = "publishing"
-        apiToken = System.getenv("CF_API_KEY")
-        val mainFile = upload("1367515", remapJar)
-        mainFile.releaseType = "beta"
-        mainFile.displayName = "${mod.displayName} ${mod.version} for ${env.loader} ${env.mcVersion.min}"
-        val changelogFile = rootProject.file("CHANGELOG.md")
-        if (changelogFile.exists()) {
-            mainFile.changelog = changelogFile.readText()
-        }
-        mainFile.changelogType = "markdown"
-        mainFile.gameVersions.addAll(modPublish.mcTargets)
-        mainFile.addJavaVersion("Java ${env.javaVer}")
-        mainFile.addEnvironment("server", "client")
-        mainFile.addModLoader(env.loader)
-        mainFile.withAdditionalFile(remapSourcesJar.get().archiveFile)
+        dependsOn(build)
     }
 }
 tasks.named("processResources") {
@@ -741,16 +729,64 @@ tasks.test {
     }
 }
 
+tasks.shadowJar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    archiveClassifier.set("shadow")
+
+    from(sourceSets.getByName("main").output)
+    configurations = listOf(project.configurations.getByName("shadow"))
+
+    try {
+        mergeServiceFiles()
+    } catch (e: Throwable) {
+    }
+}
+val publishName = "${mod.displayName} ${mod.version} for ${env.loader} ${env.mcVersion.min} beta.2"
+tasks.remapJar {
+    inputFile.set(tasks.shadowJar.flatMap { it.archiveFile })
+}
+
+tasks.register<TaskPublishCurseForge>("publishToCurseForge") {
+    group = "publishing"
+    apiToken = System.getenv("CF_API_KEY")
+
+    val dry = true
+
+    doLast {
+        val shadowProvider = tasks.shadowJar
+        val shadowFile = shadowProvider.flatMap { it.archiveFile }
+        if (dry) {
+            println("[publishToCurseForge] Dry run enabled. Would upload: ${shadowFile.get().asFile}")
+        } else {
+            val projectId = "1367515"
+            val mainFile = upload(projectId, shadowProvider)
+            mainFile.releaseType = ReleaseType.BETA
+            mainFile.displayName = publishName
+            val changelogFile = rootProject.file("CHANGELOG.md")
+            if (changelogFile.exists()) {
+                mainFile.changelog = changelogFile.readText()
+            }
+            mainFile.changelogType = "markdown"
+            mainFile.gameVersions.addAll(modPublish.mcTargets)
+            mainFile.addJavaVersion("Java ${env.javaVer}")
+            mainFile.addEnvironment("server", "client")
+            mainFile.addModLoader(env.loader)
+            mainFile.withAdditionalFile(tasks.remapSourcesJar.get().archiveFile)
+        }
+    }
+    dependsOn(tasks.shadowJar)
+}
 publishMods {
-    file = tasks.remapJar.get().archiveFile
+    file = tasks.shadowJar.get().archiveFile
     additionalFiles.from(tasks.remapSourcesJar.get().archiveFile)
-    displayName = "${mod.displayName} ${mod.version} for ${env.loader} ${env.mcVersion.min}"
+    displayName = publishName
     version = mod.version
     changelog = rootProject.file("CHANGELOG.md").readText()
     type = BETA
     modLoaders.add(env.loader)
 
-    dryRun = false
+    dryRun = true
 
     modrinth {
         projectId = "CSKdjzLF"
