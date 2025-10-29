@@ -481,7 +481,7 @@ public class Platform {
             map.put(key,list);
         }
         map.forEach((pair, itemListings) -> registerVillagerOffers(pair.getKey(), pair.getValue(),itemListings));
-
+        BrickRegistries.VILLAGER_TRADE.clean();
         HashMap<Integer,ArrayList<VillagerTrades.ItemListing>> map1 = new HashMap<>();
         for (VillagerTradeEntry entry : BrickRegistries.WANDERING_TRADE) {
             ArrayList<VillagerTrades.ItemListing> list = map1.getOrDefault(entry.level(), new ArrayList<>());
@@ -489,6 +489,7 @@ public class Platform {
             map1.put(entry.level(),list);
         }
         map1.forEach(Platform::registerWanderingOffers);
+        BrickRegistries.WANDERING_TRADE.clean();
         //? if fabric {
         /*//? if >= 1.20.6 {
         /^BrickRegistries.NETWORK_PACKET.foreachRegisteredValue(packetConfig -> {
@@ -585,8 +586,10 @@ public class Platform {
                 Registry.register((Registry<T>) registry, resourceLocation, (T) supplier.get());
             }
         }));
-        SideExecutor.runOnClient(() -> () ->
-                BrickRegistries.KEY_MAPPING.foreachRegisteredValue(KeyBindingHelper::registerKeyBinding));
+        SideExecutor.runOnClient(() -> () -> {
+            BrickRegistries.KEY_MAPPING.foreachRegisteredValue(KeyBindingHelper::registerKeyBinding);
+            BrickRegistries.KEY_MAPPING.clean();
+        });
         *///?} else {
 
         //?}

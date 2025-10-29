@@ -333,11 +333,11 @@ public class BrickRegistries {
     /**
      * 键位注册表
      * */
-    public static final BrickRegistry<KeyMapping> KEY_MAPPING = createAutoClean("key_mapping");
+    public static final BrickRegistry<KeyMapping> KEY_MAPPING = create("key_mapping");
     /**
      * 网络包注册表
      * */
-    public static final BrickRegistry<PacketConfig> NETWORK_PACKET = createAutoClean("network_packet");
+    public static final BrickRegistry<PacketConfig> NETWORK_PACKET = create("network_packet");
     /**
      * 命令注册表
      * */
@@ -369,12 +369,12 @@ public class BrickRegistries {
     /**
      * 村民交易注册表
      * */
-    public static final BrickRegistry<VillagerTradeEntry> VILLAGER_TRADE = createAutoClean("villager_trade");
+    public static final BrickRegistry<VillagerTradeEntry> VILLAGER_TRADE = create("villager_trade");
 
     /**
      * 流浪商人交易注册表
      * */
-    public static final BrickRegistry<VillagerTradeEntry> WANDERING_TRADE = createAutoClean("villager_trade");
+    public static final BrickRegistry<VillagerTradeEntry> WANDERING_TRADE = create("villager_trade");
 
 
     private static <T> BrickRegistry<T> create(String name) {

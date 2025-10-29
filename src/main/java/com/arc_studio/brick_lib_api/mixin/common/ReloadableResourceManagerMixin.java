@@ -22,8 +22,4 @@ public abstract class ReloadableResourceManagerMixin {
         SideExecutor.runOnClient(() -> () -> ConfigTracker.loadConfigs(ModConfig.Type.CLIENT, Constants.globalConfigFolderPath()));
         ConfigTracker.loadConfigs(ModConfig.Type.COMMON, Constants.globalConfigFolderPath());
     }
-    @Unique
-    private ReloadableResourceManager getThis() {
-        return (ReloadableResourceManager) (Object) this;
-    }
 }

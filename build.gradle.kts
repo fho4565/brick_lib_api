@@ -1,5 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import me.modmuss50.mpp.ReleaseType
+import net.darkhax.curseforgegradle.Constants
 import net.darkhax.curseforgegradle.TaskPublishCurseForge
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Input
@@ -539,7 +540,6 @@ stonecutter.constants["newnf"] = env.isNeo && env.atLeast("1.20.4")
 stonecutter.constants["oldnf"] = env.isNeo && env.atMost("1.20.3")
 
 
-
 loom {
     accessWidenerPath = file("../../"+modAWs.getAWs())
     silentMojangMappingsLicense()
@@ -709,13 +709,40 @@ tasks {
     }
     register<Copy>("buildAndCollect") {
         group = "build"
-        from(shadowJar.map { it.archiveFile }) {
+        from(remapJar.map { it.archiveFile }) {
             into("mod")
         }
         from(remapSourcesJar.map { it.archiveFile }) {
             into("source")
         }
         into(rootProject.layout.buildDirectory.dir("outputs"))
+        dependsOn(build)
+    }
+    register<TaskPublishCurseForge>("publishToCurseForge") {
+        group = "publishing"
+        apiToken = System.getenv("CF_API_KEY")
+
+        val dry = false
+
+        val shadowFile = remapJar.get().archiveFile
+        if (dry) {
+            println("[publishToCurseForge] Dry run enabled. Would upload: ${shadowFile.get().asFile}")
+        } else {
+            val projectId = "1367515"
+            val mainFile = upload(projectId, remapJar)
+            mainFile.releaseType = Constants.RELEASE_TYPE_BETA
+            mainFile.displayName = publishName
+            val changelogFile = rootProject.file("CHANGELOG.md")
+            if (changelogFile.exists()) {
+                mainFile.changelog = changelogFile.readText()
+            }
+            mainFile.changelogType = "markdown"
+            mainFile.gameVersions.addAll(modPublish.mcTargets)
+            mainFile.addJavaVersion("Java ${env.javaVer}")
+            mainFile.addEnvironment("server", "client")
+            mainFile.addModLoader(env.loader)
+            mainFile.withAdditionalFile(remapSourcesJar.get().archiveFile)
+        }
         dependsOn(build)
     }
 }
@@ -735,7 +762,7 @@ tasks.shadowJar {
     archiveClassifier.set("shadow")
 
     from(sourceSets.getByName("main").output)
-    configurations = listOf(project.configurations.getByName("shadow"))
+    configurations = listOf(project.configurations.shadow.get())
 
     try {
         mergeServiceFiles()
@@ -744,41 +771,12 @@ tasks.shadowJar {
 }
 val publishName = "${mod.displayName} ${mod.version} for ${env.loader} ${env.mcVersion.min} beta.2"
 tasks.remapJar {
+    archiveClassifier.set("remap")
     inputFile.set(tasks.shadowJar.flatMap { it.archiveFile })
 }
 
-tasks.register<TaskPublishCurseForge>("publishToCurseForge") {
-    group = "publishing"
-    apiToken = System.getenv("CF_API_KEY")
-
-    val dry = true
-
-    doLast {
-        val shadowProvider = tasks.shadowJar
-        val shadowFile = shadowProvider.flatMap { it.archiveFile }
-        if (dry) {
-            println("[publishToCurseForge] Dry run enabled. Would upload: ${shadowFile.get().asFile}")
-        } else {
-            val projectId = "1367515"
-            val mainFile = upload(projectId, shadowProvider)
-            mainFile.releaseType = ReleaseType.BETA
-            mainFile.displayName = publishName
-            val changelogFile = rootProject.file("CHANGELOG.md")
-            if (changelogFile.exists()) {
-                mainFile.changelog = changelogFile.readText()
-            }
-            mainFile.changelogType = "markdown"
-            mainFile.gameVersions.addAll(modPublish.mcTargets)
-            mainFile.addJavaVersion("Java ${env.javaVer}")
-            mainFile.addEnvironment("server", "client")
-            mainFile.addModLoader(env.loader)
-            mainFile.withAdditionalFile(tasks.remapSourcesJar.get().archiveFile)
-        }
-    }
-    dependsOn(tasks.shadowJar)
-}
 publishMods {
-    file = tasks.shadowJar.get().archiveFile
+    file = tasks.remapJar.get().archiveFile
     additionalFiles.from(tasks.remapSourcesJar.get().archiveFile)
     displayName = publishName
     version = mod.version
@@ -786,7 +784,7 @@ publishMods {
     type = BETA
     modLoaders.add(env.loader)
 
-    dryRun = true
+    dryRun = false
 
     modrinth {
         projectId = "CSKdjzLF"
