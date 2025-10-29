@@ -207,6 +207,6 @@ public class BrickRegistry<T> extends RegistryType<T> implements Iterable<T> {
     }
 
     public void clean() {
-        this.map = null;
+        this.map = new HashMap<>();
     }
 }
