@@ -161,7 +161,7 @@ public class ForgePlatform {
                     });
                     //?} else {
                     /*command.consumer((msg, contextSupplier) -> {
-                        c2S.packetHandler().accept(msg, new C2SNetworkContext(/^? <1.20.4 {^/ contextSupplier.get().getSender() /^?} else {^//^contextSupplier.getSender()^//^?}^/));
+                        c2S.packetHandler().accept(msg, new C2SNetworkContext(/^? <1.20.4 {^/ /^contextSupplier.get().getSender() ^//^?} else {^/contextSupplier.getSender()/^?}^/));
                     });
                     *///?}
                 } else {
@@ -175,7 +175,7 @@ public class ForgePlatform {
                     )));
                     //?} else {
                     /*command.consumer((c2SPacket, contextSupplier) -> {
-                        c2S.packetHandler().accept(c2SPacket, new C2SNetworkContext(/^? <1.20.4 {^/ contextSupplier.get().getSender() /^?} else {^//^contextSupplier.getSender()^//^?}^/));
+                        c2S.packetHandler().accept(c2SPacket, new C2SNetworkContext(/^? <1.20.4 {^/ /^contextSupplier.get().getSender() ^//^?} else {^/contextSupplier.getSender()/^?}^/));
                     });
                     *///?}
                 }
@@ -263,11 +263,11 @@ public class ForgePlatform {
                 //?} else {
                 /*if (sac.netHandle()) {
                     c2sBuilder.consumer((msg, contextSupplier) -> {
-                        sac.serverHandler().accept(msg, new C2SNetworkContext(/^? <1.20.4 {^/ contextSupplier.get().getSender() /^?} else {^//^contextSupplier.getSender()^//^?}^/));
+                        sac.serverHandler().accept(msg, new C2SNetworkContext(/^? <1.20.4 {^/ /^contextSupplier.get().getSender() ^//^?} else {^/contextSupplier.getSender()/^?}^/));
                     });
                 } else {
                     c2sBuilder.consumer((sacPacket, contextSupplier) -> {
-                        sac.serverHandler().accept(sacPacket, new C2SNetworkContext(/^? <1.20.4 {^/ contextSupplier.get().getSender() /^?} else {^//^contextSupplier.getSender()^//^?}^/));
+                        sac.serverHandler().accept(sacPacket, new C2SNetworkContext(/^? <1.20.4 {^/ /^contextSupplier.get().getSender() ^//^?} else {^/contextSupplier.getSender()/^?}^/));
                     });
                 }
                 *///?}

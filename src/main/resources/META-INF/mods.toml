@@ -12,6 +12,7 @@ authors="${authors}"
 description='''
 ${description}
 '''
+credits = ${credits}
 
 ${mixin_field}
 

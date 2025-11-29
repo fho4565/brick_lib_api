@@ -304,6 +304,7 @@ class ModProperties {
     val license = optionalStrProperty("mod.license").orElse("")
     val sourceUrl = optionalStrProperty("mod.source_url").orElse("")
     val generalWebsite = optionalStrProperty("mod.general_website").orElse(sourceUrl)
+    val credits = optionalStrProperty("mod.credits").orElse("")
 }
 
 /**
@@ -337,11 +338,11 @@ class ModMixins {
     fun getMixins(env: EnvType) : List<String> {
         val out = arrayListOf<String>()
         if(enableVanillaMixin) out.add(vanillaMixin)
-        when (env) {
+/*        when (env) {
             EnvType.FABRIC -> if(enableFabricMixin) out.add(fabricMixin)
             EnvType.FORGE -> if(enableForgeMixin) out.add(forgeMixin)
             EnvType.NEOFORGE -> if(enableNeoforgeMixin) out.add(neoForgeMixin)
-        }
+        }*/
         return out
     }
 }
@@ -659,7 +660,7 @@ abstract class ProcessResourcesExtension : ProcessResources() {
 if(env.atMost("1.20.6")){
     tasks.replace("processResources",ProcessResourcesExtension::class)
 }
-
+val publishName = "${mod.displayName} ${mod.version} for ${env.loader} ${env.mcVersion.min} beta.2"
 tasks {
     processResources {
         val map = mapOf<String,String>(
@@ -676,6 +677,8 @@ tasks {
             "icon" to mod.icon,
             "fabric_common_entry" to modFabric.commonEntry,
             "fabric_client_entry" to modFabric.clientEntry,
+            "credits" to mod.credits,
+            "contributors" to mod.credits,
             "mc_min" to env.mcVersion.min,
             "mc_max" to env.mcVersion.max,
             "issue_tracker" to mod.issueTracker,
@@ -758,9 +761,6 @@ tasks.test {
 
 tasks.shadowJar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-
-    archiveClassifier.set("shadow")
-
     from(sourceSets.getByName("main").output)
     configurations = listOf(project.configurations.shadow.get())
 
@@ -769,9 +769,7 @@ tasks.shadowJar {
     } catch (e: Throwable) {
     }
 }
-val publishName = "${mod.displayName} ${mod.version} for ${env.loader} ${env.mcVersion.min} beta.2"
 tasks.remapJar {
-    archiveClassifier.set("remap")
     inputFile.set(tasks.shadowJar.flatMap { it.archiveFile })
 }
 
@@ -784,7 +782,7 @@ publishMods {
     type = BETA
     modLoaders.add(env.loader)
 
-    dryRun = false
+    dryRun = true
 
     modrinth {
         projectId = "CSKdjzLF"

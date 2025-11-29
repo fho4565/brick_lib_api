@@ -1,6 +1,7 @@
 package com.arc_studio.brick_lib_api;
 
 import com.arc_studio.brick_lib_api.core.Version;
+import com.arc_studio.brick_lib_api.core.data.ResourceID;
 import com.arc_studio.brick_lib_api.core.network.BuiltInPacket;
 import com.arc_studio.brick_lib_api.core.network.type.PacketConfig;
 import com.arc_studio.brick_lib_api.core.register.BrickRegisterManager;
@@ -14,9 +15,13 @@ import com.llamalad7.mixinextras.MixinExtrasBootstrap;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 
+
+import net.minecraft.network.chat.Component;
+
+
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.network.chat.Component;
+
 import net.minecraft.network.chat.HoverEvent;
 //? if <=1.18.2 {
 /*import net.minecraft.network.chat.TextComponent;
@@ -28,13 +33,18 @@ import net.minecraft.resources.ResourceLocation;
 /*import net.minecraft.world.item.trading.ItemCost;
 *///?}
 import com.mojang.logging.LogUtils;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Rarity;
 import org.slf4j.Logger;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -49,7 +59,7 @@ public final class BrickLibAPI {
     public static void init() {
         MixinExtrasBootstrap.init();
         Constants.initGeneral();
-        BrickLibAPI.LOGGER.info("You are using Brick Lib API version {}", BRICK_LIB_API_VERSION);
+        BrickLibAPI.LOGGER.info("Brick Lib API Version : {}", BRICK_LIB_API_VERSION);
         preLoad();
         brickLibApiFinalize();
     }
@@ -151,12 +161,8 @@ public final class BrickLibAPI {
         return 1;
     }
 
-    public static ResourceLocation ofPath(String path) {
-        //? if >= 1.21 {
-        /*return ResourceLocation.fromNamespaceAndPath(MOD_ID,path);
-         *///?} else {
-        return new ResourceLocation(MOD_ID,path);
-        //?}
+    public static ResourceID ofPath(String path) {
+        return new ResourceID(MOD_ID,path);
     }
 
 }

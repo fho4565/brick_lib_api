@@ -32,14 +32,18 @@ public abstract class NetworkMessageEvent extends BaseEvent {
         this.message = message;
     }
 
-
+    /**
+     * 客户端发送事件
+     * */
     public static class ClientSend extends NetworkMessageEvent implements ICancelableEvent {
         public ClientSend(String id,String message) {
             super(id,message);
         }
     }
 
-
+    /**
+     * 服务端发送事件
+     * */
     public static class ServerSend extends NetworkMessageEvent implements ICancelableEvent {
         private final Collection<ServerPlayer> targets;
 

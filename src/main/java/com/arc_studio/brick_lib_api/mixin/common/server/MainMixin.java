@@ -1,13 +1,10 @@
 package com.arc_studio.brick_lib_api.mixin.common.server;
 
-import com.arc_studio.brick_lib_api.core.data.WorldAdditionalData;
 import com.arc_studio.brick_lib_api.register.BrickRegistries;
 import com.arc_studio.brick_lib_api.core.SideExecutor;
 import com.arc_studio.brick_lib_api.update_checker.UpdateChecker;
 import net.minecraft.server.Main;
-import net.minecraft.world.entity.npc.VillagerTrades;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;

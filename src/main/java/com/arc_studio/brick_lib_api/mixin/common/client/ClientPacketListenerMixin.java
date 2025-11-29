@@ -22,8 +22,8 @@ import net.minecraft.core.LayeredRegistryAccess;
 
 //?}
 //? if = 1.18.2 {
-/*import com.arc_studio.brick_lib_api.misc.CommandBuildContext;*/
-//?} else {
+/*import com.arc_studio.brick_lib_api.misc.CommandBuildContext;
+*///?} else {
 import net.minecraft.commands.CommandBuildContext;
 //?}
 import org.spongepowered.asm.mixin.Final;
@@ -50,9 +50,9 @@ public abstract class ClientPacketListenerMixin {
     private FeatureFlagSet enabledFeatures;
 
     //? if > 1.20.6 && fabric {
-    /*    @Shadow
-        private CommandDispatcher<SharedSuggestionProvider> commands;*/
-    //?} elif >= 1.20.1 {
+        /*@Shadow
+        private CommandDispatcher<SharedSuggestionProvider> commands;
+    *///?} elif >= 1.20.1 {
         @Shadow
         public CommandDispatcher<SharedSuggestionProvider> commands;
         //?} else {
