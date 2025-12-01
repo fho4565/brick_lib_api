@@ -31,6 +31,7 @@ pluginManagement {
         maven("https://mirrors.imucraft.cn")
         maven("https://mirrors.imucraft.cn/neoforge/")
         maven("https://mirrors.qlu.edu.cn/bmclapi/")
+        maven("https://maven.kikugie.dev/snapshots") { name = "KikuGie Snapshots" }
     }
     plugins {
         kotlin("jvm") version "2.2.0"

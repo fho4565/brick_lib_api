@@ -18,7 +18,7 @@ public class BrickRegisterManager {
     private static final Map<Registry<?>, VanillaRegistryData<?>> VANILLA_REGISTRY_DATA = new ConcurrentHashMap<>();
 
     private BrickRegisterManager() {
-        throw new AssertionError("不允许实例化工具类");
+        throw new AssertionError("Instantiation of tool classes is not allowed");
     }
 
     /**
@@ -29,13 +29,13 @@ public class BrickRegisterManager {
         private final Map<ResourceLocation, Supplier<T>> entries;
 
         public VanillaRegistryData(Registry<T> registry) {
-            this.registry = Objects.requireNonNull(registry, "Registry不能为null");
-            this.entries = new LinkedHashMap<>(); // 保持注册顺序
+            this.registry = Objects.requireNonNull(registry, "registry cannot be null");
+            this.entries = new LinkedHashMap<>();
         }
 
         public boolean register(ResourceLocation id, Supplier<T> supplier) {
-            Objects.requireNonNull(id, "ResourceLocation不能为null");
-            Objects.requireNonNull(supplier, "Supplier不能为null");
+            Objects.requireNonNull(id, "id cannot be null");
+            Objects.requireNonNull(supplier, "supplier cannot be null");
 
             return entries.putIfAbsent(id, supplier) == null;
         }
@@ -54,19 +54,19 @@ public class BrickRegisterManager {
      *
      * @param registry 原版注册表
      * @param id 资源标识符
-     * @param value 注册对象提供者
+     * @param supplier 注册对象提供者
      * @return 注册成功返回true，如果已存在返回false
      */
-    public static <T> boolean register(Registry<T> registry, ResourceLocation id, Supplier<T> value) {
-        Objects.requireNonNull(registry, "Registry不能为null");
-        Objects.requireNonNull(id, "ResourceLocation不能为null");
-        Objects.requireNonNull(value, "Supplier不能为null");
+    public static <T> boolean register(Registry<T> registry, ResourceLocation id, Supplier<T> supplier) {
+        Objects.requireNonNull(registry, "registry cannot be null");
+        Objects.requireNonNull(id, "id cannot be null");
+        Objects.requireNonNull(supplier, "supplier cannot be null");
 
         @SuppressWarnings("unchecked")
         VanillaRegistryData<T> registryData = (VanillaRegistryData<T>) VANILLA_REGISTRY_DATA
                 .computeIfAbsent(registry, k -> new VanillaRegistryData<>(registry));
 
-        return registryData.register(id, value);
+        return registryData.register(id, supplier);
     }
 
     /**
@@ -81,37 +81,34 @@ public class BrickRegisterManager {
      *
      * @param registry 自定义注册表
      * @param id 资源标识符
-     * @param value 注册对象提供者
+     * @param supplier 注册对象提供者
      * @return 注册成功返回true，如果已存在返回false
      */
-    public static <T> boolean register(BrickRegistry<T> registry, ResourceLocation id, Supplier<T> value) {
-        Objects.requireNonNull(registry, "BrickRegistry不能为null");
-        Objects.requireNonNull(id, "ResourceLocation不能为null");
-        Objects.requireNonNull(value, "Supplier不能为null");
+    public static <T> boolean register(BrickRegistry<T> registry, ResourceLocation id, Supplier<T> supplier) {
+        Objects.requireNonNull(registry, "registry cannot be null");
+        Objects.requireNonNull(id, "id cannot be null");
+        Objects.requireNonNull(supplier, "supplier cannot be null");
 
         if (registry.get(id) != null) {
-            // 已存在
             return false;
         }
 
-        registry.register(id, value.get());
+        registry.register(id, supplier.get());
         return true;
     }
 
     /**
      * 使用自动生成的ID注册到自定义注册表
      */
-    public static <T> boolean register(BrickRegistry<T> registry, Supplier<T> value) {
-        Objects.requireNonNull(registry, "BrickRegistry不能为null");
-        Objects.requireNonNull(value, "Supplier不能为null");
+    public static <T> boolean register(BrickRegistry<T> registry, Supplier<T> supplier) {
+        Objects.requireNonNull(registry, "registry cannot be null");
+        Objects.requireNonNull(supplier, "supplier cannot be null");
 
         ResourceLocation autoId = generateAutoId(registry);
-        return register(registry, autoId, value);
+        return register(registry, autoId, supplier);
     }
 
-    /**
-     * 生成自动ID
-     */
+
     private static ResourceLocation generateAutoId(BrickRegistry<?> registry) {
         //? if > 1.18.2 {
         String key = registry.getRegisterKey().location().toLanguageKey();
@@ -130,9 +127,7 @@ public class BrickRegisterManager {
         Map<Registry<?>, Map<ResourceLocation, Supplier<?>>> result = new HashMap<>();
 
         VANILLA_REGISTRY_DATA.forEach((registry, data) -> {
-            @SuppressWarnings("unchecked")
-            VanillaRegistryData<Object> typedData = (VanillaRegistryData<Object>) data;
-            result.put(registry, Collections.unmodifiableMap(typedData.getEntries()));
+            result.put(registry, Collections.unmodifiableMap(data.getEntries()));
         });
 
         return Collections.unmodifiableMap(result);
@@ -146,7 +141,7 @@ public class BrickRegisterManager {
         VanillaRegistryData<T> data = (VanillaRegistryData<T>) VANILLA_REGISTRY_DATA.get(registry);
 
         if (data != null) {
-            return Optional.of(Collections.unmodifiableMap(data.getEntries()));
+            return Optional.of(data.getEntries());
         }
 
         return Optional.empty();

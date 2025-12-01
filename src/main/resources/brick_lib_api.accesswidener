@@ -1,3 +1,5 @@
 accessWidener   v2  named
 
 accessible class net/minecraft/server/MinecraftServer$ReloadableResources
+extendable class net/minecraft/resources/ResourceLocation
+accessible method net/minecraft/resources/ResourceLocation <init> (Ljava/lang/String;Ljava/lang/String;)V

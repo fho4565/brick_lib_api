@@ -7,18 +7,25 @@ import com.arc_studio.brick_lib_api.update_checker.UpdateChecker;
 import net.minecraft.client.telemetry.events.GameLoadTimesEvent;
 import net.minecraft.client.telemetry.TelemetryProperty;
 //?} elif > 1.19.2 {
-/*import net.minecraft.client.User;
+/*import com.mojang.authlib.minecraft.UserApiService;
+import net.minecraft.client.User;
 import net.minecraft.client.telemetry.ClientTelemetryManager;
 import net.minecraft.client.telemetry.TelemetryProperty;
 
 *///?} else {
-/*import net.minecraft.client.ClientTelemetryManager;
+/*import com.mojang.authlib.minecraft.UserApiService;
+import net.minecraft.client.ClientTelemetryManager;
+import java.util.Optional;
+import java.util.UUID;
 *///?}
+import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+
 
 import static com.arc_studio.brick_lib_api.BrickLibAPI.LOGGER;
 

@@ -13,6 +13,7 @@ import org.slf4j.MarkerFactory;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 
 import static com.arc_studio.brick_lib_api.BrickLibAPI.LOGGER;
 
@@ -49,28 +50,24 @@ public class ConfigTracker {
     static void trackConfig(final ModConfig config) {
         if (fileMap.containsKey(config.getFileName())) {
             LOGGER.error(CONFIG,
-                    "Detected config file conflict {} between {} and {}",
+                    "Detected config file conflict {}:{} between {}:{} and {}",
                     config.getFileName(),
+                    config.getType(),
                     fileMap.get(config.getFileName()).getModId(),
+                    fileMap.get(config.getFileName()).getType(),
                     config.getModId());
-            throw new RuntimeException("Config conflict detected!");
-        }
-        fileMap.put(config.getFileName(), config);
-        configSets.get(config.getType()).add(config);
-        configsByMod.computeIfAbsent(config.getModId(),
-                (k)->new EnumMap<>(ModConfig.Type.class))
+            //throw new RuntimeException("Config conflict detected!");
+        } else {
+            fileMap.put(config.getFileName(), config);
+            configSets.get(config.getType()).add(config);
+            configsByMod.computeIfAbsent(config.getModId(),
+                    (k) -> new EnumMap<>(ModConfig.Type.class))
                 .put(config.getType(), config);
-        LOGGER.debug(CONFIG, "Config file {} for {} tracking", config.getFileName(), config.getModId());
+            LOGGER.debug(CONFIG, "Config file {} for {} tracking", config.getFileName(), config.getModId());
+        }
     }
 
     public static void loadConfigs(ModConfig.Type type, Path configBasePath) {
-        BrickRegistries.CONFIG.forEach(config -> {
-            if (!config.getSpec().isEmpty()) {
-                ConfigTracker.trackConfig(config);
-            } else {
-                LOGGER.debug("Attempted to register an empty config {} ", config.getFileName());
-            }
-        });
         LOGGER.debug(CONFIG, "Loading configs type {}", type);
         configSets.get(type).forEach(config -> openConfig(config, configBasePath));
     }

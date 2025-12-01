@@ -3,6 +3,7 @@ package com.arc_studio.brick_lib_api.config;
 import com.arc_studio.brick_lib_api.core.event.BrickEventBus;
 import com.arc_studio.brick_lib_api.events.ConfigEvent;
 import com.arc_studio.brick_lib_api.platform.Platform;
+import com.arc_studio.brick_lib_api.register.BrickRegistries;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.toml.TomlFormat;
@@ -10,6 +11,7 @@ import com.electronwill.nightconfig.toml.TomlFormat;
 import java.io.ByteArrayInputStream;
 import java.nio.file.Path;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * This class is a modified version of ModConfig from the Minecraft Forge API,
@@ -36,6 +38,14 @@ public class ModConfig {
         this.spec = spec;
         this.fileName = fileName;
         this.modId = modId;
+        ConfigTracker.trackConfig(this);
+    }
+    public ModConfig(Type type, BrickConfigSpec spec,String modId) {
+        this.type = type;
+        this.spec = spec;
+        this.fileName = defaultConfigName(type,modId);
+        this.modId = modId;
+        ConfigTracker.trackConfig(this);
     }
 
     public static String defaultConfigName(Type type, String modId) {
@@ -59,6 +69,17 @@ public class ModConfig {
 
     public CommentedConfig getConfigData() {
         return this.configData;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof ModConfig config)) return false;
+        return type == config.type && Objects.equals(spec, config.spec) && Objects.equals(fileName, config.fileName) && Objects.equals(modId, config.modId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, spec, fileName, modId);
     }
 
     void setConfigData(final CommentedConfig configData) {

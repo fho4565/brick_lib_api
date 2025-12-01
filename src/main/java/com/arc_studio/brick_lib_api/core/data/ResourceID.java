@@ -4,15 +4,30 @@ import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import net.minecraft.ResourceLocationException;
+//? if > 1.18.2 {
 import net.minecraft.network.chat.Component;
+//?} else {
+/*import net.minecraft.network.chat.TranslatableComponent;
+*///?}
 import net.minecraft.resources.ResourceLocation;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
 public class ResourceID extends ResourceLocation {
-    protected static final SimpleCommandExceptionType ERROR_INVALID = new SimpleCommandExceptionType(Component.translatable("argument.id.invalid"));
+    protected static final SimpleCommandExceptionType ERROR_INVALID =
+        new SimpleCommandExceptionType(
+            //? if <= 1.18.2 {
+            /*new TranslatableComponent("argument.id.invalid")
+            *///?} else {
+            Component.translatable("argument.id.invalid")
+            //?}
+        );
     public ResourceID(String location) {
+        //? if > 1.20.6 {
+        /*this(decompose(location, ':'));
+        *///?} else {
         super(location);
+        //?}
     }
 
     public ResourceID(String namespace, String path) {

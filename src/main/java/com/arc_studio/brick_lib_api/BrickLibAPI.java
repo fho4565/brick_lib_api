@@ -26,25 +26,20 @@ import net.minecraft.network.chat.HoverEvent;
 //? if <=1.18.2 {
 /*import net.minecraft.network.chat.TextComponent;
 *///?}
-import net.minecraft.resources.ResourceLocation;
 //? if >1.18.2 {
 //?}
 //? if > 1.20.4 {
 /*import net.minecraft.world.item.trading.ItemCost;
 *///?}
 import com.mojang.logging.LogUtils;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Rarity;
 import org.slf4j.Logger;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Marker;
-import org.slf4j.MarkerFactory;
 
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.DayOfWeek;
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -72,6 +67,13 @@ public final class BrickLibAPI {
     }
 
     private static void preLoad() {
+        BrickConfigSpec.Builder builder = new BrickConfigSpec.Builder();
+        builder.define("diamonds",32);
+        builder.defineEnum("day", DayOfWeek.MONDAY);
+        builder.define("type", 510);
+        ModConfig config0 = new ModConfig(ModConfig.Type.SERVER, builder.build(), MOD_ID);
+        BrickRegisterManager.register(BrickRegistries.CONFIG,ofPath("demo_config"), () -> config0);
+
         BrickRegisterManager.register(BrickRegistries.COMMAND, () -> buildContext ->
                 Commands.literal("datagen")
                         .requires(stack -> Constants.isInDevelopEnvironment())
@@ -87,7 +89,65 @@ public final class BrickLibAPI {
                                 )
                         )
         );
+        BrickRegisterManager.register(BrickRegistries.COMMAND, () -> buildContext ->
+                Commands.literal("brick_lib")
+                        .requires(stack -> stack.hasPermission(2))
+                        .then(
+                            Commands.literal("config")
+                                .then(Commands.literal("list")
+                                    .executes(context->{
+                                        findAndOutputConfigs(context, ModConfig.Type.COMMON);
+                                        findAndOutputConfigs(context, ModConfig.Type.SERVER);
+                                        findAndOutputConfigs(context, ModConfig.Type.CLIENT);
+                                        return 1;
+                                    })
+                                    .then(Commands.literal("common")
+                                        .executes(context->{
+                                            findAndOutputConfigs(context, ModConfig.Type.COMMON);
+                                            return 1;
+                                        })
+                                    )
+                                    .then(Commands.literal("server")
+                                        .executes(context->{
+                                            findAndOutputConfigs(context, ModConfig.Type.SERVER);
+                                            return 1;
+                                        })
+                                    )
+                                    .then(Commands.literal("client")
+                                        .executes(context->{
+                                            findAndOutputConfigs(context, ModConfig.Type.CLIENT);
+                                            return 1;
+                                        })
+                                    )
+                                )
+                        )
+        );
         initPackets();
+    }
+    private static void findAndOutputConfigs(CommandContext<CommandSourceStack> context, ModConfig.Type type){
+        //? if > 1.18.2 {
+        //? if <= 1.19.4 {
+        /*context.getSource().sendSuccess(Component.literal("=====[ "+type.extension()+" ]"), true);
+        ConfigTracker.configSets().get(type).forEach((config) -> {
+            context.getSource().sendSuccess(
+                Component.literal("[" + config.getModId() + "] " + config.getFileName()), true);
+        });
+        *///?} else {
+            
+            context.getSource().sendSuccess(() -> Component.literal("=====[" + type.extension() + "]"), true);
+            ConfigTracker.configSets().get(type).forEach((config) -> {
+                context.getSource().sendSuccess(() -> Component.literal("[" + config.getModId() + "] " + config.getFileName()),
+                    true);
+            });
+        //?}
+        //?} else {
+            /*
+            context.getSource().sendSuccess(new TextComponent("=====[" + type.extension() + "]"),true);
+            ConfigTracker.configSets().get(type).forEach((config) -> {
+                context.getSource().sendSuccess(new TextComponent("[" + config.getModId() + "] " + config.getFileName()),
+                    true);
+            });
+         *///?}
     }
 
     private static void initPackets() {

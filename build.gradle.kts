@@ -37,6 +37,7 @@ plugins {
     id("me.modmuss50.mod-publish-plugin")
     id("net.darkhax.curseforgegradle")
     id("com.gradleup.shadow")
+    id("dev.kikugie.fletching-table")
 }
 
 // 依赖项仓库，在下面的会被优先解析
@@ -540,7 +541,6 @@ stonecutter.constants["neoforge"] = env.isNeo
 stonecutter.constants["newnf"] = env.isNeo && env.atLeast("1.20.4")
 stonecutter.constants["oldnf"] = env.isNeo && env.atMost("1.20.3")
 
-
 loom {
     accessWidenerPath = file("../../"+modAWs.getAWs())
     silentMojangMappingsLicense()
@@ -585,14 +585,14 @@ dependencies {
         implementation("com.electronwill.night-config:toml:3.6.7")
         implementation("com.electronwill.night-config:core:3.6.7")
 
-        shadow("com.electronwill.night-config:toml:3.6.7")
-        shadow("com.electronwill.night-config:core:3.6.7")
+        include("com.electronwill.night-config:toml:3.6.7")
+        include("com.electronwill.night-config:core:3.6.7")
     }
     if(env.isForge){
         "forge"("net.minecraftforge:forge:${env.forgeMavenVersion.min}")
         if (env.mcVersion.min>="1.18.2"){
             annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.0")?.let { compileOnly(it) }
-            shadow("io.github.llamalad7:mixinextras-forge:0.5.0")?.let { implementation(it) }
+            include("io.github.llamalad7:mixinextras-forge:0.5.0")?.let { implementation(it) }
         }
     }
     if(env.isNeo){
@@ -625,7 +625,17 @@ dependencies {
 java {
     withSourcesJar()
     //TODO 这是需要更新的 Java。
-    val java = if(env.javaVer == 8) JavaVersion.VERSION_1_8 else if(env.javaVer == 17) JavaVersion.VERSION_17 else JavaVersion.VERSION_21
+    val java = when (env.javaVer) {
+        8 -> {
+            JavaVersion.VERSION_1_8
+        }
+        17 -> {
+            JavaVersion.VERSION_17
+        }
+        else -> {
+            JavaVersion.VERSION_21
+        }
+    }
     targetCompatibility = java
     sourceCompatibility = java
 }
@@ -653,6 +663,14 @@ abstract class ProcessResourcesExtension : ProcessResources() {
                 file.copyRecursively(File(file.absolutePath.plus("s")),true)
                 file.deleteRecursively()
             }
+        }
+    }
+}
+
+fletchingTable{
+    if (env.isForge || env.isNeo){
+        accessConverter.register(sourceSets.main) {
+            add("brick_lib_api.accesswidener")
         }
     }
 }
@@ -709,6 +727,7 @@ tasks {
             filesMatching(str) { expand(map) }
         }
         filesMatching(modAWs.vanillaAW) { expand(map) }
+        filesMatching("src/main/resources/META_INF/accesstransformer.cfg") { expand(map) }
     }
     register<Copy>("buildAndCollect") {
         group = "build"

@@ -2,6 +2,8 @@ modLoader="javafml"
 loaderVersion="${forgelike_loader_ver}"
 license="${license}"
 issueTrackerURL="${issue_tracker}"
+[[accessTransformers]]
+file="META-INF/accesstransformer.cfg"
 
 [[mods]]
 modId="${id}"
