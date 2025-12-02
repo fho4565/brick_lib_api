@@ -1,6 +1,7 @@
 package com.arc_studio.brick_lib_api.network;
 
 import com.arc_studio.brick_lib_api.BrickLibAPI;
+import com.arc_studio.brick_lib_api.Constants;
 import com.arc_studio.brick_lib_api.core.network.PacketContent;
 import com.arc_studio.brick_lib_api.core.network.context.C2SNetworkContext;
 import com.arc_studio.brick_lib_api.core.network.context.S2CNetworkContext;
@@ -11,6 +12,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -22,6 +25,7 @@ import java.util.Optional;
  * @author fho4565
  */
 public class ConfigSyncPacket extends LoginPacket {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigSyncPacket.class);
     private String fileName;
     private byte[] fileData;
 
@@ -36,7 +40,7 @@ public class ConfigSyncPacket extends LoginPacket {
                             *///?}
                     );
                 } catch (IOException e) {
-                    BrickLibAPI.LOGGER.error(e.toString());
+                    LOGGER.error(e.toString());
                     decompress = new CompoundTag();
                 }
             }
@@ -100,11 +104,11 @@ public class ConfigSyncPacket extends LoginPacket {
                 NbtIo.writeCompressed(tag, byteArrayOutputStream);
                 content.writeByteArray(byteArrayOutputStream.toByteArray());
             } catch (IOException e) {
-                BrickLibAPI.LOGGER.error(e.toString());
+                LOGGER.error(e.toString());
                 content.writeByteArray(new byte[0]);
             }
         } catch (Exception e) {
-            BrickLibAPI.LOGGER.error(e.toString());
+            LOGGER.error(e.toString());
         }
     }
 }

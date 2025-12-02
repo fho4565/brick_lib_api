@@ -14,11 +14,7 @@ import com.arc_studio.brick_lib_api.register.BrickRegistries;
 import com.llamalad7.mixinextras.MixinExtrasBootstrap;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-
-
 import net.minecraft.network.chat.Component;
-
-
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 
@@ -134,8 +130,8 @@ public final class BrickLibAPI {
             });
         //?}
         //?} else {
-            /*
-            context.getSource().sendSuccess(new TextComponent("=====[" + type.extension() + "]"),true);
+
+            /*context.getSource().sendSuccess(new TextComponent("=====[" + type.extension() + "]"),true);
             ConfigTracker.configSets().get(type).forEach((config) -> {
                 context.getSource().sendSuccess(new TextComponent("[" + config.getModId() + "] " + config.getFileName()),
                     true);

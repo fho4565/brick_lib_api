@@ -16,8 +16,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 
-import static com.arc_studio.brick_lib_api.BrickLibAPI.LOGGER;
-
 /**
  * This class is a modified version of ConfigTracker from the Minecraft Forge API,
  * which was developed by Forge Development LLC and contributors and licensed under the GNU Lesser General Public License v2.1.

@@ -3,9 +3,12 @@ package com.arc_studio.brick_lib_api;
 
 import com.arc_studio.brick_lib_api.core.PlatformInfo;
 import com.arc_studio.brick_lib_api.platform.Platform;
+import com.mojang.logging.LogUtils;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.storage.LevelResource;
 import org.jetbrains.annotations.ApiStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,6 +19,7 @@ import java.nio.file.Path;
  * Brick Lib提供的一些变量，这些变量在某些情况下不保证一定是初始化的，在调用前需要检查值
  */
 public class Constants {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Constants.class);
     private static String[] launchArgs;
     private static boolean initiatedGeneral = false;
     private static boolean initiatedWorld = false;
@@ -119,13 +123,13 @@ public class Constants {
             File dir = brickLibWorldFolder.toFile();
             if (!dir.exists()) {
                 if (!dir.mkdirs()) {
-                    BrickLibAPI.LOGGER.error("Failed to create brick lib folder");
+                    LOGGER.error("Failed to create brick lib folder");
                 }
             }
             File versionDataDir = versionDataFolder.toFile();
             if (!versionDataDir.exists()) {
                 if (!versionDataDir.mkdirs()) {
-                    BrickLibAPI.LOGGER.error("Failed to create brick lib version data folder");
+                    LOGGER.error("Failed to create brick lib version data folder");
                 }
             }
             initiatedWorld = true;
