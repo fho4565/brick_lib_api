@@ -6,6 +6,7 @@ import com.arc_studio.brick_lib_api.register.BrickRegistries;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.mojang.logging.LogUtils;
+import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
@@ -47,7 +48,8 @@ public class ConfigTracker {
 
     }
 
-    static void trackConfig(final ModConfig config) {
+    @ApiStatus.Internal
+    public static void trackConfig(final ModConfig config) {
         if (fileMap.containsKey(config.getFileName())) {
             LOGGER.error(CONFIG,
                     "Detected config file conflict {}:{} between {}:{} and {}",

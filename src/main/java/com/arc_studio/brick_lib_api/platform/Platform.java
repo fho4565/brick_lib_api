@@ -12,6 +12,7 @@ import com.arc_studio.brick_lib_api.core.network.context.S2CNetworkContext;
 import com.arc_studio.brick_lib_api.core.register.BrickRegisterManager;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -62,6 +63,7 @@ import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.LevelResource;
 //? if forge {
+import net.minecraftforge.common.ForgeConfig;
 import net.minecraftforge.common.util.LogicalSidedProvider;
 //? if <= 1.18.2 {
 /*import net.minecraftforge.event.RegistryEvent;
@@ -144,7 +146,6 @@ public class Platform {
     //? if !fabric {
     private static final LevelResource SERVER_CONFIG = new LevelResource("serverconfig");
     //?}
-    public static String[] args;
 
     public static Path getConfigDirectory() {
         //? if fabric {
@@ -298,7 +299,7 @@ public class Platform {
         //? if fabric {
         /*return FabricLoader.getInstance().getLaunchArguments(true);
          *///?} else {
-        return args;
+        return ManagementFactory.getRuntimeMXBean().getInputArguments().toArray(new String[0]);
         //?}
     }
 
@@ -467,7 +468,19 @@ public class Platform {
         *///?}
     }
 
-
+    /**
+     * 执行后置操作，包括：
+     * <ul>
+     *     <li>一些Brick Lib注册表的注册</li>
+     *     <li>在fabric：
+     *         <ul>
+     *             <li>原版注册表注册</li>
+     *             <li>网络包注册</li>
+     *             <li>键位注册</li>
+     *         </ul>
+     *     </li>
+     * </ul>
+     * */
     public static <T> void brickFinalizeRegistry() {
         HashMap<Pair<VillagerProfession,Integer>,ArrayList<VillagerTrades.ItemListing>> map = new HashMap<>();
         for (VillagerTradeEntry entry : BrickRegistries.VILLAGER_TRADE) {

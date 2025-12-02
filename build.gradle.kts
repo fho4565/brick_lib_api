@@ -538,6 +538,7 @@ apis.forEach{ src ->
 stonecutter.constants["fabric"] = env.isFabric
 stonecutter.constants["forge"] = env.isForge
 stonecutter.constants["neoforge"] = env.isNeo
+stonecutter.constants["forgelike"] = env.isForge || env.isNeo
 stonecutter.constants["newnf"] = env.isNeo && env.atLeast("1.20.4")
 stonecutter.constants["oldnf"] = env.isNeo && env.atMost("1.20.3")
 
@@ -744,7 +745,7 @@ tasks {
         group = "publishing"
         apiToken = System.getenv("CF_API_KEY")
 
-        val dry = false
+        val dry = true
 
         val shadowFile = remapJar.get().archiveFile
         if (dry) {

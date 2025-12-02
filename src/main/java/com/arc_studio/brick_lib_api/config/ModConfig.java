@@ -38,14 +38,12 @@ public class ModConfig {
         this.spec = spec;
         this.fileName = fileName;
         this.modId = modId;
-        ConfigTracker.trackConfig(this);
     }
     public ModConfig(Type type, BrickConfigSpec spec,String modId) {
         this.type = type;
         this.spec = spec;
         this.fileName = defaultConfigName(type,modId);
         this.modId = modId;
-        ConfigTracker.trackConfig(this);
     }
 
     public static String defaultConfigName(Type type, String modId) {

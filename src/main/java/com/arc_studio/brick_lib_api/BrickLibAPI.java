@@ -67,13 +67,6 @@ public final class BrickLibAPI {
     }
 
     private static void preLoad() {
-        BrickConfigSpec.Builder builder = new BrickConfigSpec.Builder();
-        builder.define("diamonds",32);
-        builder.defineEnum("day", DayOfWeek.MONDAY);
-        builder.define("type", 510);
-        ModConfig config0 = new ModConfig(ModConfig.Type.SERVER, builder.build(), MOD_ID);
-        BrickRegisterManager.register(BrickRegistries.CONFIG,ofPath("demo_config"), () -> config0);
-
         BrickRegisterManager.register(BrickRegistries.COMMAND, () -> buildContext ->
                 Commands.literal("datagen")
                         .requires(stack -> Constants.isInDevelopEnvironment())
@@ -133,7 +126,7 @@ public final class BrickLibAPI {
                 Component.literal("[" + config.getModId() + "] " + config.getFileName()), true);
         });
         *///?} else {
-            
+
             context.getSource().sendSuccess(() -> Component.literal("=====[" + type.extension() + "]"), true);
             ConfigTracker.configSets().get(type).forEach((config) -> {
                 context.getSource().sendSuccess(() -> Component.literal("[" + config.getModId() + "] " + config.getFileName()),

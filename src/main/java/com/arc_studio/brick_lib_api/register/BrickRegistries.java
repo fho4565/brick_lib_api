@@ -2,6 +2,7 @@ package com.arc_studio.brick_lib_api.register;
 
 import com.arc_studio.brick_lib_api.BrickLibAPI;
 
+import com.arc_studio.brick_lib_api.config.ConfigTracker;
 import com.arc_studio.brick_lib_api.config.ModConfig;
 import com.arc_studio.brick_lib_api.core.VillagerTradeEntry;
 import com.arc_studio.brick_lib_api.core.register.*;
@@ -365,7 +366,14 @@ public class BrickRegistries {
     /**
      * 配置注册表
      * */
-    public static final BrickRegistry<ModConfig> CONFIG = create("config");
+    public static final BrickRegistry<ModConfig> CONFIG = new BrickRegistry<>(ResourceKey.createRegistryKey(BrickLibAPI.ofPath("config"))){
+        @Override
+        public ModConfig register(ResourceKey<ModConfig> key, ModConfig value) {
+            ModConfig modConfig = super.register(key, value);
+            ConfigTracker.trackConfig(modConfig);
+            return modConfig;
+        }
+    };
 
     /**
      * 村民交易注册表

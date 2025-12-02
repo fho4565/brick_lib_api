@@ -3,6 +3,8 @@ package com.arc_studio.brick_lib_api.core.register;
 import com.arc_studio.brick_lib_api.BrickLibAPI;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,8 +16,8 @@ import java.util.function.Supplier;
  * @author fho4565
  */
 public class BrickRegisterManager {
-    // 使用ConcurrentHashMap保证线程安全
     private static final Map<Registry<?>, VanillaRegistryData<?>> VANILLA_REGISTRY_DATA = new ConcurrentHashMap<>();
+    private static final Logger LOGGER = LoggerFactory.getLogger(BrickRegisterManager.class);
 
     private BrickRegisterManager() {
         throw new AssertionError("Instantiation of tool classes is not allowed");
@@ -90,6 +92,7 @@ public class BrickRegisterManager {
         Objects.requireNonNull(supplier, "supplier cannot be null");
 
         if (registry.get(id) != null) {
+            LOGGER.error("Duplicated key {} in registry {}",id,registry.getRegisterKey());
             return false;
         }
 
