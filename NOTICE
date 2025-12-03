@@ -1,0 +1,28 @@
+Brick Lib API
+Copyright 2025 fho4565
+This product contains code based on the LGPL-2.1 license:
+BrickConfigSpec.java
+Originating from: Forge's net.minecraftforge.common.ForgeConfig Spec
+The original copyright belongs to Forge Development LLC and contributors
+This file is licensed under LGPL-2.1 license
+Other code is licensed under Apache License 2.0
+
+ConfigFileTypeHandler.java
+Source: net.minecraftforge.fml.configFileTypeHandler from Forge
+The original copyright belongs to Forge Development LLC and contributors
+This file is licensed under LGPL-2.1 license
+Other code is licensed under Apache License 2.0
+
+ConfigTracker.java
+Source: net.minecraftforge.fml.configTracker from Forge
+The original copyright belongs to Forge Development LLC and contributors
+This file is licensed under LGPL-2.1 license
+Other code is licensed under Apache License 2.0
+
+ModConfig.java
+Source: net.minecraftforge.fml.config.ModConfig from Forge
+The original copyright belongs to Forge Development LLC and contributors
+This file is licensed under LGPL-2.1 license
+Other code is licensed under Apache License 2.0
+
+The full text of LGPL-2.1 license can be found in the LICENSE-LGPL of this project, and the full text of Apache License 2.0 can be found in the LICENSE file

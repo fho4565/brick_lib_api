@@ -745,7 +745,7 @@ tasks {
         group = "publishing"
         apiToken = System.getenv("CF_API_KEY")
 
-        val dry = true
+        val dry = false
 
         val shadowFile = remapJar.get().archiveFile
         if (dry) {
@@ -802,7 +802,7 @@ publishMods {
     type = BETA
     modLoaders.add(env.loader)
 
-    dryRun = true
+    dryRun = false
 
     modrinth {
         projectId = "CSKdjzLF"

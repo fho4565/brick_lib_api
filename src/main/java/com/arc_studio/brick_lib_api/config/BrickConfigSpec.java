@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Forge Development LLC and contributors
+ * SPDX-License-Identifier: LGPL-2.1-only
+ */
 package com.arc_studio.brick_lib_api.config;
 
 import com.arc_studio.brick_lib_api.Constants;
@@ -23,7 +27,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * This class is a modified version of ConfigSpec from the Minecraft Forge API,
+ * This class is a modified version of ForgeConfigSpec from the Minecraft Forge API,
  * which was developed by Forge Development LLC and contributors and licensed under the GNU Lesser General Public License v2.1.
  * <p>The original work is copyright (C) Forge Development LLC and contributors.</p>
  * <p>This modified version is also licensed under the terms of the GNU LGPL v2.1</p>
