@@ -679,7 +679,7 @@ fletchingTable{
 if(env.atMost("1.20.6")){
     tasks.replace("processResources",ProcessResourcesExtension::class)
 }
-val publishName = "${mod.displayName} ${mod.version} for ${env.loader} ${env.mcVersion.min} beta.2"
+val publishName = "${mod.displayName} ${mod.version} for ${env.loader} ${env.mcVersion.min}"
 tasks {
     processResources {
         val map = mapOf<String,String>(
