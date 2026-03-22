@@ -106,15 +106,6 @@ public abstract class ClientPacketListenerMixin {
 
     @Inject(method = "sendCommand", at = @At("HEAD"), cancellable = true)
     private void onSendCommand(String command, CallbackInfo info) {
-            /*PlayerEvent.Chat.Send.Pre event = new PlayerEvent.Chat.Send.Pre(Minecraft.getInstance().player, command, command, true);
-            clientPreSendCmd.set(event);
-            if(!BrickEventBus.postEventClient(event)) {
-                if (ClientCommandInternals.executeCommand(command)) {
-                    info.cancel();
-                }
-            }else{
-                info.cancel();
-            }*/
         if (ClientCommandInternals.executeCommand(command)) {
             info.cancel();
         }

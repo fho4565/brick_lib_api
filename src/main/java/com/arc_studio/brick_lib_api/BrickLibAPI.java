@@ -7,21 +7,22 @@ import com.arc_studio.brick_lib_api.core.network.type.PacketConfig;
 import com.arc_studio.brick_lib_api.core.register.BrickRegisterManager;
 import com.arc_studio.brick_lib_api.config.*;
 import com.arc_studio.brick_lib_api.datagen.BrickDataGenerator;
+import com.arc_studio.brick_lib_api.misc.CommandBuildContext;
 import com.arc_studio.brick_lib_api.network.ConfigSyncPacket;
 import com.arc_studio.brick_lib_api.network.DemoReplyPacket;
 import com.arc_studio.brick_lib_api.platform.Platform;
 import com.arc_studio.brick_lib_api.register.BrickRegistries;
 import com.llamalad7.mixinextras.MixinExtrasBootstrap;
 import com.mojang.brigadier.arguments.BoolArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
-import net.minecraft.network.chat.Component;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.*;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 
-import net.minecraft.network.chat.HoverEvent;
 //? if <=1.18.2 {
-/*import net.minecraft.network.chat.TextComponent;
-*///?}
+//?}
 //? if >1.18.2 {
 //?}
 //? if > 1.20.4 {
@@ -36,6 +37,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.time.DayOfWeek;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -54,6 +56,7 @@ public final class BrickLibAPI {
         preLoad();
         brickLibApiFinalize();
     }
+
     /**
      * 执行Brick Lib API后置工作，在不同平台上此方法会执行不同操作
      * <p color = "red">此方法必须被调用，且必须在模组入口点或者构造方法的最后调用！</p>

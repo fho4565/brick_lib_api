@@ -586,8 +586,8 @@ dependencies {
         implementation("com.electronwill.night-config:toml:3.6.7")
         implementation("com.electronwill.night-config:core:3.6.7")
 
-        include("com.electronwill.night-config:toml:3.6.7")
-        include("com.electronwill.night-config:core:3.6.7")
+        shadow("com.electronwill.night-config:toml:3.6.7")
+        shadow("com.electronwill.night-config:core:3.6.7")
     }
     if(env.isForge){
         "forge"("net.minecraftforge:forge:${env.forgeMavenVersion.min}")

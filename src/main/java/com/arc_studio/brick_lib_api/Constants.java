@@ -102,6 +102,12 @@ public class Constants {
             globalConfigFolderPath = versionFolderPath.resolve("config");
             defaultConfigFolderPath = versionFolderPath.resolve("defaultconfigs");
             versionDataFolder = versionFolderPath.resolve("brickLib");
+            File versionDataDir = versionDataFolder.toFile();
+            if (!versionDataDir.exists()) {
+                if (!versionDataDir.mkdirs()) {
+                    LOGGER.error("Failed to create brick lib version data folder");
+                }
+            }
             initiatedGeneral = true;
         }
     }
@@ -124,12 +130,6 @@ public class Constants {
             if (!dir.exists()) {
                 if (!dir.mkdirs()) {
                     LOGGER.error("Failed to create brick lib folder");
-                }
-            }
-            File versionDataDir = versionDataFolder.toFile();
-            if (!versionDataDir.exists()) {
-                if (!versionDataDir.mkdirs()) {
-                    LOGGER.error("Failed to create brick lib version data folder");
                 }
             }
             initiatedWorld = true;
