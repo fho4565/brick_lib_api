@@ -10,14 +10,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 //? if > 1.20.4 {
 /*import net.minecraft.core.component.DataComponentMap;
-*///?}
+ *///?}
 //? if > 1.19.2 {
 import net.minecraft.core.registries.BuiltInRegistries;
 import org.joml.Vector3f;
 
 //?} else {
 /*import com.mojang.math.Vector3f;
-*///?}
+ *///?}
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
@@ -36,7 +36,7 @@ import java.util.function.Consumer;
 
 /**
  * 网络数据包内容处理器，封装了对 {@link FriendlyByteBuf} 的读写操作，
- * 提供类型安全的链式读写方法，用于模组网络通信中数据的序列化与反序列化。
+ *
  * @author fho4565
  */
 public class PacketContent {
@@ -136,7 +136,8 @@ public class PacketContent {
      * mojang在1.19.2+版本改用了"org.joml.Vector3f"类，而在1.19.2及更早使用了com.mojang.math.Vector3f类
      * <p color = "red">此处的Vector3f会随着版本改变而修改Vector3f类！</p>
      * <p>建议使用{@link PacketContent#writeVector3f2(float, float, float)}</p>
-     * */
+     *
+     */
     @Deprecated(since = "1.19.2")
     public PacketContent writeVector3f(Vector3f vector3f) {
         //? if > 1.19.2 {
@@ -149,7 +150,7 @@ public class PacketContent {
         return this;
     }
 
-    public PacketContent writeVector3f2(float x,float y,float z){
+    public PacketContent writeVector3f2(float x, float y, float z) {
         friendlyByteBuf.writeFloat(x);
         friendlyByteBuf.writeFloat(y);
         friendlyByteBuf.writeFloat(z);
@@ -166,7 +167,7 @@ public class PacketContent {
         friendlyByteBuf.writeResourceKey(resourceKey);
         //?} else {
         /*friendlyByteBuf.writeResourceLocation(resourceKey.location());
-        *///?}
+         *///?}
         return this;
     }
 
@@ -277,17 +278,18 @@ public class PacketContent {
      * mojang在1.19.2+版本改用了"org.joml.Vector3f"类，而在1.19.2及更早使用了com.mojang.math.Vector3f类
      * <p color = "red">此处的Vector3f会随着版本改变而修改Vector3f类！</p>
      * <p>建议使用{@link PacketContent#readVector3f2()}</p>
-     * */
+     *
+     */
     @Deprecated(since = "1.19.2")
     public Vector3f readVector3f() {
         //? if > 1.19.2 {
         return friendlyByteBuf.readVector3f();
         //?} else {
         /*return new Vector3f(friendlyByteBuf.readFloat(), friendlyByteBuf.readFloat(), friendlyByteBuf.readFloat());
-        *///?}
+         *///?}
     }
 
-    public float[] readVector3f2(){
+    public float[] readVector3f2() {
         return new float[]{friendlyByteBuf.readFloat(), friendlyByteBuf.readFloat(), friendlyByteBuf.readFloat()};
     }
 

@@ -2,29 +2,23 @@ package com.arc_studio.brick_lib_api;
 
 import com.arc_studio.brick_lib_api.core.Version;
 import com.arc_studio.brick_lib_api.core.data.ResourceID;
+import com.arc_studio.brick_lib_api.core.event.*;
 import com.arc_studio.brick_lib_api.core.network.BuiltInPacket;
 import com.arc_studio.brick_lib_api.core.network.type.PacketConfig;
 import com.arc_studio.brick_lib_api.core.register.BrickRegisterManager;
 import com.arc_studio.brick_lib_api.config.*;
 import com.arc_studio.brick_lib_api.datagen.BrickDataGenerator;
-import com.arc_studio.brick_lib_api.misc.CommandBuildContext;
 import com.arc_studio.brick_lib_api.network.ConfigSyncPacket;
 import com.arc_studio.brick_lib_api.network.DemoReplyPacket;
 import com.arc_studio.brick_lib_api.platform.Platform;
 import com.arc_studio.brick_lib_api.register.BrickRegistries;
 import com.llamalad7.mixinextras.MixinExtrasBootstrap;
 import com.mojang.brigadier.arguments.BoolArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.*;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 
-//? if <=1.18.2 {
-//?}
-//? if >1.18.2 {
-//?}
 //? if > 1.20.4 {
 /*import net.minecraft.world.item.trading.ItemCost;
 *///?}
@@ -35,9 +29,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.time.DayOfWeek;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -47,7 +39,8 @@ public final class BrickLibAPI {
     public static final Logger LOGGER = LogUtils.getLogger();
     public static final String MOD_ID = "brick_lib_api";
     public static final Version BRICK_LIB_API_VERSION = new Version.Builder(1, 0, 0)
-            .preRelease(Version.PreReleaseType.BETA,3).build();
+            .preRelease(Version.PreReleaseType.BETA,5).build();
+    public static final ArrayList<Class<?>> LIST = new ArrayList<>();
 
     public static void init() {
         MixinExtrasBootstrap.init();
@@ -64,6 +57,8 @@ public final class BrickLibAPI {
     public static void brickLibApiFinalize(){
         Platform.brickFinalizeRegistry();
     }
+
+
 
     private static void preLoad() {
         BrickRegisterManager.register(BrickRegistries.COMMAND, () -> buildContext ->

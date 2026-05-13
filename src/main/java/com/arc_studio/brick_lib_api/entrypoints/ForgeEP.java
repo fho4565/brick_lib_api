@@ -4,7 +4,9 @@ package com.arc_studio.brick_lib_api.entrypoints;
 import com.arc_studio.brick_lib_api.BrickLibAPI;
 import com.arc_studio.brick_lib_api.platform.ForgePlatform;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 //? if >= 1.20.4 {
 /*import net.minecraftforge.network.tasks.ForgeNetworkConfigurationHandler;
 *///?}

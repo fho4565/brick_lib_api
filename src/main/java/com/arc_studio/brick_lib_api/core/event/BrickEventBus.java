@@ -1,6 +1,8 @@
 package com.arc_studio.brick_lib_api.core.event;
 
-import net.minecraft.resources.ResourceLocation;
+//? if forge {
+import net.minecraftforge.common.MinecraftForge;
+//?}
 
 import java.util.HashSet;
 import java.util.HashMap;
@@ -12,9 +14,9 @@ import java.util.Set;
  */
 @SuppressWarnings({"unchecked"})
 public final class BrickEventBus {
-    private static final HashMap<Class<?>, HashSet<EventWrapper<?>>[]> SERVER_LISTENERS = new HashMap<>();
-    private static final HashMap<Class<?>, HashSet<EventWrapper<?>>[]> CLIENT_LISTENERS = new HashMap<>();
-    private static final HashMap<Class<?>, HashSet<EventWrapper<?>>[]> COMMON_LISTENERS = new HashMap<>();
+    private static final HashMap<Class<?>, HashSet<EventListenerWrapper<?>>[]> SERVER_LISTENERS = new HashMap<>();
+    private static final HashMap<Class<?>, HashSet<EventListenerWrapper<?>>[]> CLIENT_LISTENERS = new HashMap<>();
+    private static final HashMap<Class<?>, HashSet<EventListenerWrapper<?>>[]> COMMON_LISTENERS = new HashMap<>();
 
     private BrickEventBus() {
     }
@@ -26,24 +28,35 @@ public final class BrickEventBus {
      * @param listener 事件处理器
      */
     public static <E extends BaseEvent> void registerListener(Class<E> type, EventListener<E> listener) {
+        registerListener(type, null, listener);
+    }
+
+    /**
+     * 将双端的事件监听器分别注册到对应事件总线上
+     *
+     * @param type     事件类型
+     * @param clientListener 客户端的事件处理器
+     * @param serverListener 服务端的事件处理器
+     */
+    public static <E extends BaseEvent> void registerListenerBoth(Class<E> type,
+                                                                  EventListener<E> clientListener,
+                                                                  EventListener<E> serverListener) {
         if (IClientOnlyEvent.class.isAssignableFrom(type)) {
-            registerListenerClient(type, listener);
+            registerListenerClient(type, null, clientListener);
         } else if (IServerOnlyEvent.class.isAssignableFrom(type)) {
-            registerListenerServer(type, listener);
-        } else {
-            registerListenerCommon(type, listener);
+            registerListenerServer(type, null, serverListener);
         }
     }
 
-    public static HashMap<Class<?>, HashSet<EventWrapper<?>>[]> clientListeners() {
+    public static HashMap<Class<?>, HashSet<EventListenerWrapper<?>>[]> clientListeners() {
         return new HashMap<>(CLIENT_LISTENERS);
     }
 
-    public static HashMap<Class<?>, HashSet<EventWrapper<?>>[]> commonListeners() {
+    public static HashMap<Class<?>, HashSet<EventListenerWrapper<?>>[]> commonListeners() {
         return new HashMap<>(COMMON_LISTENERS);
     }
 
-    public static HashMap<Class<?>, HashSet<EventWrapper<?>>[]> serverListeners() {
+    public static HashMap<Class<?>, HashSet<EventListenerWrapper<?>>[]> serverListeners() {
         return new HashMap<>(SERVER_LISTENERS);
     }
 
@@ -51,53 +64,39 @@ public final class BrickEventBus {
      * 将带有唯一标识符的事件监听器注册到事件总线上
      *
      * @param type     事件类型
-     * @param listener 事件处理器
      * @param id       标识符
+     * @param listener 事件处理器
      */
-    public static <E extends BaseEvent> void registerListener(Class<E> type, EventListener<E> listener, ResourceLocation id) {
+    public static <E extends BaseEvent> void registerListener(Class<E> type, String id, EventListener<E> listener) {
         if (IClientOnlyEvent.class.isAssignableFrom(type)) {
-            CLIENT_LISTENERS.compute(type, (k, priorityTiers) -> {
-                if (priorityTiers == null) {
-                    priorityTiers = new HashSet[]{
-                            new HashSet<>(),
-                            new HashSet<>(),
-                            new HashSet<>(),
-                            new HashSet<>(),
-                            new HashSet<>()
-                    };
-                }
-                priorityTiers[listener.getPriority().priority - 1].add(new EventWrapper<>(id, listener));
-                return priorityTiers;
-            });
+            registerListenerClient(type, id, listener);
         } else if (IServerOnlyEvent.class.isAssignableFrom(type)) {
-            SERVER_LISTENERS.compute(type, (k, priorityTiers) -> {
-                if (priorityTiers == null) {
-                    priorityTiers = new HashSet[]{
-                            new HashSet<>(),
-                            new HashSet<>(),
-                            new HashSet<>(),
-                            new HashSet<>(),
-                            new HashSet<>()
-                    };
-                }
-                priorityTiers[listener.getPriority().priority - 1].add(new EventWrapper<>(id, listener));
-                return priorityTiers;
-            });
+            registerListenerServer(type, id, listener);
         } else {
-            COMMON_LISTENERS.compute(type, (k, priorityTiers) -> {
-                if (priorityTiers == null) {
-                    priorityTiers = new HashSet[]{
-                            new HashSet<>(),
-                            new HashSet<>(),
-                            new HashSet<>(),
-                            new HashSet<>(),
-                            new HashSet<>()
-                    };
-                }
-                priorityTiers[listener.getPriority().priority - 1].add(new EventWrapper<>(id, listener));
-                return priorityTiers;
-            });
+            registerListenerCommon(type, id, listener);
         }
+    }
+    public static <E extends BaseEvent> void registerListener(Class<E> type, String id,EventListenerWrapper.Priority priority, EventListener<E> listener) {
+        if (IClientOnlyEvent.class.isAssignableFrom(type)) {
+            registerListenerClient(type, id,priority, listener);
+        } else if (IServerOnlyEvent.class.isAssignableFrom(type)) {
+            registerListenerServer(type, id,priority, listener);
+        } else {
+            registerListenerCommon(type, id,priority, listener);
+        }
+    }
+
+    public static <E extends BaseEvent> void registerListenerServer(Class<E> type, EventListener<E> listener) {
+        registerListenerInternal(type,null, EventListenerWrapper.Priority.NORMAL,SERVER_LISTENERS,listener);
+    }
+    /**
+     * 将事件监听器注册到服务端事件总线上
+     *
+     * @param type     事件类型
+     * @param listener 事件处理器
+     */
+    public static <E extends BaseEvent> void registerListenerServer(Class<E> type, String id, EventListener<E> listener) {
+        registerListenerInternal(type,id, EventListenerWrapper.Priority.NORMAL,SERVER_LISTENERS,listener);
     }
 
     /**
@@ -106,20 +105,21 @@ public final class BrickEventBus {
      * @param type     事件类型
      * @param listener 事件处理器
      */
-    public static <E extends BaseEvent> void registerListenerServer(Class<E> type, EventListener<E> listener) {
-        SERVER_LISTENERS.compute(type, (k, priorityTiers) -> {
-            if (priorityTiers == null) {
-                priorityTiers = new HashSet[]{
-                        new HashSet<>(),
-                        new HashSet<>(),
-                        new HashSet<>(),
-                        new HashSet<>(),
-                        new HashSet<>()
-                };
-            }
-            priorityTiers[listener.getPriority().priority - 1].add(new EventWrapper<>(null, listener));
-            return priorityTiers;
-        });
+    public static <E extends BaseEvent> void registerListenerServer(Class<E> type, String id, EventListenerWrapper.Priority priority, EventListener<E> listener) {
+        registerListenerInternal(type,id, priority,SERVER_LISTENERS,listener);
+    }
+
+    public static <E extends BaseEvent> void registerListenerClient(Class<E> type, EventListener<E> listener) {
+        registerListenerInternal(type,null, EventListenerWrapper.Priority.NORMAL,CLIENT_LISTENERS,listener);
+    }
+    /**
+     * 将事件监听器注册到客户端事件总线上
+     *
+     * @param type     事件类型
+     * @param listener 事件处理器
+     */
+    public static <E extends BaseEvent> void registerListenerClient(Class<E> type, String id, EventListener<E> listener) {
+        registerListenerInternal(type,id, EventListenerWrapper.Priority.NORMAL,CLIENT_LISTENERS,listener);
     }
 
     /**
@@ -128,20 +128,21 @@ public final class BrickEventBus {
      * @param type     事件类型
      * @param listener 事件处理器
      */
-    public static <E extends BaseEvent> void registerListenerClient(Class<E> type, EventListener<E> listener) {
-        CLIENT_LISTENERS.compute(type, (k, priorityTiers) -> {
-            if (priorityTiers == null) {
-                priorityTiers = new HashSet[]{
-                        new HashSet<>(),
-                        new HashSet<>(),
-                        new HashSet<>(),
-                        new HashSet<>(),
-                        new HashSet<>()
-                };
-            }
-            priorityTiers[listener.getPriority().priority - 1].add(new EventWrapper<>(null, listener));
-            return priorityTiers;
-        });
+    public static <E extends BaseEvent> void registerListenerClient(Class<E> type, String id, EventListenerWrapper.Priority priority, EventListener<E> listener) {
+        registerListenerInternal(type,id, priority,CLIENT_LISTENERS,listener);
+    }
+
+    public static <E extends BaseEvent> void registerListenerCommon(Class<E> type, EventListener<E> listener) {
+        registerListenerInternal(type,null, EventListenerWrapper.Priority.NORMAL,COMMON_LISTENERS,listener);
+    }
+    /**
+     * 将事件监听器注册到双端共有事件总线上
+     *
+     * @param type     事件类型
+     * @param listener 事件处理器
+     */
+    public static <E extends BaseEvent> void registerListenerCommon(Class<E> type, String id, EventListener<E> listener) {
+        registerListenerInternal(type,id, EventListenerWrapper.Priority.NORMAL,COMMON_LISTENERS,listener);
     }
 
     /**
@@ -150,18 +151,22 @@ public final class BrickEventBus {
      * @param type     事件类型
      * @param listener 事件处理器
      */
-    public static <E extends BaseEvent> void registerListenerCommon(Class<E> type, EventListener<E> listener) {
-        COMMON_LISTENERS.compute(type, (k, priorityTiers) -> {
+    public static <E extends BaseEvent> void registerListenerCommon(Class<E> type, String id, EventListenerWrapper.Priority priority, EventListener<E> listener) {
+        registerListenerInternal(type,id, priority,COMMON_LISTENERS,listener);
+    }
+
+    private static <E extends BaseEvent> void registerListenerInternal(Class<E> type, String id, EventListenerWrapper.Priority priority, HashMap<Class<?>, HashSet<EventListenerWrapper<?>>[]> map, EventListener<E> listener) {
+        map.compute(type, (k, priorityTiers) -> {
             if (priorityTiers == null) {
                 priorityTiers = new HashSet[]{
-                        new HashSet<>(),
-                        new HashSet<>(),
-                        new HashSet<>(),
-                        new HashSet<>(),
-                        new HashSet<>()
+                    new HashSet<>(),
+                    new HashSet<>(),
+                    new HashSet<>(),
+                    new HashSet<>(),
+                    new HashSet<>()
                 };
             }
-            priorityTiers[listener.getPriority().priority - 1].add(new EventWrapper<>(null, listener));
+            priorityTiers[priority.priority - 1].add(new EventListenerWrapper<>(id,priority,listener));
             return priorityTiers;
         });
     }
@@ -175,10 +180,17 @@ public final class BrickEventBus {
      */
     public static <E extends BaseEvent> boolean postEventServer(E event) {
         postEventCommon(event);
+        boolean cancelled = false;
         for (Class<?> extendClass : collectExtendClassesServer(event.getClass())) {
-            return processEvent(event, SERVER_LISTENERS.get(extendClass));
+            HashSet<EventListenerWrapper<?>>[] listeners = SERVER_LISTENERS.get(extendClass);
+            if (listeners != null) {
+                if (processEvent(event, listeners)) {
+                    cancelled = true;
+                    break;
+                }
+            }
         }
-        return false;
+        return cancelled;
     }
 
     /**
@@ -189,10 +201,17 @@ public final class BrickEventBus {
      */
     public static <E extends BaseEvent> boolean postEventClient(E event) {
         postEventCommon(event);
+        boolean cancelled = false;
         for (Class<?> extendClass : collectExtendClassesClient(event.getClass())) {
-            return processEvent(event, CLIENT_LISTENERS.get(extendClass));
+            HashSet<EventListenerWrapper<?>>[] listeners = CLIENT_LISTENERS.get(extendClass);
+            if (listeners != null) {
+                if (processEvent(event, listeners)) {
+                    cancelled = true;
+                    break;
+                }
+            }
         }
-        return false;
+        return cancelled;
     }
 
     /**
@@ -202,18 +221,25 @@ public final class BrickEventBus {
      * @return true : 如果有事件被取消
      */
     public static <E extends BaseEvent> boolean postEventCommon(E event) {
+        boolean cancelled = false;
         for (Class<?> extendClass : collectExtendClassesCommon(event.getClass())) {
-            return processEvent(event, COMMON_LISTENERS.get(extendClass));
+            HashSet<EventListenerWrapper<?>>[] listeners = COMMON_LISTENERS.get(extendClass);
+            if (listeners != null) {
+                if (processEvent(event, listeners)) {
+                    cancelled = true;
+                    break;
+                }
+            }
         }
-        return false;
+        return cancelled;
     }
 
     @SuppressWarnings("unchecked")
-    private static <E extends BaseEvent> boolean processEvent(E event, HashSet<EventWrapper<?>>[] tiers) {
+    private static <E extends BaseEvent> boolean processEvent(E event, HashSet<EventListenerWrapper<?>>[] tiers) {
         for (int i = tiers.length - 1; i >= 0; i--) {
-            for (EventWrapper<?> wrapper : tiers[i]) {
+            for (EventListenerWrapper<?> wrapper : tiers[i]) {
                 try {
-                    ((EventWrapper<E>) wrapper).listener.handle(event);
+                    ((EventListenerWrapper<E>) wrapper).listener.handle(event);
                     if(event instanceof IOneTimeEvent){
                         SERVER_LISTENERS.remove(event.getClass());
                         CLIENT_LISTENERS.remove(event.getClass());
@@ -224,6 +250,11 @@ public final class BrickEventBus {
                 if ((event instanceof ICancelableEvent) && event.isCanceled()) {
                     return true;
                 }
+                //? if forge {
+                else {
+                    return MinecraftForge.EVENT_BUS.post(wrapper);
+                }
+                //?}
             }
         }
         return false;

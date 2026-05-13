@@ -4,6 +4,7 @@ package com.arc_studio.brick_lib_api.platform;
 
 //? if (forge) || oldnf {
 import com.arc_studio.brick_lib_api.BrickLibAPI;
+import com.arc_studio.brick_lib_api.core.event.*;
 import com.arc_studio.brick_lib_api.core.network.PacketContent;
 import com.arc_studio.brick_lib_api.core.network.context.C2SNetworkContext;
 import com.arc_studio.brick_lib_api.core.network.context.S2CNetworkContext;
@@ -18,15 +19,9 @@ import net.minecraftforge.network.*;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
-import java.util.function.IntSupplier;
-import java.util.function.Supplier;
 //? if forge && < 1.20.4 {
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.simple.SimpleChannel;
-
-import static com.arc_studio.brick_lib_api.BrickLibAPI.LOGGER;
-import static net.minecraftforge.network.HandshakeHandler.biConsumerFor;
 //?}
 
 //? if forge && >=1.20.4 {
@@ -161,7 +156,7 @@ public class ForgePlatform {
                     });
                     //?} else {
                     /*command.consumer((msg, contextSupplier) -> {
-                        c2S.packetHandler().accept(msg, new C2SNetworkContext(/^? <1.20.4 {^/ contextSupplier.get().getSender() /^?} else {^//^contextSupplier.getSender()^//^?}^/));
+                        c2S.packetHandler().accept(msg, new C2SNetworkContext(/^? <1.20.4 {^/ /^contextSupplier.get().getSender() ^//^?} else {^/contextSupplier.getSender()/^?}^/));
                     });
                     *///?}
                 } else {
@@ -175,7 +170,7 @@ public class ForgePlatform {
                     )));
                     //?} else {
                     /*command.consumer((c2SPacket, contextSupplier) -> {
-                        c2S.packetHandler().accept(c2SPacket, new C2SNetworkContext(/^? <1.20.4 {^/ contextSupplier.get().getSender() /^?} else {^//^contextSupplier.getSender()^//^?}^/));
+                        c2S.packetHandler().accept(c2SPacket, new C2SNetworkContext(/^? <1.20.4 {^/ /^contextSupplier.get().getSender() ^//^?} else {^/contextSupplier.getSender()/^?}^/));
                     });
                     *///?}
                 }
@@ -263,11 +258,11 @@ public class ForgePlatform {
                 //?} else {
                 /*if (sac.netHandle()) {
                     c2sBuilder.consumer((msg, contextSupplier) -> {
-                        sac.serverHandler().accept(msg, new C2SNetworkContext(/^? <1.20.4 {^/ contextSupplier.get().getSender() /^?} else {^//^contextSupplier.getSender()^//^?}^/));
+                        sac.serverHandler().accept(msg, new C2SNetworkContext(/^? <1.20.4 {^/ /^contextSupplier.get().getSender() ^//^?} else {^/contextSupplier.getSender()/^?}^/));
                     });
                 } else {
                     c2sBuilder.consumer((sacPacket, contextSupplier) -> {
-                        sac.serverHandler().accept(sacPacket, new C2SNetworkContext(/^? <1.20.4 {^/ contextSupplier.get().getSender() /^?} else {^//^contextSupplier.getSender()^//^?}^/));
+                        sac.serverHandler().accept(sacPacket, new C2SNetworkContext(/^? <1.20.4 {^/ /^contextSupplier.get().getSender() ^//^?} else {^/contextSupplier.getSender()/^?}^/));
                     });
                 }
                 *///?}

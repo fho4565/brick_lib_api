@@ -46,7 +46,7 @@ repositories {
     mavenCentral()
     maven("https://repo.huaweicloud.com/repository/maven/")
     maven("https://mirrors.cloud.tencent.com/nexus/repository/maven-public/")
-    maven("https://mirrors.163.com/maven/repository/maven-public/")
+    //maven("https://mirrors.163.com/maven/repository/maven-public/")
     maven("https://maven.aliyun.com/repository/google")
     maven("https://maven.aliyun.com/repository/public")
     maven("https://maven.aliyun.com/repository/gradle-plugin")
@@ -296,6 +296,7 @@ val apis = arrayListOf(
 // Stores information about the mod itself.
 class ModProperties {
     val id = property("mod.id").toString()
+    val group = property("group").toString()
     val displayName = property("mod.display_name").toString()
     val version = property("version").toString()
     val description = optionalStrProperty("mod.description").orElse("")
@@ -580,7 +581,6 @@ dependencies {
             parchment("org.parchmentmc.data:parchment-${env.mcVersion.min}:${env.parchmentVersions[env.mcVersion.min]}@zip")
         }
     })
-
     if(env.isFabric) {
         modImplementation("net.fabricmc:fabric-loader:${env.fabricLoaderVersion.min}")
         implementation("com.electronwill.night-config:toml:3.6.7")
@@ -786,13 +786,29 @@ tasks.shadowJar {
 
     try {
         mergeServiceFiles()
-    } catch (e: Throwable) {
+    } catch (_: Throwable) {
     }
 }
 tasks.remapJar {
     inputFile.set(tasks.shadowJar.flatMap { it.archiveFile })
 }
+publishing {
+    publications {
+        create<MavenPublication>("BrickLibAPI") {
+            from(components["java"])
+            artifactId = "brick_lib_api_${project.name}"
+            groupId = mod.group
+            version = mod.version
+        }
+    }
 
+    repositories {
+        maven {
+            name = "brick_lib"
+            url = uri(layout.buildDirectory.dir("repo"))
+        }
+    }
+}
 publishMods {
     file = tasks.remapJar.get().archiveFile
     additionalFiles.from(tasks.remapSourcesJar.get().archiveFile)

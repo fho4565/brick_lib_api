@@ -1,4 +1,4 @@
-package com.arc_studio.brick_lib_api.mixin.common.server;
+package com.arc_studio.brick_lib_api.mixin.server;
 
 import com.arc_studio.brick_lib_api.config.ConfigTracker;
 import com.arc_studio.brick_lib_api.config.ModConfig;

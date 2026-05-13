@@ -5,7 +5,7 @@ package com.arc_studio.brick_lib_api.core.event;
  */
 public abstract class BaseEvent {
     protected boolean isCanceled = false;
-    protected Result result = Result.SUCCESS;
+    protected Result result = Result.DEFAULT;
 
     /**
      * 如果这个事件可以被取消，则取消这个事件
@@ -53,7 +53,8 @@ public abstract class BaseEvent {
         SUCCESS,//事件成功
         CONSUME,//事件被消耗
         FAIL,//事件失败
-        PASS;//事件被跳过
+        PASS,//事件被跳过
+        DEFAULT;//遵循原版结果
 
         public boolean consumesAction() {
             return this == SUCCESS || this == CONSUME;

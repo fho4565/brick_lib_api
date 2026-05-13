@@ -4,29 +4,30 @@ import java.util.Map;
 
 /**
  * 可混合保存当前端位，加载器的类
+ *
  * @author fho4565
  */
 public final class PlatformInfo {
     public static final int
-            FALSE = 0,
-            CLIENT = 1,
-            SERVER = 2,
-            CLIENT_AND_SERVER = 4,
-            FORGE = 8,
-            FABRIC = 16,
-            NEOFORGE = 32,
-            FORGELIKE = 64,
-            TRUE = 128;
+        FALSE = 0,
+        CLIENT = 1,
+        SERVER = 2,
+        CLIENT_AND_SERVER = 4,
+        FORGE = 8,
+        FABRIC = 16,
+        NEOFORGE = 32,
+        FORGELIKE = 64,
+        TRUE = 128;
     private static final Map<Integer, String> MAP = Map.of(
-            CLIENT, "CLIENT",
-            SERVER, "SERVER",
-            FORGE, "FORGE",
-            FABRIC, "FABRIC",
-            NEOFORGE, "NEOFORGE"
+        CLIENT, "CLIENT",
+        SERVER, "SERVER",
+        FORGE, "FORGE",
+        FABRIC, "FABRIC",
+        NEOFORGE, "NEOFORGE"
     );
     private int types = 0;
 
-    public static PlatformInfo of(){
+    public static PlatformInfo of() {
         return new PlatformInfo();
     }
 
@@ -91,14 +92,16 @@ public final class PlatformInfo {
     public boolean isClient() {
         return (types & CLIENT) == CLIENT;
     }
-    public boolean isOnlyClient(){
+
+    public boolean isOnlyClient() {
         return isClient() && !isServer();
     }
 
     public boolean isServer() {
         return (types & SERVER) == SERVER;
     }
-    public boolean isOnlyServer(){
+
+    public boolean isOnlyServer() {
         return isServer() && !isClient();
     }
 
@@ -152,7 +155,7 @@ public final class PlatformInfo {
                 sb.append(MAP.get(1 << i)).append(",");
             }
         }
-        if(sb.lastIndexOf(",") != -1){
+        if (sb.lastIndexOf(",") != -1) {
             sb.deleteCharAt(sb.lastIndexOf(","));
         }
         return sb.append("]").toString();
@@ -171,7 +174,7 @@ public final class PlatformInfo {
         return false;
     }
 
-    public int loaderEquals(PlatformInfo other){
+    public int loaderEquals(PlatformInfo other) {
         if (this.isFabric()) {
             if (other.isFabric()) {
                 return FABRIC;
@@ -206,5 +209,13 @@ public final class PlatformInfo {
         } else {
             return FALSE;
         }
+    }
+
+    public enum Sides {
+        CLIENT, SERVER, COMMON
+    }
+
+    public enum Loaders {
+        FORGE, FABRIC, NEOFORGE, FORGELIKE
     }
 }

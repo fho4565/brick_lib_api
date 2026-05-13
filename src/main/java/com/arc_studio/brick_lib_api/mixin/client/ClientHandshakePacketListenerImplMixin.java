@@ -1,4 +1,4 @@
-package com.arc_studio.brick_lib_api.mixin.common.client;
+package com.arc_studio.brick_lib_api.mixin.client;
 
 import com.arc_studio.brick_lib_api.config.ConfigTracker;
 import net.minecraft.client.multiplayer.ClientHandshakePacketListenerImpl;

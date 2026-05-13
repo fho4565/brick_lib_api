@@ -1,4 +1,4 @@
-package com.arc_studio.brick_lib_api.mixin.common.client;
+package com.arc_studio.brick_lib_api.mixin.client;
 
 import com.arc_studio.brick_lib_api.register.BrickRegistries;
 import com.arc_studio.brick_lib_api.update_checker.UpdateChecker;

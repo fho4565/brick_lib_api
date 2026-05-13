@@ -1,4 +1,4 @@
-package com.arc_studio.brick_lib_api.mixin.common.client;
+package com.arc_studio.brick_lib_api.mixin.client;
 
 import com.arc_studio.brick_lib_api.client.command.ClientCommandInternals;
 
@@ -8,36 +8,31 @@ import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
-
+//? if > 1.18.2 {
+import net.minecraft.commands.CommandBuildContext;
+//?} else {
+/*import com.arc_studio.brick_lib_api.misc.CommandBuildContext;
+*///?}
 import net.minecraft.commands.SharedSuggestionProvider;
 
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.protocol.game.ClientboundCommandsPacket;
 import net.minecraft.network.protocol.game.ClientboundLoginPacket;
 //? if > 1.19.2 {
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.client.multiplayer.ClientRegistryLayer;
 import net.minecraft.core.LayeredRegistryAccess;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 //?} else {
-
 //?}
-//? if = 1.18.2 {
-/*import com.arc_studio.brick_lib_api.misc.CommandBuildContext;
-*///?} else {
-import net.minecraft.commands.CommandBuildContext;
-//?}
+import net.minecraft.core.RegistryAccess;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.stream.Stream;
-//? if >1.20.1 {
-//?}
 
 @Mixin(ClientPacketListener.class)
 public abstract class ClientPacketListenerMixin {

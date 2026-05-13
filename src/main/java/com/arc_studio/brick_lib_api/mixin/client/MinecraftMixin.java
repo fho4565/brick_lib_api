@@ -1,4 +1,4 @@
-package com.arc_studio.brick_lib_api.mixin.common.client;
+package com.arc_studio.brick_lib_api.mixin.client;
 
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;

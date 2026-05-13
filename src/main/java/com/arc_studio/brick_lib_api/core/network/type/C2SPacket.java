@@ -12,10 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 /**
  * 从客户端单向发送到服务端的包
  */
-public class C2SPacket extends Packet implements ISHandlePacket {
-    public C2SPacket(PacketContent content){
-
-    }
+public abstract class C2SPacket extends Packet implements ISHandlePacket {
     //? if >1.20.4 {
     /*@Override
     public Type<? extends CustomPacketPayload> type() {
@@ -27,17 +24,7 @@ public class C2SPacket extends Packet implements ISHandlePacket {
     }
 
     @Override
-    public void encoder(PacketContent content) {
-
-    }
-
-    @Override
     public ResourceLocation id() {
         return BrickLibAPI.ofPath(this.getClass().getName().replace(".", "_").toLowerCase());
-    }
-
-    @Override
-    public void serverHandle(C2SNetworkContext context) {
-
     }
 }

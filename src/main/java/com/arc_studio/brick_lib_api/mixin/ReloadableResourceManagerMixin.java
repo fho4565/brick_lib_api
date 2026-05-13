@@ -1,4 +1,4 @@
-package com.arc_studio.brick_lib_api.mixin.common;
+package com.arc_studio.brick_lib_api.mixin;
 
 import com.arc_studio.brick_lib_api.config.ConfigTracker;
 import com.arc_studio.brick_lib_api.config.ModConfig;
@@ -7,7 +7,6 @@ import com.arc_studio.brick_lib_api.core.SideExecutor;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ReloadableResourceManager;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 

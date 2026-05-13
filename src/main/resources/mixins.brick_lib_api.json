@@ -1,26 +1,25 @@
 {
-  "required": true,
-  "minVersion": "0.8",
-  "package": "com.arc_studio.brick_lib_api.mixin.common",
-  "compatibilityLevel": "JAVA_${java_ver}",
-  "mixins": [
-    "CommandsMixin",
-    "ItemStackMixin",
-    "ReloadableResourceManagerMixin",
-    "server.DedicatedServerMixin",
-    "server.GameTestServerMixin",
-    "server.MainMixin",
-    "server.MinecraftServerMixin"
-  ],
-  "client": [
-    "client.ClientHandshakePacketListenerImplMixin",
-    "client.ClientPacketListenerMixin",
-    "client.GameLoadTimesEventMixin",
-    "client.LocalPlayerMixin",
-    "client.MinecraftMixin",
-    "server.IntegratedServerMixin"
-  ],
-  "injectors": {
-    "defaultRequire": 1
-  }
+    "required": true,
+    "minVersion": "0.8",
+    "package": "com.arc_studio.brick_lib_api.mixin",
+    "compatibilityLevel": "JAVA_${java_ver}",
+    "mixins": [
+        "CommandsMixin",
+        "ReloadableResourceManagerMixin",
+        "server.DedicatedServerMixin",
+        "server.GameTestServerMixin",
+        "server.MainMixin",
+        "server.MinecraftServerMixin"
+    ],
+    "client": [
+        "client.ClientHandshakePacketListenerImplMixin",
+        "client.ClientPacketListenerMixin",
+        "client.GameLoadTimesEventMixin",
+        "client.LocalPlayerMixin",
+        "client.MinecraftMixin",
+        "server.IntegratedServerMixin"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
 }

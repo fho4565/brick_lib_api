@@ -4,18 +4,17 @@ import com.arc_studio.brick_lib_api.BrickLibAPI;
 import com.arc_studio.brick_lib_api.core.PlatformInfo;
 import com.arc_studio.brick_lib_api.core.Version;
 import com.arc_studio.brick_lib_api.core.VillagerTradeEntry;
+import com.arc_studio.brick_lib_api.core.event.BaseEvent;
+import com.arc_studio.brick_lib_api.core.event.EventListenerWrapper;
 import com.arc_studio.brick_lib_api.core.network.PacketContent;
+import com.arc_studio.brick_lib_api.register.BrickRegistries;
 import com.arc_studio.brick_lib_api.core.network.type.*;
 import com.arc_studio.brick_lib_api.Constants;
 import com.arc_studio.brick_lib_api.core.network.context.C2SNetworkContext;
 import com.arc_studio.brick_lib_api.core.network.context.S2CNetworkContext;
 import com.arc_studio.brick_lib_api.core.register.BrickRegisterManager;
 
-import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 //? if fabric {
@@ -27,12 +26,12 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.*;
 import net.fabricmc.loader.api.ModContainer;
 //? if >= 1.20.6 {
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+/^import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
-//?} else {
-/^import net.fabricmc.loader.api.FabricLoader;
-^///?}
+^///?} else {
+import net.fabricmc.loader.api.FabricLoader;
+//?}
 
 *///?}
 
@@ -44,8 +43,10 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Registry;
 //? if > 1.19.2 {
-import net.minecraft.core.registries.BuiltInRegistries;
 //?}
+//? if >= 1.21.5 {
+/*import net.minecraft.core.registries.BuiltInRegistries;
+*///?}
 import net.minecraft.network.Connection;
 import net.minecraft.network.ConnectionProtocol;
 //? if >=1.20.6 {
@@ -63,17 +64,14 @@ import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.LevelResource;
 //? if forge {
-import net.minecraftforge.common.ForgeConfig;
 import net.minecraftforge.common.util.LogicalSidedProvider;
 //? if <= 1.18.2 {
 /*import net.minecraftforge.event.RegistryEvent;
 *///?}
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.loading.FMLPaths;
-import net.minecraftforge.forgespi.language.ModFileScanData;
 import net.minecraftforge.network.*;
 //? if > 1.18.2 {
 import net.minecraftforge.registries.RegisterEvent;
@@ -107,7 +105,6 @@ import net.neoforged.fml.ModContainer;
 *///?}
 
 
-import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.ApiStatus;
@@ -118,11 +115,7 @@ import java.nio.file.Path;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
+import java.util.function.*;
 
 /**
  * Brick Lib使用的平台类，Mod作者<font color = "red">不应</font>使用这个类
@@ -160,85 +153,6 @@ public class Platform {
         /*return FMLPaths.CONFIGDIR.get();
 
         *///?}
-    }
-
-    public static Path getServerConfigDirectory() {
-        //? if fabric {
-        /*final Path serverConfig = Constants.currentServer().getWorldPath(LevelResource.ROOT).resolve("serverconfig");
-        if (!Files.isDirectory(serverConfig)) {
-            try {
-                Files.createDirectories(serverConfig);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return serverConfig;
-        *///?} else {
-        return Constants.currentServer().getWorldPath(SERVER_CONFIG);
-        //?}
-    }
-
-    public static void scanAllModClasses(Consumer<Class<?>> consumer) {
-        //? if fabric {
-        /*for (ModContainer mod : FabricLoader.getInstance().getAllMods()) {
-            try {
-                for (Path path : mod.getOrigin().getPaths()) {
-                    try {
-                        if (Files.isDirectory(path)) {
-                            try (Stream<Path> stream = Files.walk(path)) {
-                                stream.forEach(path1 -> {
-                                    String p = path1.toString();
-                                    if (!p.endsWith("package-info.class") && p.endsWith(".class")) {
-                                        String className = p.substring(1)
-                                                .replace('/', '.')
-                                                .replace(".class", "");
-                                        try {
-                                            consumer.accept(ClassUtils.getClass(className, false));
-                                        } catch (Exception | Error ignored) {
-
-                                        }
-                                    }
-                                });
-                            }
-                        } else {
-                            try (FileSystem fs = FileSystems.newFileSystem(path, (ClassLoader) null)) {
-                                Path root = fs.getRootDirectories().iterator().next();
-                                try (Stream<Path> stream = Files.walk(root)) {
-                                    stream.forEach(path1 -> {
-                                        String p = path1.toString();
-                                        if (!p.endsWith("package-info.class") && p.endsWith(".class")) {
-                                            String className = p.substring(1)
-                                                    .replace('/', '.')
-                                                    .replace(".class", "");
-                                            try {
-                                                consumer.accept(ClassUtils.getClass(className, false));
-                                            } catch (Exception | Error ignored) {
-
-                                            }
-                                        }
-                                    });
-                                }
-                            }
-                        }
-                    } catch (IOException e) {
-                        LOGGER.error(e.toString());
-                    }
-                }
-            } catch (Exception e) {
-                LOGGER.error(e.toString());
-            }
-        }
-        *///?} else {
-        ModList.get().getAllScanData().forEach(modFileScanData -> {
-            for (ModFileScanData.ClassData classData : modFileScanData.getClasses()) {
-                String className = classData.clazz().getClassName();
-                try {
-                    consumer.accept(ClassUtils.getClass(className, false));
-                } catch (Exception | Error ignored) {
-                }
-            }
-        });
-        //?}
     }
 
     public static boolean itemEqual(ItemStack first, ItemStack second, boolean compareDamageValue) {
@@ -418,10 +332,10 @@ public class Platform {
         for (ServerPlayer serverPlayer : serverPlayers) {
             //? if fabric {
             /*//? if < 1.20.6 {
-            /^ServerPlayNetworking.send(serverPlayer, id, packet.getEncodedPacketContent(new PacketContent()).friendlyByteBuf());
-            ^///?} else {
-            ServerPlayNetworking.send(serverPlayer, packet);
-            //?}
+            ServerPlayNetworking.send(serverPlayer, id, packet.getEncodedPacketContent(new PacketContent()).friendlyByteBuf());
+            //?} else {
+            /^ServerPlayNetworking.send(serverPlayer, packet);
+            ^///?}
             *///?} else if forge {
             ForgePlatform.s2cPlayChannel.send(
             //? if >= 1.20.4 {
@@ -448,11 +362,11 @@ public class Platform {
     public static void sendToServer(ISHandlePacket packet) {
         //? if fabric {
         /*//? if < 1.20.6 {
-        /^ResourceLocation id = Optional.ofNullable(packet.id()).orElseGet(() -> new ResourceLocation(BrickLibAPI.MOD_ID, packet.getClass().getName().replace(".", "_").toLowerCase() + "_c2s"));
+        ResourceLocation id = Optional.ofNullable(packet.id()).orElseGet(() -> new ResourceLocation(BrickLibAPI.MOD_ID, packet.getClass().getName().replace(".", "_").toLowerCase() + "_c2s"));
         ClientPlayNetworking.send(id, packet.getEncodedPacketContent(new PacketContent()).friendlyByteBuf());
-        ^///?} else {
-        ClientPlayNetworking.send(packet);
-        //?}
+        //?} else {
+        /^ClientPlayNetworking.send(packet);
+        ^///?}
         *///?} else if forge {
         ForgePlatform.c2sPlayChannel
         //? if >=1.20.4 {
@@ -508,7 +422,7 @@ public class Platform {
         BrickRegistries.WANDERING_TRADE.clean();
         //? if fabric {
         /*//? if >= 1.20.6 {
-        BrickRegistries.NETWORK_PACKET.foreachRegisteredValue(packetConfig -> {
+        /^BrickRegistries.NETWORK_PACKET.foreachRegisteredValue(packetConfig -> {
             if (packetConfig instanceof PacketConfig.C2S c2S) {
                 c2s(c2S);
             } else if (packetConfig instanceof PacketConfig.S2C s2C) {
@@ -519,8 +433,8 @@ public class Platform {
                 login(login);
             }
         });
-        //?} else {
-        /^BrickRegistries.NETWORK_PACKET.foreachRegisteredValue(packetConfig -> {
+        ^///?} else {
+        BrickRegistries.NETWORK_PACKET.foreachRegisteredValue(packetConfig -> {
             if (packetConfig instanceof PacketConfig.C2S c2SPlay) {
                 SideExecutor.runOnServer(() -> () -> ServerPlayNetworking.registerGlobalReceiver(c2SPlay.id(),
                         (server, player, handler, buf, responseSender) -> {
@@ -595,7 +509,7 @@ public class Platform {
                 });
             }
         });
-        ^///?}
+        //?}
         BrickRegisterManager.getVanillaEntries().forEach((registry, map2) ->
                 map2.forEach((resourceLocation, supplier) -> {
             if (!registry.containsKey(resourceLocation)) {

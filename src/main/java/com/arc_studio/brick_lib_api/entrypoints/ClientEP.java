@@ -5,6 +5,5 @@ package com.arc_studio.brick_lib_api.entrypoints;
  */
 public class ClientEP {
     public static void init(){
-
     }
 }

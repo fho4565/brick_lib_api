@@ -1,4 +1,4 @@
-package com.arc_studio.brick_lib_api.mixin.common;
+package com.arc_studio.brick_lib_api.mixin;
 
 import com.arc_studio.brick_lib_api.misc.CommandBuildContext;
 import com.arc_studio.brick_lib_api.register.BrickRegistries;

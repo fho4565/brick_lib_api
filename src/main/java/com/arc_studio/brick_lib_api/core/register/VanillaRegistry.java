@@ -4,8 +4,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import org.jetbrains.annotations.ApiStatus;
 
-@ApiStatus.Internal
-public class VanillaRegistry<T> extends RegistryType<T> {
+public final class VanillaRegistry<T> extends RegistryType<T> {
 
     Registry<T> vanillaRegistry;
 

@@ -1,4 +1,4 @@
-package com.arc_studio.brick_lib_api.mixin.common.server;
+package com.arc_studio.brick_lib_api.mixin.server;
 
 import com.arc_studio.brick_lib_api.register.BrickRegistries;
 import com.arc_studio.brick_lib_api.core.SideExecutor;
