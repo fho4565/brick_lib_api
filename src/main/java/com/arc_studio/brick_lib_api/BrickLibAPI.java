@@ -2,6 +2,9 @@ package com.arc_studio.brick_lib_api;
 
 import com.arc_studio.brick_lib_api.core.Version;
 import com.arc_studio.brick_lib_api.core.data.ResourceID;
+import com.arc_studio.brick_lib_api.core.data.capability.builtin.example.FurnaceEnergyEvents;
+import com.arc_studio.brick_lib_api.core.data.capability.builtin.example.StoneFluidEvents;
+import com.arc_studio.brick_lib_api.core.data.capability.compat.CapabilityCompat;
 import com.arc_studio.brick_lib_api.core.event.*;
 import com.arc_studio.brick_lib_api.core.network.BuiltInPacket;
 import com.arc_studio.brick_lib_api.core.network.type.PacketConfig;
@@ -39,13 +42,16 @@ public final class BrickLibAPI {
     public static final Logger LOGGER = LogUtils.getLogger();
     public static final String MOD_ID = "brick_lib_api";
     public static final Version BRICK_LIB_API_VERSION = new Version.Builder(1, 0, 0)
-            .preRelease(Version.PreReleaseType.BETA,5).build();
+            .preRelease(Version.PreReleaseType.BETA,6).build();
     public static final ArrayList<Class<?>> LIST = new ArrayList<>();
 
     public static void init() {
         MixinExtrasBootstrap.init();
         Constants.initGeneral();
         BrickLibAPI.LOGGER.info("Brick Lib API Version : {}", BRICK_LIB_API_VERSION);
+        CapabilityCompat.initBuiltinMappings();
+        StoneFluidEvents.register();
+        FurnaceEnergyEvents.register();
         preLoad();
         brickLibApiFinalize();
     }

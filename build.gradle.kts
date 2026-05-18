@@ -291,6 +291,9 @@ val apis = arrayListOf(
     },"fabric-api"), "net.fabricmc.fabric-api:fabric-api",optionalVersionProperty("deps.api.fabric")) { src ->
         src.versionRange.isPresent && env.isFabric
     },
+    APISource(DepType.INCLUDE, APIModInfo("team_reborn_energy"), "teamreborn:energy", optionalVersionProperty("deps.api.team_reborn_energy")) { src ->
+        src.versionRange.isPresent && env.isFabric
+    },
 )
 
 // Stores information about the mod itself.
@@ -596,6 +599,7 @@ dependencies {
             include("io.github.llamalad7:mixinextras-forge:0.5.0")?.let { implementation(it) }
         }
     }
+
     if(env.isNeo){
         "neoForge"("net.neoforged:neoforge:${env.neoforgeVersion.min}")
     }

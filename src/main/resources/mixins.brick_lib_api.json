@@ -6,6 +6,9 @@
     "mixins": [
         "CommandsMixin",
         "ReloadableResourceManagerMixin",
+        "common.StoneFluidLifecycleMixin",
+        "common.StoneFluidMixin",
+        "common.StoneFluidRemovalMixin",
         "server.DedicatedServerMixin",
         "server.GameTestServerMixin",
         "server.MainMixin",

@@ -2,10 +2,10 @@
 /*package com.arc_studio.brick_lib_api.entrypoints;
 
 import com.arc_studio.brick_lib_api.BrickLibAPI;
-import com.arc_studio.brick_lib_api.platform.NeoForgePlatform;
+import com.arc_studio.brick_lib_api.core.data.capability.builtin.example.FurnaceEnergyEvents;
+import com.arc_studio.brick_lib_api.core.data.capability.builtin.example.StoneFluidEvents;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.common.NeoForge;
 
 /^*
  * NeoForge模组的入口点
@@ -13,6 +13,8 @@ import net.neoforged.neoforge.common.NeoForge;
 @Mod(BrickLibAPI.MOD_ID)
 public class NeoforgeEP {
     public NeoforgeEP(IEventBus modBus) {
+        StoneFluidEvents.registerModBus(modBus);
+        FurnaceEnergyEvents.registerModBus(modBus);
         CommonEP.init();
     }
 }
