@@ -1,6 +1,6 @@
 package com.arc_studio.brick_lib_api.core.data.capability.storage;
 
-import com.arc_studio.brick_lib_api.core.data.capability.transaction.TransactionContext;
+import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickTransactionContext;
 
 /**
  * 槽位接口 — 类似 Fabric SingleSlotStorage
@@ -30,7 +30,7 @@ public interface Slot<T> extends StorageView<T> {
      * @param tx      事务上下文
      * @return 是否设置成功
      */
-    boolean setResource(TransferVariant<T> variant, long amount, TransactionContext tx);
+    boolean setResource(TransferVariant<T> variant, long amount, BrickTransactionContext tx);
 
     /**
      * 槽位是否允许插入给定资源

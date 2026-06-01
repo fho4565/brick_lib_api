@@ -1,7 +1,6 @@
 package com.arc_studio.brick_lib_api.core.data.capability.builtin;
 
-import com.arc_studio.brick_lib_api.core.data.capability.core.AutoRegisterCapability;
-import com.arc_studio.brick_lib_api.core.data.capability.transaction.TransactionContext;
+import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickTransactionContext;
 
 /**
  * 能量存储能力接口
@@ -9,7 +8,6 @@ import com.arc_studio.brick_lib_api.core.data.capability.transaction.Transaction
  * 定义能量的接收、提取、查询操作，单位为FE(Forge Energy, Fabric Energy, Fancy Energy)
  * </p>
  */
-@AutoRegisterCapability
 public interface IEnergyStorage {
 
     /**
@@ -19,7 +17,7 @@ public interface IEnergyStorage {
      * @param tx         事务上下文
      * @return 实际接收量
      */
-    long receiveEnergy(long maxReceive, TransactionContext tx);
+    long receiveEnergy(long maxReceive, BrickTransactionContext tx);
 
     /**
      * 提取能量
@@ -28,7 +26,7 @@ public interface IEnergyStorage {
      * @param tx         事务上下文
      * @return 实际提取量
      */
-    long extractEnergy(long maxExtract, TransactionContext tx);
+    long extractEnergy(long maxExtract, BrickTransactionContext tx);
 
     /**
      * 获取当前存储的能量

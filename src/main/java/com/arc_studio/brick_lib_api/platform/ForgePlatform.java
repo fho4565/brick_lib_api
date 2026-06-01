@@ -1,136 +1,175 @@
 package com.arc_studio.brick_lib_api.platform;
 
-
-
-//? if (forge) || oldnf {
+//? if forge {
 import com.arc_studio.brick_lib_api.BrickLibAPI;
-import com.arc_studio.brick_lib_api.core.event.*;
+import com.arc_studio.brick_lib_api.core.data.capability.builtin.IFluidStorage;
 import com.arc_studio.brick_lib_api.core.network.PacketContent;
 import com.arc_studio.brick_lib_api.core.network.context.C2SNetworkContext;
 import com.arc_studio.brick_lib_api.core.network.context.S2CNetworkContext;
 import com.arc_studio.brick_lib_api.core.network.type.*;
-import com.arc_studio.brick_lib_api.network.DemoReplyPacket;
+import com.arc_studio.brick_lib_api.core.network.type.LoginPacket;
+import com.arc_studio.brick_lib_api.network.LogInReplyPacket;
 import com.arc_studio.brick_lib_api.register.BrickRegistries;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.network.*;
+import com.arc_studio.brick_lib_api.core.data.capability.compat.CapabilityRegistration;
+import com.arc_studio.brick_lib_api.core.data.capability.builtin.impl.SimpleFluidStorage;
+import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickTransaction;
+import com.arc_studio.brick_lib_api.core.PlatformInfo;
+import com.arc_studio.brick_lib_api.core.VillagerTradeEntry;
+import com.arc_studio.brick_lib_api.core.register.BrickRegisterManager;
 
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-//? if forge && < 1.20.4 {
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+//? if > 1.18.2 {
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.registries.RegisterEvent;
+//? } else {
+/*import net.minecraftforge.energy.CapabilityEnergy;
+import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
+import net.minecraftforge.registries.IForgeRegistryEntry;
+*///? }
+import net.minecraftforge.common.capabilities.ICapabilityProvider;
+import net.minecraftforge.common.util.LazyOptional;
+
+import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.minecraftforge.energy.IEnergyStorage;
+
+
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fluids.FluidStack;
+
+import org.jetbrains.annotations.Nullable;
+
+import net.minecraft.core.Registry;
+import net.minecraft.network.Connection;
+import net.minecraft.network.ConnectionProtocol;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.thread.BlockableEventLoop;
+import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.entity.npc.VillagerTrades;
+import net.minecraftforge.common.util.LogicalSidedProvider;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.network.NetworkDirection;
+//? if < 1.20.1 {
+/*import net.minecraftforge.network.simple.SimpleChannel;
+import net.minecraftforge.network.HandshakeHandler;
+import net.minecraftforge.network.NetworkHooks;
+*///? }
+import java.nio.file.Path;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
+
+import org.apache.commons.lang3.tuple.Pair;
+
+//? if < 1.20.4 {
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.simple.SimpleChannel;
+import net.minecraftforge.network.HandshakeHandler;
+import net.minecraftforge.network.NetworkHooks;
+//?} else {
+/*import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.network.ChannelBuilder;
+import net.minecraftforge.network.SimpleChannel;
+import net.minecraftforge.network.config.SimpleConfigurationTask;
+import net.minecraft.server.network.ConfigurationTask;
+import net.minecraftforge.event.network.GatherLoginConfigurationTasksEvent;
+
+*///? }
+
+
+//? if >= 1.21.5 {
+/*import net.minecraft.core.registries.BuiltInRegistries;
+ */
 //?}
 
-//? if forge && >=1.20.4 {
-/*import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.SimpleChannel;
 import net.minecraftforge.network.*;
-import net.minecraftforge.network.config.ConfigurationTaskContext;
-import net.minecraftforge.network.config.SimpleConfigurationTask;
-import net.minecraftforge.network.packets.LoginWrapper;
-import org.apache.commons.lang3.function.TriConsumer;
-import org.apache.commons.lang3.tuple.Pair;
-import org.jetbrains.annotations.ApiStatus;
-import net.minecraft.server.network.ConfigurationTask;
-import net.minecraftforge.event.network.CustomPayloadEvent;
-import net.minecraftforge.event.network.GatherLoginConfigurationTasksEvent;
-*///?}
 
-//? if neoforge {
-/*import net.neoforged.bus.core.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.events.lifecycle.FMLCommonSetupEvent;
-*///?}
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
-
 //?}
+
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class ForgePlatform {
-    //? if (forge) || oldnf {
+    //? if forge {
     protected static final String PROTOCOL_VERSION = "0";
-    public static final SimpleChannel c2sPlayChannel = //? if < 1.20.4 {
-    NetworkRegistry.newSimpleChannel(
-            new ResourceLocation(BrickLibAPI.MOD_ID, "c2s_play"),
+
+    //? if < 1.20.4 {
+    public static final SimpleChannel c2sPlayChannel = NetworkRegistry.newSimpleChannel(
+            BrickLibAPI.ofPath("c2s_play"),
             () -> PROTOCOL_VERSION,
             PROTOCOL_VERSION::equals,
             PROTOCOL_VERSION::equals
     );
-    //?} else {
-    /*ChannelBuilder.named(BrickLibAPI.ofPath("c2s_play"))
-            .optional()
-            .networkProtocolVersion(1)
-            .serverAcceptedVersions(Channel.VersionTest.exact(1))
-            .clientAcceptedVersions(Channel.VersionTest.exact(1))
-            .simpleChannel();
-    *///?}
 
-    public static final SimpleChannel c2sLoginChannel =
-        //? if <= 1.19.4 {
-        /*NetworkRegistry.ChannelBuilder
-            .named(BrickLibAPI.ofPath("c2s_login"))
-            .networkProtocolVersion(()->PROTOCOL_VERSION)
-            .serverAcceptedVersions(s -> true)
-            .clientAcceptedVersions(s -> true)
-            .simpleChannel();
-    *///?} elif < 1.20.4 {
-    NetworkRegistry.newSimpleChannel(
-        new ResourceLocation(BrickLibAPI.MOD_ID, "c2s_login"),
-                    () -> PROTOCOL_VERSION,
-    PROTOCOL_VERSION::equals,
-    PROTOCOL_VERSION::equals
-            );
-    //?} else {
-    /*ChannelBuilder.named(BrickLibAPI.ofPath("c2s_login"))
-            .optional()
-            .networkProtocolVersion(1)
-            .serverAcceptedVersions(Channel.VersionTest.exact(1))
-            .clientAcceptedVersions(Channel.VersionTest.exact(1))
-            .simpleChannel();
-
-    *///?}
-
-    public static final SimpleChannel s2cPlayChannel = //? if <1.20.4 {
-    NetworkRegistry.newSimpleChannel(
-            new ResourceLocation(BrickLibAPI.MOD_ID, "s2c_play"),
+    public static final SimpleChannel c2sLoginChannel = NetworkRegistry.newSimpleChannel(
+            BrickLibAPI.ofPath("c2s_login"),
             () -> PROTOCOL_VERSION,
             PROTOCOL_VERSION::equals,
             PROTOCOL_VERSION::equals
     );
-    //?} else {
-            /*ChannelBuilder.named(BrickLibAPI.ofPath("s2c_play"))
-                    .optional()
-                    .networkProtocolVersion(1)
-                    .serverAcceptedVersions(Channel.VersionTest.exact(1))
-                    .clientAcceptedVersions(Channel.VersionTest.exact(1))
-                    .simpleChannel();
-    *///?}
 
-    public static final SimpleChannel s2cLoginChannel = //? if <1.20.4 {
-            NetworkRegistry.newSimpleChannel(
-                    new ResourceLocation(BrickLibAPI.MOD_ID, "s2c_login"),
-                    () -> PROTOCOL_VERSION,
-                    PROTOCOL_VERSION::equals,
-                    PROTOCOL_VERSION::equals
-            );
-    //?} else {
-            /*ChannelBuilder.named(BrickLibAPI.ofPath("s2c_login"))
-                    .optional()
-                    .networkProtocolVersion(1)
-                    .serverAcceptedVersions(Channel.VersionTest.exact(1))
-                    .clientAcceptedVersions(Channel.VersionTest.exact(1))
-                    .simpleChannel();
-    *///?}
+    public static final SimpleChannel s2cPlayChannel = NetworkRegistry.newSimpleChannel(
+            BrickLibAPI.ofPath("s2c_play"),
+            () -> PROTOCOL_VERSION,
+            PROTOCOL_VERSION::equals,
+            PROTOCOL_VERSION::equals
+    );
+
+    public static final SimpleChannel s2cLoginChannel = NetworkRegistry.newSimpleChannel(
+            BrickLibAPI.ofPath("s2c_login"),
+            () -> PROTOCOL_VERSION,
+            PROTOCOL_VERSION::equals,
+            PROTOCOL_VERSION::equals
+    );
+
+    //?}
+
+    //? if >= 1.20.4 {
+    /*public static final SimpleChannel c2sPlayChannel = ChannelBuilder.named(BrickLibAPI.ofPath("c2s_play"))
+        .optional()
+        .networkProtocolVersion(1)
+        .serverAcceptedVersions(Channel.VersionTest.exact(1))
+        .clientAcceptedVersions(Channel.VersionTest.exact(1))
+        .simpleChannel();
+
+    public static final SimpleChannel c2sLoginChannel = ChannelBuilder.named(BrickLibAPI.ofPath("c2s_login"))
+        .optional()
+        .networkProtocolVersion(1)
+        .serverAcceptedVersions(Channel.VersionTest.exact(1))
+        .clientAcceptedVersions(Channel.VersionTest.exact(1))
+        .simpleChannel();
+
+    public static final SimpleChannel s2cPlayChannel = ChannelBuilder.named(BrickLibAPI.ofPath("s2c_play"))
+        .optional()
+        .networkProtocolVersion(1)
+        .serverAcceptedVersions(Channel.VersionTest.exact(1))
+        .clientAcceptedVersions(Channel.VersionTest.exact(1))
+        .simpleChannel();
+
+    public static final SimpleChannel s2cLoginChannel = ChannelBuilder.named(BrickLibAPI.ofPath("s2c_login"))
+        .optional()
+        .networkProtocolVersion(1)
+        .serverAcceptedVersions(Channel.VersionTest.exact(1))
+        .clientAcceptedVersions(Channel.VersionTest.exact(1))
+        .simpleChannel();
+    */
+    //?}
 
     protected static final AtomicInteger c2sID = new AtomicInteger(0);
     protected static final AtomicInteger s2cID = new AtomicInteger(0);
@@ -140,200 +179,245 @@ public class ForgePlatform {
         BrickRegistries.NETWORK_PACKET.foreachRegisteredValue(packetConfig -> {
             if (packetConfig instanceof PacketConfig.C2S c2S) {
                 SimpleChannel.MessageBuilder<? extends C2SPacket> command = c2sPlayChannel
-                        .messageBuilder(c2S.type(), c2sID.getAndIncrement(), NetworkDirection.PLAY_TO_SERVER)
-                        .encoder((msg, buf) -> c2S.encoder().accept(msg, new PacketContent((FriendlyByteBuf) buf)))
-                        .decoder(buf -> c2S.decoder().apply(new PacketContent((FriendlyByteBuf) buf)));
+                    .messageBuilder(c2S.type(), c2sID.getAndIncrement(), NetworkDirection.PLAY_TO_SERVER)
+                    .encoder((msg, buf) -> c2S.encoder().accept(msg, new PacketContent((FriendlyByteBuf) buf)))
+                    .decoder(buf -> c2S.decoder().apply(new PacketContent((FriendlyByteBuf) buf)));
                 if (c2S.netHandle()) {
+                    //? if < 1.20.4 {
                     //? if > 1.18.2 {
                     command.consumerNetworkThread((msg, contextSupplier) -> {
                         c2S.packetHandler().accept(msg, new C2SNetworkContext(
-                            //? if <1.20.4 {
                             contextSupplier.get().getSender()
-                            //?} else {
-                            /*contextSupplier.getSender()
-                            *///?}
                         ));
                     });
-                    //?} else {
+                    //? } else {
                     /*command.consumer((msg, contextSupplier) -> {
-                        c2S.packetHandler().accept(msg, new C2SNetworkContext(/^? <1.20.4 {^/ /^contextSupplier.get().getSender() ^//^?} else {^/contextSupplier.getSender()/^?}^/));
+                        c2S.packetHandler().accept(msg, new C2SNetworkContext(
+                            contextSupplier.get().getSender()
+                        ));
+                    });
+                    *///? }
+
+                    //?} else {
+                    /*command.consumerNetworkThread((msg, contextSupplier) -> {
+                        c2S.packetHandler().accept(msg, new C2SNetworkContext(
+                            contextSupplier.getSender()
+                        ));
                     });
                     *///?}
                 } else {
+                    //? if < 1.20.4 {
                     //? if > 1.18.2 {
                     command.consumerMainThread((msg, contextSupplier) -> c2S.packetHandler().accept(msg, new C2SNetworkContext(
-                        //? if <1.20.4 {
                         contextSupplier.get().getSender()
-                        //?} else {
-                        /*contextSupplier.getSender()
-                        *///?}
                     )));
-                    //?} else {
-                    /*command.consumer((c2SPacket, contextSupplier) -> {
-                        c2S.packetHandler().accept(c2SPacket, new C2SNetworkContext(/^? <1.20.4 {^/ /^contextSupplier.get().getSender() ^//^?} else {^/contextSupplier.getSender()/^?}^/));
+                    //? } else {
+                    /*command.consumer((msg, contextSupplier) -> {
+                        c2S.packetHandler().accept(msg, new C2SNetworkContext(contextSupplier.get().getSender()));
                     });
+                    *///? }
+
+                    //?}
+                    //? if >= 1.20.4 {
+                    /*command.consumerMainThread((msg, contextSupplier) -> c2S.packetHandler().accept(msg, new C2SNetworkContext(
+                        contextSupplier.getSender()
+                    )));
                     *///?}
                 }
                 command.add();
             }
             else if (packetConfig instanceof PacketConfig.S2C s2C) {
                 SimpleChannel.MessageBuilder<? extends S2CPacket> command = s2cPlayChannel
-                        .messageBuilder(s2C.type(), s2cID.getAndIncrement(), NetworkDirection.PLAY_TO_CLIENT)
-                        .encoder((msg, buf) -> s2C.encoder().accept(msg, new PacketContent((FriendlyByteBuf) buf)))
-                        .decoder(buf -> s2C.decoder().apply(new PacketContent((FriendlyByteBuf) buf)));
-                //? if > 1.18.2 {
+                    .messageBuilder(s2C.type(), s2cID.getAndIncrement(), NetworkDirection.PLAY_TO_CLIENT)
+                    .encoder((msg, buf) -> s2C.encoder().accept(msg, new PacketContent((FriendlyByteBuf) buf)))
+                    .decoder(buf -> s2C.decoder().apply(new PacketContent((FriendlyByteBuf) buf)));
                 if (s2C.netHandle()) {
-                    command.consumerNetworkThread((msg, contextSupplier) -> {
+                    //? if < 1.20.4 {
+                        //? if > 1.18.2 {
+                        command.consumerNetworkThread((msg, contextSupplier) -> {
+                            s2C.packetHandler().accept(msg, new S2CNetworkContext());
+                        });
+                        //? } else {
+                        /*command.consumer((msg, contextSupplier) -> {
+                            s2C.packetHandler().accept(msg, new S2CNetworkContext());
+                        });
+                        *///? }
+                    //?} else {
+                    /*command.consumerNetworkThread((msg, contextSupplier) -> {
                         s2C.packetHandler().accept(msg, new S2CNetworkContext());
                     });
+                    *///?}
                 } else {
-                    command.consumerMainThread((msg, contextSupplier) -> {
+                    //? if < 1.20.4 {
+                        //? if > 1.18.2 {
+                        command.consumerMainThread((msg, contextSupplier) -> {
+                            s2C.packetHandler().accept(msg, new S2CNetworkContext());
+                        });
+                        //? } else {
+                        /*command.consumer((msg, contextSupplier) -> {
+                            s2C.packetHandler().accept(msg, new S2CNetworkContext());
+                        });
+                        *///? }
+                    //?} else {
+                    /*command.consumerMainThread((msg, contextSupplier) -> {
                         s2C.packetHandler().accept(msg, new S2CNetworkContext());
                     });
+                    *///?}
                 }
-                //?} else {
-                /*if (s2C.netHandle()) {
-                    command.consumer((msg, contextSupplier) -> {
-                        s2C.packetHandler().accept(msg, new S2CNetworkContext());
-                    });
-                } else {
-                    command.consumer((msg, contextSupplier) -> {
-                        s2C.packetHandler().accept(msg, new S2CNetworkContext());
-                    });
-                }
-                *///?}
                 command.add();
-            }
-            else if (packetConfig instanceof PacketConfig.SAC sac) {
+            } else if (packetConfig instanceof PacketConfig.SAC sac) {
                 SimpleChannel.MessageBuilder<? extends SACPacket> s2cBuilder = s2cPlayChannel
-                        .messageBuilder(sac.type(), s2cID.getAndIncrement(), NetworkDirection.PLAY_TO_CLIENT)
-                        .encoder((msg, buf) -> sac.encoder().accept(msg, new PacketContent((FriendlyByteBuf) buf)))
-                        .decoder(buf -> sac.decoder().apply(new PacketContent((FriendlyByteBuf) buf)));
-                //? if > 1.18.2 {
+                    .messageBuilder(sac.type(), s2cID.getAndIncrement(), NetworkDirection.PLAY_TO_CLIENT)
+                    .encoder((msg, buf) -> sac.encoder().accept(msg, new PacketContent((FriendlyByteBuf) buf)))
+                    .decoder(buf -> sac.decoder().apply(new PacketContent((FriendlyByteBuf) buf)));
                 if (sac.netHandle()) {
-                    s2cBuilder.consumerNetworkThread((msg, contextSupplier) -> {
+                    //? if < 1.20.4 {
+                        //? if > 1.18.2 {
+                        s2cBuilder.consumerNetworkThread((msg, contextSupplier) -> {
+                            sac.clientHandler().accept(msg, new S2CNetworkContext());
+                        });
+                        //? } else {
+                        /*s2cBuilder.consumer((msg, contextSupplier) -> {
+                            sac.clientHandler().accept(msg, new S2CNetworkContext());
+                        });
+                        *///? }
+                    //?} else {
+                    /*s2cBuilder.consumerNetworkThread((msg, contextSupplier) -> {
                         sac.clientHandler().accept(msg, new S2CNetworkContext());
                     });
+                    *///?}
                 } else {
-                    s2cBuilder.consumerMainThread((msg, contextSupplier) -> {
+                    //? if < 1.20.4 {
+                        //? if > 1.18.2 {
+                        s2cBuilder.consumerMainThread((msg, contextSupplier) -> {
+                            sac.clientHandler().accept(msg, new S2CNetworkContext());
+                        });
+                        //? } else {
+                        /*s2cBuilder.consumer((msg, contextSupplier) -> {
+                            sac.clientHandler().accept(msg, new S2CNetworkContext());
+                        });
+                        *///? }
+                    //?} else {
+                    /*s2cBuilder.consumerMainThread((msg, contextSupplier) -> {
                         sac.clientHandler().accept(msg, new S2CNetworkContext());
                     });
+                    *///?}
                 }
-                //?} else {
-                /*if (sac.netHandle()) {
-                    s2cBuilder.consumer((msg, contextSupplier) -> {
-                        sac.clientHandler().accept(msg, new S2CNetworkContext());
-                    });
-                } else {
-                    s2cBuilder.consumer((msg, contextSupplier) -> {
-                        sac.clientHandler().accept(msg, new S2CNetworkContext());
-                    });
-                }
-                *///?}
                 s2cBuilder.add();
+
                 SimpleChannel.MessageBuilder<? extends SACPacket> c2sBuilder = c2sPlayChannel
-                        .messageBuilder(sac.type(), c2sID.getAndIncrement(), NetworkDirection.PLAY_TO_SERVER)
-                        .encoder((msg, buf) -> sac.encoder().accept(msg, new PacketContent((FriendlyByteBuf) buf)))
-                        .decoder(buf -> sac.decoder().apply(new PacketContent((FriendlyByteBuf) buf)));
-                //? if > 1.18.2 {
+                    .messageBuilder(sac.type(), c2sID.getAndIncrement(), NetworkDirection.PLAY_TO_SERVER)
+                    .encoder((msg, buf) -> sac.encoder().accept(msg, new PacketContent((FriendlyByteBuf) buf)))
+                    .decoder(buf -> sac.decoder().apply(new PacketContent((FriendlyByteBuf) buf)));
                 if (sac.netHandle()) {
-                    c2sBuilder.consumerNetworkThread((msg, contextSupplier) -> {
-                        sac.serverHandler().accept(msg, new C2SNetworkContext(
-                                //? if <1.20.4 {
+                    //? if < 1.20.4 {
+                        //? if > 1.18.2 {
+                            c2sBuilder.consumerNetworkThread((msg, contextSupplier) -> {
+                            sac.serverHandler().accept(msg, new C2SNetworkContext(
                                 contextSupplier.get().getSender()
-                                //?} else {
-                                /*contextSupplier.getSender()
-                                *///?}
+                            ));
+                        });
+                        //? } else {
+                        /*c2sBuilder.consumer((msg, contextSupplier) -> {
+                            sac.serverHandler().accept(msg, new C2SNetworkContext(
+                                contextSupplier.get().getSender()
+                            ));
+                        });
+                        *///? }
+                    //?} else {
+                    /*c2sBuilder.consumerNetworkThread((msg, contextSupplier) -> {
+                        sac.serverHandler().accept(msg, new C2SNetworkContext(
+                            contextSupplier.getSender()
                         ));
                     });
+
+                    *///?}
                 } else {
-                    c2sBuilder.consumerMainThread((msg, contextSupplier) -> sac.serverHandler().accept(msg, new C2SNetworkContext(
-                        //? if <1.20.4 {
-                        contextSupplier.get().getSender()
-                        //?} else {
-                        /*contextSupplier.getSender()
-                        *///?}
+                    //? if < 1.20.4 {
+                        //? if > 1.18.2 {
+                            c2sBuilder.consumerMainThread((msg, contextSupplier) -> sac.serverHandler().accept(msg, new C2SNetworkContext(
+                            contextSupplier.get().getSender()
+                        )));
+                        //? } else {
+                        /*c2sBuilder.consumer((msg, contextSupplier) -> {
+                            sac.serverHandler().accept(msg, new C2SNetworkContext(
+                                contextSupplier.get().getSender()));
+                        });
+                        *///? }
+                    //?} else {
+                    /*c2sBuilder.consumerMainThread((msg, contextSupplier) -> sac.serverHandler().accept(msg, new C2SNetworkContext(
+                        contextSupplier.getSender()
                     )));
+
+                    *///?}
                 }
-                //?} else {
-                /*if (sac.netHandle()) {
-                    c2sBuilder.consumer((msg, contextSupplier) -> {
-                        sac.serverHandler().accept(msg, new C2SNetworkContext(/^? <1.20.4 {^/ /^contextSupplier.get().getSender() ^//^?} else {^/contextSupplier.getSender()/^?}^/));
-                    });
-                } else {
-                    c2sBuilder.consumer((sacPacket, contextSupplier) -> {
-                        sac.serverHandler().accept(sacPacket, new C2SNetworkContext(/^? <1.20.4 {^/ /^contextSupplier.get().getSender() ^//^?} else {^/contextSupplier.getSender()/^?}^/));
-                    });
-                }
-                *///?}
                 c2sBuilder.add();
             }
             else if (packetConfig instanceof PacketConfig.Login login) {
                 //? if < 1.20.4 {
-                if(DemoReplyPacket.class.isAssignableFrom(login.type())){
-                    SimpleChannel.MessageBuilder<? extends LoginPacket> c2sBuilder = c2sLoginChannel
-                            .messageBuilder(DemoReplyPacket.class, 999, NetworkDirection.LOGIN_TO_SERVER)
-                            .encoder((o, o2) -> {})
-                            .decoder(buf -> new DemoReplyPacket());
-                    c2sBuilder.loginIndex(LoginPacket::getLoginIndex, LoginPacket::setLoginIndex);
+                    if(LogInReplyPacket.class.isAssignableFrom(login.type())){
+                        SimpleChannel.MessageBuilder<? extends LoginPacket> c2sBuilder = c2sLoginChannel
+                                .messageBuilder(LogInReplyPacket.class, 999, NetworkDirection.LOGIN_TO_SERVER)
+                                .encoder((o, o2) -> {})
+                                .decoder(buf -> new LogInReplyPacket());
+                        c2sBuilder.loginIndex(LoginPacket::getLoginIndex, LoginPacket::setLoginIndex);
+                        //? if > 1.18.2 {
+                            c2sBuilder.consumerNetworkThread(
+                            HandshakeHandler.indexFirst((handshakeHandler, intSupplier, supplier) ->
+                                supplier.get().setPacketHandled(true)));
+                        //? } else {
+                        /*c2sBuilder.consumer(
+                            HandshakeHandler.indexFirst((handshakeHandler, intSupplier, supplier) ->
+                                supplier.get().setPacketHandled(true)));
+                        *///? }
+                        c2sBuilder.add();
+                    }
+                    SimpleChannel.MessageBuilder<? extends LoginPacket> s2cBuilder = s2cLoginChannel
+                            .messageBuilder(login.type(), s2cID.getAndIncrement(), NetworkDirection.LOGIN_TO_CLIENT)
+                            .encoder((msg, buf) -> login.encoder().accept(msg,new PacketContent((FriendlyByteBuf) buf)))
+                            .decoder( buf -> login.s2cDecoder().apply(new PacketContent((FriendlyByteBuf) buf)));
+                    s2cBuilder.loginIndex(LoginPacket::getLoginIndex, LoginPacket::setLoginIndex)
+                            .buildLoginPacketList(login.packetGenerator());
                     //? if > 1.18.2 {
-                    c2sBuilder.consumerNetworkThread(
-                        HandshakeHandler.indexFirst((handshakeHandler, intSupplier, supplier) ->
-                            supplier.get().setPacketHandled(true)));
-                    //?} else {
-                    /*c2sBuilder.consumer(
-                        HandshakeHandler.indexFirst((handshakeHandler, intSupplier, supplier) -> {
-                            supplier.get().setPacketHandled(true);
-                        }));
-                    *///?}
-                    c2sBuilder.add();
-
-                }
-                SimpleChannel.MessageBuilder<? extends LoginPacket> s2cBuilder = s2cLoginChannel
-                        .messageBuilder(login.type(), s2cID.getAndIncrement(), NetworkDirection.LOGIN_TO_CLIENT)
-                        .encoder((msg, buf) -> login.encoder().accept(msg,new PacketContent((FriendlyByteBuf) buf)))
-                        .decoder( buf -> login.s2cDecoder().apply(new PacketContent((FriendlyByteBuf) buf)));
-                s2cBuilder.loginIndex(LoginPacket::getLoginIndex, LoginPacket::setLoginIndex)
-                        .buildLoginPacketList(login.packetGenerator());
-                //? if > 1.18.2 {
-                s2cBuilder.consumerMainThread((s2CLoginPacket, contextSupplier) -> {
-                    login.clientHandler().accept(s2CLoginPacket, new S2CNetworkContext());
-                    c2sLoginChannel.reply(new DemoReplyPacket(), contextSupplier.get());
-                })
-                //?} else {
-                /*s2cBuilder.consumer((s2CLoginPacket, contextSupplier) -> {
+                        s2cBuilder.consumerMainThread((s2CLoginPacket, contextSupplier) -> {
                         login.clientHandler().accept(s2CLoginPacket, new S2CNetworkContext());
-                        contextSupplier.get().setPacketHandled(true);
-                        c2sLoginChannel.reply(new DemoReplyPacket(), contextSupplier.get());
+                        c2sLoginChannel.reply(new LogInReplyPacket(), contextSupplier.get());
                     })
-                    *///?}
+                    //? } else {
+                    /*s2cBuilder.consumer((s2CLoginPacket, contextSupplier) -> {
+                        login.clientHandler().accept(s2CLoginPacket, new S2CNetworkContext());
+                        c2sLoginChannel.reply(new LogInReplyPacket(), contextSupplier.get());
+                    })
+                    *///? }
                     .add();
-                //?} else {
-                /*loginPacket(login);
-                *///?}
-            }
 
+                //?} else {
+                /*
+                loginPacket(login);
+                */
+                //?}
+            }
         });
     }
 
     //? if >= 1.20.4 {
     /*private static<T extends LoginPacket> void loginPacket(PacketConfig.Login<T> login){
-        if(DemoReplyPacket.class.isAssignableFrom(login.type())){
+        if(LogInReplyPacket.class.isAssignableFrom(login.type())){
             c2sLoginChannel.messageBuilder(login.type(),NetworkDirection.PLAY_TO_SERVER)
-                    .encoder((t, buf) -> login.encoder().accept(t,new PacketContent(buf)))
-                    .decoder(buf -> login.c2sDecoder().apply(new PacketContent(buf)))
-                    .consumerNetworkThread((v, s) -> {
-                        login.serverHandler().accept(v,new C2SNetworkContext(s.getSender()));
-                    })
-                    .add();
-        }
-        s2cLoginChannel.messageBuilder(login.type(),NetworkDirection.PLAY_TO_CLIENT)
                 .encoder((t, buf) -> login.encoder().accept(t,new PacketContent(buf)))
-                .decoder(buf -> login.s2cDecoder().apply(new PacketContent(buf)))
-                .consumerNetworkThread(( v, s) -> {
-                    login.clientHandler().accept(v,new S2CNetworkContext());
+                .decoder(buf -> login.c2sDecoder().apply(new PacketContent(buf)))
+                .consumerNetworkThread((v, s) -> {
+                    login.serverHandler().accept(v,new C2SNetworkContext(s.getSender()));
                 })
                 .add();
+        }
+        s2cLoginChannel.messageBuilder(login.type(),NetworkDirection.PLAY_TO_CLIENT)
+            .encoder((t, buf) -> login.encoder().accept(t,new PacketContent(buf)))
+            .decoder(buf -> login.s2cDecoder().apply(new PacketContent(buf)))
+            .consumerNetworkThread(( v, s) -> {
+                login.clientHandler().accept(v,new S2CNetworkContext());
+            })
+            .add();
     }
 
     @ApiStatus.Internal
@@ -341,17 +425,468 @@ public class ForgePlatform {
         @SubscribeEvent
         public void onGatherLoginConfigurationTasks(GatherLoginConfigurationTasksEvent event) {
             event.addTask(new SimpleConfigurationTask(new ConfigurationTask.Type("brick_login_packet"), cts ->
-                    BrickRegistries.NETWORK_PACKET.forEach(packetConfig -> {
-                if(packetConfig instanceof PacketConfig.Login login){
-                    List<Pair<String, ? extends LoginPacket>> list = (List<Pair<String, ? extends LoginPacket>>) login.packetGenerator().apply(false);
-                    list.forEach(stringPair -> {
-                        s2cLoginChannel.send(stringPair.getRight(), cts.getConnection());
-                    });
-                }
-            })));
+                BrickRegistries.NETWORK_PACKET.forEach(packetConfig -> {
+                    if(packetConfig instanceof PacketConfig.Login login){
+                        List<Pair<String, ? extends LoginPacket>> list = (List<Pair<String, ? extends LoginPacket>>) login.packetGenerator().apply(false);
+                        list.forEach(stringPair -> {
+                            s2cLoginChannel.send(stringPair.getRight(), cts.getConnection());
+                        });
+                    }
+                })));
         }
     }
 
     *///?}
+
+    /* Forge 能量提供者 — 将 UCS IEnergyStorage 包装为 Forge IEnergyStorage */
+    private static class ForgeEnergyProvider implements ICapabilityProvider {
+        private final BlockEntity be;
+        private final CapabilityRegistration.EnergyEntry entry;
+        private LazyOptional<IEnergyStorage> cache;
+
+        ForgeEnergyProvider(BlockEntity be, CapabilityRegistration.EnergyEntry entry) {
+            this.be = be;
+            this.entry = entry;
+        }
+
+        @Override
+        public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
+            //? if > 1.18.2 {
+            if (cap == ForgeCapabilities.ENERGY) {
+            //? } else {
+            /*if (cap == CapabilityEnergy.ENERGY) {
+                *///? }
+                if (cache == null || !cache.isPresent()) {
+                    cache = LazyOptional.of(() -> {
+                        if (be.getLevel() instanceof ServerLevel serverLevel && be.getBlockState().is(entry.block())) {
+                            var ucs = entry.provider().getEnergy(serverLevel, be.getBlockPos(), be.getBlockState(), be, side);
+                            if (ucs != null) {
+                                return new ForgeEnergyStorageWrapper(serverLevel, be.getBlockPos(), be.getBlockState(), ucs, entry.dirtyNotifier());
+                            }
+                        }
+                        return new IEnergyStorage() {
+                            @Override public int receiveEnergy(int i, boolean b) { return 0; }
+                            @Override public int extractEnergy(int i, boolean b) { return 0; }
+                            @Override public int getEnergyStored() { return 0; }
+                            @Override public int getMaxEnergyStored() { return 0; }
+                            @Override public boolean canExtract() { return false; }
+                            @Override public boolean canReceive() { return false; }
+                        };
+                    });
+                }
+                return cache.cast();
+            }
+            return LazyOptional.empty();
+        }
+    }
+
+    /* Forge 流体提供者 — 将 UCS IFluidStorage 包装为 Forge IFluidHandler */
+    private static class ForgeFluidProvider implements ICapabilityProvider {
+        private final BlockEntity be;
+        private final CapabilityRegistration.FluidEntry entry;
+        private LazyOptional<IFluidHandler> cache;
+
+        ForgeFluidProvider(BlockEntity be, CapabilityRegistration.FluidEntry entry) {
+            this.be = be;
+            this.entry = entry;
+        }
+
+        @Override
+        public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
+            //? if > 1.18.2 {
+            if (cap == ForgeCapabilities.FLUID_HANDLER) {
+                //? } else {
+                /*if (cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
+                 */
+                //? }
+                if (cache == null || !cache.isPresent()) {
+                    cache = LazyOptional.of(() -> {
+                        if (be.getLevel() instanceof ServerLevel serverLevel
+                            && be.getBlockState().is(entry.block())) {
+                            var ucs = entry.provider().getFluid(serverLevel,
+                                be.getBlockPos(), be.getBlockState(), be, side);
+                            if (ucs != null) {
+                                return new ForgeFluidHandlerWrapper(serverLevel,
+                                    be.getBlockPos(), be.getBlockState(), ucs, entry.dirtyNotifier());
+                            }
+                        }
+                        return null;
+                    });
+                }
+                return cache.cast();
+            }
+            return LazyOptional.empty();
+        }
+    }
+
+    /**
+     * 通用的 Forge IEnergyStorage 包装器。
+     * <p>
+     * 将 UCS IEnergyStorage 适配为 Forge IEnergyStorage，处理 int/long 转换、
+     * simulate 模式、dirty 标记。
+     * </p>
+     */
+    @SuppressWarnings("unused")
+    protected static class ForgeEnergyStorageWrapper implements IEnergyStorage {
+        private final ServerLevel level;
+        private final BlockPos pos;
+        private final BlockState state;
+        private final com.arc_studio.brick_lib_api.core.data.capability.builtin.IEnergyStorage ucs;
+        @Nullable
+        private final BiConsumer<ServerLevel, BlockPos> dirtyNotifier;
+
+        public ForgeEnergyStorageWrapper(ServerLevel level, BlockPos pos, BlockState state,
+                                         com.arc_studio.brick_lib_api.core.data.capability.builtin.IEnergyStorage ucs,
+                                         @Nullable BiConsumer<ServerLevel, BlockPos> dirtyNotifier) {
+            this.level = level;
+            this.pos = pos;
+            this.state = state;
+            this.ucs = ucs;
+            this.dirtyNotifier = dirtyNotifier;
+        }
+
+        private boolean isValid() {
+            return level.getBlockState(pos).is(state.getBlock());
+        }
+
+        @Override
+        public int receiveEnergy(int maxReceive, boolean simulate) {
+            if (!isValid() || maxReceive <= 0 || !ucs.canReceive()) return 0;
+            if (simulate) {
+                return IFluidStorage.clampToInt(Math.min(maxReceive,
+                    ucs.getMaxEnergyStored() - ucs.getEnergyStored()));
+            }
+            try (BrickTransaction tx = BrickTransaction.openOuter()) {
+                long received = ucs.receiveEnergy(maxReceive, tx);
+                if (received > 0) {
+                    tx.commit();
+                    markDirty();
+                }
+                return IFluidStorage.clampToInt(received);
+            }
+        }
+
+        @Override
+        public int extractEnergy(int maxExtract, boolean simulate) {
+            if (!isValid() || maxExtract <= 0 || !ucs.canExtract()) return 0;
+            if (simulate) {
+                return IFluidStorage.clampToInt(Math.min(maxExtract, ucs.getEnergyStored()));
+            }
+            try (BrickTransaction tx = BrickTransaction.openOuter()) {
+                long extracted = ucs.extractEnergy(maxExtract, tx);
+                if (extracted > 0) {
+                    tx.commit();
+                    markDirty();
+                }
+                return IFluidStorage.clampToInt(extracted);
+            }
+        }
+
+        @Override public int getEnergyStored() { return isValid() ? IFluidStorage.clampToInt(ucs.getEnergyStored()) : 0; }
+        @Override public int getMaxEnergyStored() { return isValid() ? IFluidStorage.clampToInt(ucs.getMaxEnergyStored()) : 0; }
+        @Override public boolean canExtract() { return isValid() && ucs.canExtract(); }
+        @Override public boolean canReceive() { return isValid() && ucs.canReceive(); }
+
+        private void markDirty() {
+            if (dirtyNotifier != null) dirtyNotifier.accept(level, pos);
+        }
+    }
+
+    /**
+     * 通用的 Forge IFluidHandler 包装器。
+     * <p>
+     * 将 UCS IFluidStorage 适配为 Forge IFluidHandler，处理 droplets/mB 转换、
+     * simulate 模式、dirty 标记。
+     * </p>
+     */
+    @SuppressWarnings("unused")
+    protected static class ForgeFluidHandlerWrapper implements IFluidHandler {
+        private final ServerLevel level;
+        private final BlockPos pos;
+        private final BlockState state;
+        private final IFluidStorage ucs;
+        @Nullable
+        private final BiConsumer<ServerLevel, BlockPos> dirtyNotifier;
+
+        public ForgeFluidHandlerWrapper(ServerLevel level, BlockPos pos, BlockState state,
+                                        IFluidStorage ucs,
+                                        @Nullable BiConsumer<ServerLevel, BlockPos> dirtyNotifier) {
+            this.level = level;
+            this.pos = pos;
+            this.state = state;
+            this.ucs = ucs;
+            this.dirtyNotifier = dirtyNotifier;
+        }
+
+        private boolean isValid() {
+            return level.getBlockState(pos).is(state.getBlock());
+        }
+
+        private SimpleFluidStorage simple() {
+            return ucs instanceof SimpleFluidStorage sfs ? sfs : null;
+        }
+
+        @Override
+        public int getTanks() {
+            if (!isValid()) return 1;
+            SimpleFluidStorage s = simple();
+            return s != null ? s.getTanks() : 1;
+        }
+
+        @Override
+        public FluidStack getFluidInTank(int tank) {
+            if (!isValid()) return FluidStack.EMPTY;
+            SimpleFluidStorage s = simple();
+            if (s == null) return FluidStack.EMPTY;
+            var fluid = s.getFluidInTank(tank);
+            if (fluid == null) return FluidStack.EMPTY;
+            return new FluidStack(fluid, IFluidStorage.dropletsToMb(s.getFluidAmountInTank(tank)));
+        }
+
+        @Override
+        public int getTankCapacity(int tank) {
+            if (!isValid()) return 0;
+            SimpleFluidStorage s = simple();
+            return s != null ? IFluidStorage.dropletsToMb(s.getTankCapacity(tank)) : 0;
+        }
+
+        @Override
+        public boolean isFluidValid(int tank, FluidStack stack) {
+            if (!isValid() || stack.isEmpty()) return false;
+            SimpleFluidStorage s = simple();
+            return s != null && s.isFluidValid(tank, stack.getFluid());
+        }
+
+        @Override
+        public int fill(FluidStack resource, IFluidHandler.FluidAction action) {
+            if (!isValid() || resource.isEmpty()) return 0;
+            SimpleFluidStorage s = simple();
+            if (s == null) return 0;
+            if (action.simulate()) {
+                return IFluidStorage.getFillableMb(s, resource.getFluid(), resource.getAmount());
+            }
+            long droplets = IFluidStorage.mbToDroplets(resource.getAmount());
+            try (BrickTransaction tx = BrickTransaction.openOuter()) {
+                long filled = s.fill(resource.getFluid(), droplets, tx);
+                if (filled > 0) {
+                    tx.commit();
+                    markDirty();
+                }
+                return IFluidStorage.dropletsToMb(filled);
+            }
+        }
+
+        @Override
+        public FluidStack drain(FluidStack resource, IFluidHandler.FluidAction action) {
+            if (!isValid() || resource.isEmpty()) return FluidStack.EMPTY;
+            SimpleFluidStorage s = simple();
+            if (s == null) return FluidStack.EMPTY;
+            if (action.simulate()) {
+                int drained = IFluidStorage.getDrainableMb(s, resource.getFluid(), resource.getAmount());
+                return drained > 0 ? new FluidStack(resource.getFluid(), drained) : FluidStack.EMPTY;
+            }
+            long droplets = IFluidStorage.mbToDroplets(resource.getAmount());
+            try (BrickTransaction tx = BrickTransaction.openOuter()) {
+                long drained = s.drain(resource.getFluid(), droplets, tx);
+                if (drained > 0) {
+                    tx.commit();
+                    markDirty();
+                    return new FluidStack(resource.getFluid(), IFluidStorage.dropletsToMb(drained));
+                }
+                return FluidStack.EMPTY;
+            }
+        }
+
+        @Override
+        public FluidStack drain(int maxDrain, IFluidHandler.FluidAction action) {
+            if (!isValid() || maxDrain <= 0) return FluidStack.EMPTY;
+            SimpleFluidStorage s = simple();
+            if (s == null) return FluidStack.EMPTY;
+            var fluid = s.getFluidInTank(0);
+            if (fluid == null) return FluidStack.EMPTY;
+            if (action.simulate()) {
+                int drained = IFluidStorage.getDrainableMb(s, fluid, maxDrain);
+                return drained > 0 ? new FluidStack(fluid, drained) : FluidStack.EMPTY;
+            }
+            long droplets = IFluidStorage.mbToDroplets(maxDrain);
+            try (BrickTransaction tx = BrickTransaction.openOuter()) {
+                long drained = s.drain(droplets, tx);
+                if (drained > 0) {
+                    tx.commit();
+                    markDirty();
+                    return new FluidStack(fluid, IFluidStorage.dropletsToMb(drained));
+                }
+                return FluidStack.EMPTY;
+            }
+        }
+
+        private void markDirty() {
+            if (dirtyNotifier != null) dirtyNotifier.accept(level, pos);
+        }
+    }
+
+
+    public static Path getConfigDirectory() {
+        return FMLPaths.CONFIGDIR.get();
+    }
+
+    public static Path versionPath() {
+        return FMLPaths.GAMEDIR.get();
+    }
+
+    public static boolean isDev() {
+        return !FMLEnvironment.production;
+    }
+
+    public static PlatformInfo platform() {
+        PlatformInfo type = new PlatformInfo();
+        type.setForge();
+        if (isClient()) {
+            type.setClient();
+        } else if (isServer()) {
+            type.setServer();
+        }
+        return type;
+    }
+
+    public static boolean isClient() {
+        return FMLEnvironment.dist.isClient();
+    }
+
+    public static boolean isServer() {
+        return FMLEnvironment.dist.isDedicatedServer();
+    }
+
+    public static <T extends S2CNetworkContext> void enqueueWork(T context, Runnable runnable) {
+        BlockableEventLoop<?> executor = LogicalSidedProvider.WORKQUEUE.get(NetworkDirection.PLAY_TO_CLIENT.getReceptionSide());
+        if (!executor.isSameThread()) {
+            executor.submitAsync(runnable);
+        } else {
+            runnable.run();
+            CompletableFuture.completedFuture(null);
+        }
+    }
+
+    public static <T extends C2SNetworkContext> void enqueueWork(T context, Runnable runnable) {
+        BlockableEventLoop<?> executor = LogicalSidedProvider.WORKQUEUE.get(NetworkDirection.PLAY_TO_SERVER.getReceptionSide());
+        if (!executor.isSameThread()) {
+            executor.submitAsync(runnable);
+        } else {
+            runnable.run();
+            CompletableFuture.completedFuture(null);
+        }
+    }
+
+    public static void sendToPlayer(ICHandlePacket packet, Iterable<ServerPlayer> serverPlayers) {
+        for (ServerPlayer serverPlayer : serverPlayers) {
+            //? if >= 1.20.4 {
+            /*s2cPlayChannel.send(packet, PacketDistributor.PLAYER.with(serverPlayer));
+
+            *///?}
+            //? if < 1.20.4 {
+            s2cPlayChannel.send(PacketDistributor.PLAYER.with(() -> serverPlayer), packet);
+
+            //?}
+        }
+    }
+
+    public static void sendToServer(ISHandlePacket packet) {
+        //? if >= 1.20.4 {
+        /*c2sPlayChannel.send(packet, PacketDistributor.SERVER.noArg());
+
+        *///?}
+        //? if < 1.20.4 {
+        c2sPlayChannel.sendToServer(packet);
+
+        //?}
+    }
+
+    public static Set<ResourceLocation> networkChannels(Connection connection, ConnectionProtocol protocol) {
+        //? if >= 1.20.4 {
+        /*return Set.of();
+
+        *///?}
+        //? if < 1.20.4 {
+        MCRegisterPacketHandler.ChannelList list = NetworkHooks.getChannelList(connection);
+        if (list != null) {
+            return list.getRemoteLocations();
+        }
+        return Set.of();
+
+        //?}
+    }
+
+    @Mod.EventBusSubscriber(modid = BrickLibAPI.MOD_ID)
+    static final class ForgeCommonEvent {
+        @SubscribeEvent
+        static void onAttachCapabilities(AttachCapabilitiesEvent<BlockEntity> event) {
+            System.out.println("ForgePlatform.onAttachCapabilities");
+            BlockEntity be = event.getObject();
+            Level level = be.getLevel();
+
+            for (CapabilityRegistration.EnergyEntry entry : CapabilityRegistration.getEnergyBlocks().values()) {
+                if (be.getBlockState().is(entry.block())) {
+                    event.addCapability(entry.capId(), new ForgePlatform.ForgeEnergyProvider(be, entry));
+                }
+            }
+            for (CapabilityRegistration.FluidEntry entry : CapabilityRegistration.getFluidBlocks().values()) {
+                if (be.getBlockState().is(entry.block())) {
+                    event.addCapability(entry.capId(), new ForgePlatform.ForgeFluidProvider(be, entry));
+                }
+            }
+        }
+    }
+
+    @Mod.EventBusSubscriber(modid = BrickLibAPI.MOD_ID)
+    static final class ForgeModEvent {
+        //? if > 1.18.2 {
+        @SubscribeEvent
+        public static <T> void onRegister(RegisterEvent event) {
+            ResourceKey<? extends Registry<T>> registeringKey = (ResourceKey<? extends Registry<T>>) event.getRegistryKey();
+            for (Map.Entry<Registry<?>, Map<ResourceLocation, Supplier<?>>> entry : BrickRegisterManager.getVanillaEntries().entrySet()) {
+                if (entry.getKey().key().equals(registeringKey)) {
+                    entry.getValue().forEach((resourceLocation, supplier) -> {
+                        event.register(registeringKey, resourceLocation, () -> (T) supplier.get());
+                    });
+                    return;
+                }
+            }
+            HashMap<Pair<VillagerProfession, Integer>, ArrayList<VillagerTrades.ItemListing>> map = new HashMap<>();
+            for (VillagerTradeEntry entry : BrickRegistries.VILLAGER_TRADE) {
+                Pair<VillagerProfession, Integer> key = Pair.of(entry.profession(), entry.level());
+                ArrayList<VillagerTrades.ItemListing> list = map.getOrDefault(key, new ArrayList<>());
+                list.add(entry.trade());
+                map.put(key, list);
+            }
+            map.forEach((pair, itemListings) -> Platform.registerVillagerOffers(pair.getKey(), pair.getValue(), itemListings));
+            HashMap<Integer, ArrayList<VillagerTrades.ItemListing>> map1 = new HashMap<>();
+            for (VillagerTradeEntry entry : BrickRegistries.WANDERING_TRADE) {
+                ArrayList<VillagerTrades.ItemListing> list = map1.getOrDefault(entry.level(), new ArrayList<>());
+                list.add(entry.trade());
+                map1.put(entry.level(), list);
+            }
+            map1.forEach(Platform::registerWanderingOffers);
+        }
+
+        //?}
+
+        //? if <= 1.18.2 {
+        /*@SubscribeEvent
+    public static <T extends IForgeRegistryEntry<T>> void onRegister(RegistryEvent.Register event) {
+        ResourceKey<? extends Registry<T>> registeringKey = event.getRegistry().getRegistryKey();
+        for (Map.Entry<Registry<?>, Map<ResourceLocation, Supplier<?>>> entry : BrickRegisterManager.getVanillaEntries().entrySet()) {
+            if (entry.getKey().key().equals(registeringKey)) {
+                entry.getValue().forEach((resourceLocation, supplier) -> {
+                    T value = (T) supplier.get();
+                    value.setRegistryName(resourceLocation);
+                    event.getRegistry().register(value);
+                });
+                return;
+            }
+        }
+    }
+    *///?}
+    }
+
     //?}
 }

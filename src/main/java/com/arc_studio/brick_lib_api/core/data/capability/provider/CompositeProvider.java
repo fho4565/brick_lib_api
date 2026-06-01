@@ -1,6 +1,7 @@
 package com.arc_studio.brick_lib_api.core.data.capability.provider;
 
-import com.arc_studio.brick_lib_api.core.data.capability.core.Capability;
+import com.arc_studio.brick_lib_api.core.data.BrickLazyOptional;
+import com.arc_studio.brick_lib_api.core.data.capability.core.BrickCapability;
 import com.arc_studio.brick_lib_api.core.data.capability.storage.Storage;
 import net.minecraft.core.Direction;
 import org.jetbrains.annotations.Nullable;
@@ -21,10 +22,10 @@ public class CompositeProvider implements CapabilityProvider {
     private final CopyOnWriteArrayList<CapabilityProvider> providers;
 
     /**
-     * 缓存：(Capability.name + ":" + side) -> LazyOptional
+     * 缓存：(BrickCapability.name + ":" + side) -> BrickLazyOptional
      * 在添加/移除 provider 时清除缓存
      */
-    private final ConcurrentHashMap<String, LazyOptional<?>> cache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, BrickLazyOptional<?>> cache = new ConcurrentHashMap<>();
 
     private CompositeProvider(List<CapabilityProvider> providers) {
         this.providers = new CopyOnWriteArrayList<>(providers);
@@ -47,18 +48,18 @@ public class CompositeProvider implements CapabilityProvider {
     }
 
     @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
+    public <T> BrickLazyOptional<T> getCapability(BrickCapability<T> cap, @Nullable Direction side) {
         String key = cap.getName() + ":" + side;
 
         @SuppressWarnings("unchecked")
-        LazyOptional<T> cached = (LazyOptional<T>) cache.get(key);
+        BrickLazyOptional<T> cached = (BrickLazyOptional<T>) cache.get(key);
         if (cached != null && cached.isPresent()) {
             return cached;
         }
 
         // 遍历所有提供者，找到第一个能提供此能力的
         for (CapabilityProvider provider : providers) {
-            LazyOptional<T> result = provider.getCapability(cap, side);
+            BrickLazyOptional<T> result = provider.getCapability(cap, side);
             if (result.isPresent()) {
                 cache.put(key, result);
                 // 当该值失效时清除缓存
@@ -67,12 +68,12 @@ public class CompositeProvider implements CapabilityProvider {
             }
         }
 
-        return LazyOptional.empty();
+        return BrickLazyOptional.empty();
     }
 
     @Override
-    public Map<Capability<?>, Storage<?>> getAllCapabilities() {
-        Map<Capability<?>, Storage<?>> all = new LinkedHashMap<>();
+    public Map<BrickCapability<?>, Storage<?>> getAllCapabilities() {
+        Map<BrickCapability<?>, Storage<?>> all = new LinkedHashMap<>();
         for (CapabilityProvider provider : providers) {
             all.putAll(provider.getAllCapabilities());
         }

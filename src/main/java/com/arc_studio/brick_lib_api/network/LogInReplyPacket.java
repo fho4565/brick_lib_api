@@ -5,10 +5,10 @@ import com.arc_studio.brick_lib_api.core.network.context.C2SNetworkContext;
 import com.arc_studio.brick_lib_api.core.network.context.S2CNetworkContext;
 import com.arc_studio.brick_lib_api.core.network.type.LoginPacket;
 
-public class DemoReplyPacket extends LoginPacket {
-    public DemoReplyPacket(){
+public class LogInReplyPacket extends LoginPacket {
+    public LogInReplyPacket(){
     }
-    public DemoReplyPacket(PacketContent content){
+    public LogInReplyPacket(PacketContent content){
     }
     @Override
     public void serverHandle(C2SNetworkContext context) {

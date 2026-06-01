@@ -1,8 +1,8 @@
 package com.arc_studio.brick_lib_api.core.data.capability.builtin.impl;
 
-import com.arc_studio.brick_lib_api.core.data.capability.builtin.IFluidHandler;
-import com.arc_studio.brick_lib_api.core.data.capability.transaction.SnapshotParticipant;
-import com.arc_studio.brick_lib_api.core.data.capability.transaction.TransactionContext;
+import com.arc_studio.brick_lib_api.core.data.capability.builtin.IFluidStorage;
+import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickSnapshotParticipant;
+import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickTransactionContext;
 import net.minecraft.world.level.material.Fluid;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,7 +14,7 @@ import java.util.Objects;
  * 支持事务快照回滚。一个储罐只能存储一种流体。
  * </p>
  */
-public class SimpleFluidStorage extends SnapshotParticipant<SimpleFluidStorage.FluidSnapshot> implements IFluidHandler {
+public class SimpleFluidStorage extends BrickSnapshotParticipant<SimpleFluidStorage.FluidSnapshot> implements IFluidStorage {
 
     private static final long BUCKET_SNAP_EPSILON = 81L;
 
@@ -63,25 +63,25 @@ public class SimpleFluidStorage extends SnapshotParticipant<SimpleFluidStorage.F
     }
 
     @Override
-    public long fill(Fluid fluid, long maxAmount, TransactionContext tx) {
-        if (fluid == null || maxAmount <= 0) return 0;
+    public long fill(Fluid fluid, long amount, BrickTransactionContext tx) {
+        if (fluid == null || amount <= 0) return 0;
 
         // 如果储罐非空且流体不匹配，则不能填入
         if (this.fluid != null && this.fluid != fluid) return 0;
 
         updateSnapshot(tx);
 
-        long filled = Math.min(maxAmount, capacity - amount);
+        long filled = Math.min(amount, capacity - this.amount);
         if (filled > 0) {
             this.fluid = fluid;
-            amount += filled;
-            amount = normalizeAmount(amount);
+            this.amount += filled;
+            this.amount = normalizeAmount(this.amount);
         }
         return filled;
     }
 
     @Override
-    public long drain(Fluid fluid, long maxAmount, TransactionContext tx) {
+    public long drain(Fluid fluid, long maxAmount, BrickTransactionContext tx) {
         if (fluid == null || maxAmount <= 0 || this.fluid == null) return 0;
         if (this.fluid != fluid) return 0;
 
@@ -89,12 +89,12 @@ public class SimpleFluidStorage extends SnapshotParticipant<SimpleFluidStorage.F
     }
 
     @Override
-    public long drain(long maxAmount, TransactionContext tx) {
+    public long drain(long maxAmount, BrickTransactionContext tx) {
         if (maxAmount <= 0 || fluid == null) return 0;
         return doDrain(maxAmount, tx);
     }
 
-    private long doDrain(long maxAmount, TransactionContext tx) {
+    private long doDrain(long maxAmount, BrickTransactionContext tx) {
         updateSnapshot(tx);
 
         long drained = Math.min(maxAmount, amount);
@@ -125,7 +125,7 @@ public class SimpleFluidStorage extends SnapshotParticipant<SimpleFluidStorage.F
     }
 
     private void checkTank(int tank) {
-        if (tank != 0) {
+        if (tank < 0) {
             throw new IndexOutOfBoundsException("Tank index " + tank + " out of range for single-tank storage.");
         }
     }
@@ -136,7 +136,7 @@ public class SimpleFluidStorage extends SnapshotParticipant<SimpleFluidStorage.F
             return clamped;
         }
 
-        long remainder = clamped % IFluidHandler.BUCKET;
+        long remainder = clamped % IFluidStorage.BUCKET;
         if (remainder == 0) {
             return clamped;
         }
@@ -144,14 +144,14 @@ public class SimpleFluidStorage extends SnapshotParticipant<SimpleFluidStorage.F
             return clamped - remainder;
         }
 
-        long upperDelta = IFluidHandler.BUCKET - remainder;
+        long upperDelta = IFluidStorage.BUCKET - remainder;
         if (upperDelta <= BUCKET_SNAP_EPSILON) {
             return Math.min(capacity, clamped + upperDelta);
         }
         return clamped;
     }
 
-    // ---- SnapshotParticipant ----
+    // ---- BrickSnapshotParticipant ----
 
     @Override
     protected FluidSnapshot createSnapshot() {

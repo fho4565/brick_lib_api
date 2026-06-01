@@ -1,7 +1,6 @@
 package com.arc_studio.brick_lib_api.core.data.capability.builtin;
 
-import com.arc_studio.brick_lib_api.core.data.capability.core.AutoRegisterCapability;
-import com.arc_studio.brick_lib_api.core.data.capability.transaction.TransactionContext;
+import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickTransactionContext;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -11,8 +10,7 @@ import net.minecraft.world.item.ItemStack;
  * 资源类型为 Minecraft 的 ItemStack 概念抽象（使用 TransferVariant 包装）。
  * </p>
  */
-@AutoRegisterCapability
-public interface IItemHandler {
+public interface IItemStorage {
 
     /**
      * 获取槽位数量
@@ -52,7 +50,7 @@ public interface IItemHandler {
      * @param tx        事务上下文
      * @return 实际插入数量
      */
-    long insertItem(int slot, ItemStack resource, long maxAmount, TransactionContext tx);
+    long insertItem(int slot, ItemStack resource, long maxAmount, BrickTransactionContext tx);
 
     /**
      * 从指定槽位提取物品
@@ -62,7 +60,7 @@ public interface IItemHandler {
      * @param tx        事务上下文
      * @return 实际提取数量
      */
-    long extractItem(int slot, long maxAmount, TransactionContext tx);
+    long extractItem(int slot, long maxAmount, BrickTransactionContext tx);
 
     /**
      * 检查指定槽位是否允许插入给定物品

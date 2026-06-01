@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @param <S> 快照数据类型
  */
-public abstract class SnapshotParticipant<S> {
+public abstract class BrickSnapshotParticipant<S> {
 
     @Nullable
     private S currentSnapshot;
@@ -47,7 +47,7 @@ public abstract class SnapshotParticipant<S> {
     /**
      * 由事务系统调用 — 在参与事务前保存快照
      */
-    public final void updateSnapshot(TransactionContext tx) {
+    public final void updateSnapshot(BrickTransactionContext tx) {
         if (currentSnapshot == null) {
             currentSnapshot = createSnapshot();
         }

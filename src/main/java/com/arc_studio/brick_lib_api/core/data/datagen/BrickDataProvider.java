@@ -1,14 +1,13 @@
-package com.arc_studio.brick_lib_api.datagen;
+package com.arc_studio.brick_lib_api.core.data.datagen;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
-
-import net.minecraft.data.DataProvider;
-//? if > 1.19.2 {
-import net.minecraft.data.PackOutput;
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
+import net.minecraft.data.DataProvider;
+//? if > 1.19.2 {
+
 import net.minecraft.data.CachedOutput;
 //?} elif > 1.18.2 {
 /*import net.minecraft.data.CachedOutput;
@@ -16,6 +15,7 @@ import net.minecraft.data.DataGenerator;
 *///?}
 import net.minecraft.data.HashCache;
 import org.apache.commons.lang3.tuple.Pair;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;

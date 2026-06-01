@@ -1,8 +1,8 @@
 package com.arc_studio.brick_lib_api.core.data.capability.builtin.example;
 
-import com.arc_studio.brick_lib_api.core.data.capability.builtin.IFluidHandler;
+import com.arc_studio.brick_lib_api.core.data.capability.builtin.IFluidStorage;
 import com.arc_studio.brick_lib_api.core.data.capability.builtin.impl.SimpleFluidStorage;
-import com.arc_studio.brick_lib_api.core.data.capability.transaction.Transaction;
+import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickTransaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -85,9 +85,9 @@ public final class StoneFluidInteraction {
         StoneFluidData data = StoneFluidData.get(level);
         SimpleFluidStorage storage = data.getOrCreate(pos);
 
-        try (Transaction tx = Transaction.openNested(Transaction.getCurrent())) {
-            long filled = storage.fill(Fluids.WATER, IFluidHandler.BUCKET, tx);
-            if (filled == IFluidHandler.BUCKET) {
+        try (BrickTransaction tx = BrickTransaction.open()) {
+            long filled = storage.fill(Fluids.WATER, IFluidStorage.BUCKET, tx);
+            if (filled == IFluidStorage.BUCKET) {
                 tx.commit();
                 data.setDirty();
 
@@ -109,7 +109,7 @@ public final class StoneFluidInteraction {
 
                 // 通知玩家当前存储量
                 long stored = storage.getFluidAmountInTank(0);
-                long buckets = stored / IFluidHandler.BUCKET;
+                long buckets = stored / IFluidStorage.BUCKET;
                 player.displayClientMessage(
                         //? if > 1.18.2 {
                         net.minecraft.network.chat.Component.literal("§b水: " + buckets + " / 32 桶"),
@@ -152,9 +152,9 @@ public final class StoneFluidInteraction {
             return InteractionResult.PASS;
         }
 
-        try (Transaction tx = Transaction.openOuter()) {
-            long drained = storage.drain(Fluids.WATER, IFluidHandler.BUCKET, tx);
-            if (drained == IFluidHandler.BUCKET) {
+        try (BrickTransaction tx = BrickTransaction.openOuter()) {
+            long drained = storage.drain(Fluids.WATER, IFluidStorage.BUCKET, tx);
+            if (drained == IFluidStorage.BUCKET) {
                 tx.commit();
                 data.setDirty();
 
@@ -172,7 +172,7 @@ public final class StoneFluidInteraction {
 
                 // 通知玩家当前存储量
                 long stored = storage.getFluidAmountInTank(0);
-                long buckets = stored / IFluidHandler.BUCKET;
+                long buckets = stored / IFluidStorage.BUCKET;
                 player.displayClientMessage(
                         //? if > 1.18.2 {
                         net.minecraft.network.chat.Component.literal("§b水: " + buckets + " / 32 桶"),

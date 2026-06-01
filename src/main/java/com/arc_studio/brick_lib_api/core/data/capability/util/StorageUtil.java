@@ -3,8 +3,8 @@ package com.arc_studio.brick_lib_api.core.data.capability.util;
 import com.arc_studio.brick_lib_api.core.data.capability.storage.Storage;
 import com.arc_studio.brick_lib_api.core.data.capability.storage.StorageView;
 import com.arc_studio.brick_lib_api.core.data.capability.storage.TransferVariant;
-import com.arc_studio.brick_lib_api.core.data.capability.transaction.Transaction;
-import com.arc_studio.brick_lib_api.core.data.capability.transaction.TransactionContext;
+import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickTransaction;
+import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickTransactionContext;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -37,7 +37,7 @@ public final class StorageUtil {
             Storage<T> to,
             Predicate<TransferVariant<T>> filter,
             long maxAmount,
-            TransactionContext tx
+            BrickTransactionContext tx
     ) {
         Preconditions.notNull(from, "Source storage must not be null");
         Preconditions.notNull(to, "Target storage must not be null");
@@ -56,7 +56,7 @@ public final class StorageUtil {
             long toMove = Math.min(maxAmount - totalMoved, view.getAmount());
 
             // 使用嵌套事务保证原子性
-            try (Transaction nested = Transaction.openNested(tx)) {
+            try (BrickTransaction nested = BrickTransaction.openNested(tx)) {
                 long extracted = view.extract(toMove, nested);
                 if (extracted > 0) {
                     long inserted = to.insert(resource.getObject(), extracted, nested);
@@ -65,7 +65,7 @@ public final class StorageUtil {
                         if (inserted < extracted) {
                             // 回滚并重新尝试精确数量
                             nested.abort();
-                            try (Transaction retry = Transaction.openNested(tx)) {
+                            try (BrickTransaction retry = BrickTransaction.openNested(tx)) {
                                 long reExtracted = view.extract(inserted, retry);
                                 long reInserted = to.insert(resource.getObject(), reExtracted, retry);
                                 if (reInserted == reExtracted) {
@@ -102,7 +102,7 @@ public final class StorageUtil {
         Preconditions.notBlank(resource);
         Preconditions.notNegative(maxAmount);
 
-        try (Transaction tx = Transaction.openOuter()) {
+        try (BrickTransaction tx = BrickTransaction.openOuter()) {
             // 不提交，自动回滚
             return storage.insert(resource.getObject(), maxAmount, tx);
         }
@@ -143,7 +143,7 @@ public final class StorageUtil {
             Storage<T> from,
             Storage<T> to,
             long maxAmountPerType,
-            TransactionContext tx
+            BrickTransactionContext tx
     ) {
         Preconditions.inTransaction(tx);
         Map<TransferVariant<T>, Long> result = new LinkedHashMap<>();
@@ -158,7 +158,7 @@ public final class StorageUtil {
             if (remaining <= 0) continue;
 
             long toMove = Math.min(remaining, view.getAmount());
-            try (Transaction nested = Transaction.openNested(tx)) {
+            try (BrickTransaction nested = BrickTransaction.openNested(tx)) {
                 long extracted = view.extract(toMove, nested);
                 if (extracted > 0) {
                     long inserted = to.insert(resource.getObject(), extracted, nested);

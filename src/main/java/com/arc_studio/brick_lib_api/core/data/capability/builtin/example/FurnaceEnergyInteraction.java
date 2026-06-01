@@ -1,7 +1,7 @@
 package com.arc_studio.brick_lib_api.core.data.capability.builtin.example;
 
 import com.arc_studio.brick_lib_api.core.data.capability.builtin.impl.SimpleEnergyStorage;
-import com.arc_studio.brick_lib_api.core.data.capability.transaction.Transaction;
+import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickTransaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -62,7 +62,7 @@ public final class FurnaceEnergyInteraction {
         FurnaceEnergyData data = FurnaceEnergyData.get(level);
         SimpleEnergyStorage storage = data.getOrCreate(pos);
 
-        try (Transaction tx = Transaction.openOuter()) {
+        try (BrickTransaction tx = BrickTransaction.openOuter()) {
             long received = storage.receiveEnergy(FurnaceEnergyData.TRANSFER_AMOUNT, tx);
             if (received > 0) {
                 tx.commit();
@@ -91,7 +91,7 @@ public final class FurnaceEnergyInteraction {
         FurnaceEnergyData data = FurnaceEnergyData.get(level);
         SimpleEnergyStorage storage = data.getOrCreate(pos);
 
-        try (Transaction tx = Transaction.openOuter()) {
+        try (BrickTransaction tx = BrickTransaction.openOuter()) {
             long extracted = storage.extractEnergy(FurnaceEnergyData.TRANSFER_AMOUNT, tx);
             if (extracted > 0) {
                 tx.commit();

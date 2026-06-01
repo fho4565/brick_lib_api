@@ -63,10 +63,19 @@ repositories {
         forRepository { maven("https://api.modrinth.com/maven") { name = "Modrinth" } }
         filter { includeGroup("maven.modrinth") }
     }
-    maven("https://maven.neoforged.net/releases/")
-    maven ("https://maven.fabricmc.net/")
-    maven("https://maven.architectury.dev/")
-    maven("https://maven.minecraftforge.net/")
+    //maven("https://maven.neoforged.net/releases/")
+    maven("http://maven.neoforged.net/releases/"){
+        isAllowInsecureProtocol = true
+    }
+    maven ("http://maven.fabricmc.net/"){
+        isAllowInsecureProtocol = true
+    }
+    maven("http://maven.architectury.dev/"){
+        isAllowInsecureProtocol = true
+    }
+    maven("http://maven.minecraftforge.net/"){
+        isAllowInsecureProtocol = true
+    }
 }
 
 fun bool(str: String) : Boolean {

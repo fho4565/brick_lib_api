@@ -1,8 +1,8 @@
 package com.arc_studio.brick_lib_api.core.data.capability.builtin.impl;
 
-import com.arc_studio.brick_lib_api.core.data.capability.builtin.IItemHandler;
-import com.arc_studio.brick_lib_api.core.data.capability.transaction.SnapshotParticipant;
-import com.arc_studio.brick_lib_api.core.data.capability.transaction.TransactionContext;
+import com.arc_studio.brick_lib_api.core.data.capability.builtin.IItemStorage;
+import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickSnapshotParticipant;
+import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickTransactionContext;
 import com.arc_studio.brick_lib_api.platform.Platform;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -15,7 +15,7 @@ import java.util.Arrays;
  * 支持事务快照回滚。基于固定数量的槽位。
  * </p>
  */
-public class SimpleItemStorage extends SnapshotParticipant<SimpleItemStorage.ItemSnapshot> implements IItemHandler {
+public class SimpleItemStorage extends BrickSnapshotParticipant<SimpleItemStorage.ItemSnapshot> implements IItemStorage {
 
     private final int slotCount;
     private final long slotCapacity;
@@ -65,7 +65,7 @@ public class SimpleItemStorage extends SnapshotParticipant<SimpleItemStorage.Ite
     }
 
     @Override
-    public long insertItem(int slot, ItemStack resource, long maxAmount, TransactionContext tx) {
+    public long insertItem(int slot, ItemStack resource, long maxAmount, BrickTransactionContext tx) {
         checkSlot(slot);
         if (resource == null || maxAmount <= 0) return 0;
         if (!isItemValid(slot, resource)) return 0;
@@ -85,7 +85,7 @@ public class SimpleItemStorage extends SnapshotParticipant<SimpleItemStorage.Ite
     }
 
     @Override
-    public long extractItem(int slot, long maxAmount, TransactionContext tx) {
+    public long extractItem(int slot, long maxAmount, BrickTransactionContext tx) {
         checkSlot(slot);
         if (maxAmount <= 0 || items[slot] == null) return 0;
 
@@ -128,7 +128,7 @@ public class SimpleItemStorage extends SnapshotParticipant<SimpleItemStorage.Ite
         }
     }
 
-    // ---- SnapshotParticipant ----
+    // ---- BrickSnapshotParticipant ----
 
     @Override
     protected ItemSnapshot createSnapshot() {

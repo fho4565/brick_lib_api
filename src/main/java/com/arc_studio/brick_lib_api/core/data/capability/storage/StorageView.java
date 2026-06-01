@@ -1,6 +1,6 @@
 package com.arc_studio.brick_lib_api.core.data.capability.storage;
 
-import com.arc_studio.brick_lib_api.core.data.capability.transaction.TransactionContext;
+import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickTransactionContext;
 
 /**
  * 存储视图 — 代表一个槽位或资源组的只读视图
@@ -31,7 +31,7 @@ public interface StorageView<T> {
      * @param tx        事务上下文
      * @return 实际提取数量
      */
-    long extract(long maxAmount, TransactionContext tx);
+    long extract(long maxAmount, BrickTransactionContext tx);
 
     /**
      * 当前视图是否为空

@@ -1,8 +1,8 @@
 package com.arc_studio.brick_lib_api.core.data.capability.storage;
 
-import com.arc_studio.brick_lib_api.core.data.capability.core.Capability;
+import com.arc_studio.brick_lib_api.core.data.capability.core.BrickCapability;
 import com.arc_studio.brick_lib_api.core.data.capability.core.OperationType;
-import com.arc_studio.brick_lib_api.core.data.capability.transaction.TransactionContext;
+import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickTransactionContext;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -18,9 +18,9 @@ import java.util.Iterator;
 public interface Storage<T> extends Iterable<StorageView<T>> {
 
     /**
-     * 获取此存储对应的 Capability
+     * 获取此存储对应的 BrickCapability
      */
-    Capability<T> getCapability();
+    BrickCapability<T> getCapability();
 
     /**
      * 插入资源（事务内调用）
@@ -30,7 +30,7 @@ public interface Storage<T> extends Iterable<StorageView<T>> {
      * @param tx        事务上下文
      * @return 实际插入数量
      */
-    long insert(T resource, long maxAmount, TransactionContext tx);
+    long insert(T resource, long maxAmount, BrickTransactionContext tx);
 
     /**
      * 提取资源
@@ -40,7 +40,7 @@ public interface Storage<T> extends Iterable<StorageView<T>> {
      * @param tx        事务上下文
      * @return 实际提取数量
      */
-    long extract(T resource, long maxAmount, TransactionContext tx);
+    long extract(T resource, long maxAmount, BrickTransactionContext tx);
 
     /**
      * 检查操作支持（快速路径，无需事务）
@@ -58,20 +58,20 @@ public interface Storage<T> extends Iterable<StorageView<T>> {
     /**
      * 创建空存储工厂
      */
-    static <T> Storage<T> empty(Capability<T> cap) {
+    static <T> Storage<T> empty(BrickCapability<T> cap) {
         return new Storage<>() {
             @Override
-            public Capability<T> getCapability() {
+            public BrickCapability<T> getCapability() {
                 return cap;
             }
 
             @Override
-            public long insert(T resource, long maxAmount, TransactionContext tx) {
+            public long insert(T resource, long maxAmount, BrickTransactionContext tx) {
                 return 0;
             }
 
             @Override
-            public long extract(T resource, long maxAmount, TransactionContext tx) {
+            public long extract(T resource, long maxAmount, BrickTransactionContext tx) {
                 return 0;
             }
 

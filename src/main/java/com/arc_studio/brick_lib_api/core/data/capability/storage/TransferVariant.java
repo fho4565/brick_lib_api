@@ -1,6 +1,6 @@
 package com.arc_studio.brick_lib_api.core.data.capability.storage;
 
-import com.arc_studio.brick_lib_api.core.data.capability.core.Capability;
+import com.arc_studio.brick_lib_api.core.data.capability.core.BrickCapability;
 import net.minecraft.nbt.CompoundTag;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,7 +42,7 @@ public final class TransferVariant<O> {
     /**
      * 从能力创建空变体
      */
-    public static <O> TransferVariant<O> blank(Capability<O> cap) {
+    public static <O> TransferVariant<O> blank(BrickCapability<O> cap) {
         return blank();
     }
 
@@ -105,7 +105,7 @@ public final class TransferVariant<O> {
         if (nbt != null) {
             tag.put("nbt", nbt.copy());
         }
-        // 注意：实际的对象序列化需要由具体的 Capability 提供序列化器
+        // 注意：实际的对象序列化需要由具体的 BrickCapability 提供序列化器
         return tag;
     }
 

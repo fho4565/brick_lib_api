@@ -2,8 +2,7 @@
 /*package com.arc_studio.brick_lib_api.entrypoints;
 
 import com.arc_studio.brick_lib_api.BrickLibAPI;
-import com.arc_studio.brick_lib_api.core.data.capability.builtin.example.FurnaceEnergyEvents;
-import com.arc_studio.brick_lib_api.core.data.capability.builtin.example.StoneFluidEvents;
+import com.arc_studio.brick_lib_api.core.data.capability.builtin.example.CrossPlatformEvents;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 
@@ -13,8 +12,7 @@ import net.neoforged.fml.common.Mod;
 @Mod(BrickLibAPI.MOD_ID)
 public class NeoforgeEP {
     public NeoforgeEP(IEventBus modBus) {
-        StoneFluidEvents.registerModBus(modBus);
-        FurnaceEnergyEvents.registerModBus(modBus);
+        CrossPlatformEvents.registerModBus(modBus);
         CommonEP.init();
     }
 }

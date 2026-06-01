@@ -33,6 +33,7 @@ public class ResourceID extends ResourceLocation {
     public ResourceID(String namespace, String path) {
         super(namespace, path);
     }
+
     public ResourceID(ResourceLocation rl) {
         super(rl.getNamespace(),rl.getPath());
     }
@@ -43,6 +44,10 @@ public class ResourceID extends ResourceLocation {
 
     public static ResourceID of(String location, char separator) {
         return new ResourceID(decompose(location, separator));
+    }
+
+    public static ResourceID of(String namespace, String path) {
+        return new ResourceID(namespace, path);
     }
 
     @Nullable

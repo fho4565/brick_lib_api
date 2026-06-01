@@ -8,11 +8,11 @@ import com.arc_studio.brick_lib_api.core.VillagerTradeEntry;
 import com.arc_studio.brick_lib_api.core.register.*;
 import com.arc_studio.brick_lib_api.core.json_function.JsonFunction;
 import com.arc_studio.brick_lib_api.core.network.type.PacketConfig;
-import com.arc_studio.brick_lib_api.datagen.DataGenerateEntry;
+import com.arc_studio.brick_lib_api.core.data.datagen.DataGenerateEntry;
 import com.arc_studio.brick_lib_api.update_checker.UpdateChecker;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
+
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 //? if > 1.18.2 {
@@ -26,7 +26,8 @@ import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 //?}
 import net.minecraft.core.Registry;
 //? if >= 1.20.6 {
-/*import net.minecraft.core.component.DataComponentType;
+/*import com.mojang.serialization.MapCodec;
+import net.minecraft.core.component.DataComponentType;
 *///?}
 import net.minecraft.core.particles.ParticleType;
 //? if > 1.19.2 {
@@ -47,7 +48,6 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 //? if > 1.18.2 {
-import net.minecraft.world.level.block.EndPortalBlock;
 import net.minecraft.world.level.levelgen.structure.StructureType;
 import net.minecraft.world.level.levelgen.feature.rootplacers.RootPlacerType;
 import net.minecraft.world.item.Instrument;

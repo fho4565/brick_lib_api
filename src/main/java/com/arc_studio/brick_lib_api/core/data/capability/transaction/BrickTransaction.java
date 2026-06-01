@@ -8,12 +8,12 @@ import java.util.List;
 /**
  * 事务接口 — 支持嵌套、回滚、提交
  * <p>
- * 融合 Fabric Transaction 设计，支持嵌套事务和快照回滚。
+ * 融合 Fabric BrickTransaction 设计，支持嵌套事务和快照回滚。
  * 使用 try-with-resources 确保自动关闭（未提交则自动 abort）。
  * </p>
  *
  * <pre>{@code
- * try (Transaction tx = Transaction.openOuter()) {
+ * try (BrickTransaction tx = BrickTransaction.openOuter()) {
  *     long extracted = source.extract(resource, 1000, tx);
  *     long inserted = target.insert(resource, extracted, tx);
  *     if (inserted == extracted) {
@@ -23,21 +23,21 @@ import java.util.List;
  * }
  * }</pre>
  */
-public class Transaction implements AutoCloseable, TransactionContext {
+public class BrickTransaction implements AutoCloseable, BrickTransactionContext {
 
-    private static final ThreadLocal<Transaction> CURRENT = new ThreadLocal<>();
+    private static final ThreadLocal<BrickTransaction> CURRENT = new ThreadLocal<>();
 
     private final int depth;
     @Nullable
-    private final Transaction parent;
+    private final BrickTransaction parent;
     private boolean committed = false;
 
     private boolean closed = false;
 
-    private final List<SnapshotParticipant<?>> participants = new ArrayList<>();
-    private final List<TransactionListener> listeners = new ArrayList<>();
+    private final List<BrickSnapshotParticipant<?>> participants = new ArrayList<>();
+    private final List<BrickTransactionListener> listeners = new ArrayList<>();
 
-    private Transaction(@Nullable Transaction parent) {
+    private BrickTransaction(@Nullable BrickTransaction parent) {
         this.parent = parent;
         this.depth = parent == null ? 0 : parent.depth + 1;
         CURRENT.set(this);
@@ -46,22 +46,23 @@ public class Transaction implements AutoCloseable, TransactionContext {
     /**
      * 打开一个新的外部事务
      *
-     * @throws TransactionException 如果当前线程已有活跃外部事务
+     * @throws BrickTransactionException 如果当前线程已有活跃外部事务
      */
-    public static Transaction openOuter() {
-        Transaction current = getCurrentOpenTransaction();
+    public static BrickTransaction openOuter() {
+        BrickTransaction current = getCurrentOpenTransaction();
         if (current != null) {
-            return new Transaction(current);
-            //throw new TransactionException("An outer transaction is already active on this thread. Use openNested() instead.");
+            return new BrickTransaction(current);
+            //throw new BrickTransactionException("An outer transaction is already active on this thread. Use openNested() instead.");
         }
-        return new Transaction(null);
+        return new BrickTransaction(null);
     }
 
-    public static Transaction open() {
-        if (getCurrentOpenTransaction() != null) {
-            throw new TransactionException("An outer transaction is already active on this thread. Use openNested() instead.");
-        }
-        return new Transaction(null);
+    /**
+     * 获取当前事务并打开
+     *
+     */
+    public static BrickTransaction open() {
+        return openNested(getCurrent());
     }
 
     /**
@@ -69,18 +70,18 @@ public class Transaction implements AutoCloseable, TransactionContext {
      *
      * @param parent 父事务上下文，可为 null（此时等同于 openOuter）
      */
-    public static Transaction openNested(@Nullable TransactionContext parent) {
+    public static BrickTransaction openNested(@Nullable BrickTransactionContext parent) {
         if (parent == null) {
             return openOuter();
         }
-        Transaction parentTx = parent.getTransaction();
+        BrickTransaction parentTx = parent.getTransaction();
         while (parentTx != null && parentTx.closed) {
             parentTx = parentTx.parent;
         }
         if (parentTx == null) {
             return openOuter();
         }
-        return new Transaction(parentTx);
+        return new BrickTransaction(parentTx);
     }
 
     /**
@@ -94,31 +95,31 @@ public class Transaction implements AutoCloseable, TransactionContext {
      * 获取当前线程的活跃事务（若无则返回 null）
      */
     @Nullable
-    public static Transaction getCurrent() {
+    public static BrickTransaction getCurrent() {
         return getCurrentOpenTransaction();
     }
 
     /**
      * 提交事务 — 所有快照参与者的状态变为永久
      *
-     * @throws TransactionException 如果事务已关闭或已提交
+     * @throws BrickTransactionException 如果事务已关闭或已提交
      */
-    public void commit() throws TransactionException {
+    public void commit() throws BrickTransactionException {
         ensureOpen();
         committed = true;
 
         // 通知监听器 beforeCommit
-        for (TransactionListener listener : listeners) {
+        for (BrickTransactionListener listener : listeners) {
             listener.beforeCommit(this);
         }
 
         // 通知快照参与者提交
-        for (SnapshotParticipant<?> participant : participants) {
+        for (BrickSnapshotParticipant<?> participant : participants) {
             participant.onCommit();
         }
 
         // 通知监听器 afterCommit
-        for (TransactionListener listener : listeners) {
+        for (BrickTransactionListener listener : listeners) {
             listener.afterCommit(this);
         }
     }
@@ -138,12 +139,12 @@ public class Transaction implements AutoCloseable, TransactionContext {
         }
 
         // 通知快照参与者回滚
-        for (SnapshotParticipant<?> participant : participants) {
+        for (BrickSnapshotParticipant<?> participant : participants) {
             participant.onRollback();
         }
 
         // 通知监听器
-        for (TransactionListener listener : listeners) {
+        for (BrickTransactionListener listener : listeners) {
             listener.onAbort(this);
         }
     }
@@ -160,7 +161,7 @@ public class Transaction implements AutoCloseable, TransactionContext {
             }
 
             // 释放快照资源
-            for (SnapshotParticipant<?> participant : participants) {
+            for (BrickSnapshotParticipant<?> participant : participants) {
                 participant.releaseCurrentSnapshot();
             }
         } finally {
@@ -171,8 +172,8 @@ public class Transaction implements AutoCloseable, TransactionContext {
     }
 
     @Nullable
-    private static Transaction getCurrentOpenTransaction() {
-        Transaction current = CURRENT.get();
+    private static BrickTransaction getCurrentOpenTransaction() {
+        BrickTransaction current = CURRENT.get();
         while (current != null && current.closed) {
             current = current.parent;
         }
@@ -185,7 +186,7 @@ public class Transaction implements AutoCloseable, TransactionContext {
     }
 
     private void restoreParentTransaction() {
-        Transaction current = parent;
+        BrickTransaction current = parent;
         while (current != null && current.closed) {
             current = current.parent;
         }
@@ -202,28 +203,28 @@ public class Transaction implements AutoCloseable, TransactionContext {
     }
 
     @Override
-    public Transaction getTransaction() {
+    public BrickTransaction getTransaction() {
         return this;
     }
 
     @Override
-    public void addParticipant(SnapshotParticipant<?> participant) {
+    public void addParticipant(BrickSnapshotParticipant<?> participant) {
         ensureOpen();
         participants.add(participant);
     }
 
     @Override
-    public void addListener(TransactionListener listener) {
+    public void addListener(BrickTransactionListener listener) {
         ensureOpen();
         listeners.add(listener);
     }
 
     private void ensureOpen() {
         if (closed) {
-            throw new TransactionException("Transaction is already closed.");
+            throw new BrickTransactionException("BrickTransaction is already closed.");
         }
         if (committed) {
-            throw new TransactionException("Transaction is already committed.");
+            throw new BrickTransactionException("BrickTransaction is already committed.");
         }
     }
 }

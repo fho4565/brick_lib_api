@@ -14,23 +14,25 @@ import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 /^import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+
 ^///?}
 
-//? if < 1.20.6 {
+
+//? if  < 1.20.6 {
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD,value = Dist.CLIENT)
- //?} else {
+//?} else {
 /^@EventBusSubscriber(
         //? if < 1.21.1 {
         bus = EventBusSubscriber.Bus.MOD,
         //?}
         value = Dist.CLIENT)
 ^///?}
+*///?}
 public class NeoForgeClientPlatform {
     //? if neoforge {
-    /^@SubscribeEvent
+    /*@SubscribeEvent
     public static void onRegisterKeyMappings(RegisterKeyMappingsEvent events) {
         BrickRegistries.KEY_MAPPING.foreachRegistered((resourceLocation, keyMapping) -> events.register(keyMapping));
     }
-    ^///?}
+    *///?}
 }
-*/

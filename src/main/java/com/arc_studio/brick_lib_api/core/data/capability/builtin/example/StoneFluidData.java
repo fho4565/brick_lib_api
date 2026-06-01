@@ -1,8 +1,8 @@
 package com.arc_studio.brick_lib_api.core.data.capability.builtin.example;
 
-import com.arc_studio.brick_lib_api.core.data.capability.builtin.IFluidHandler;
+import com.arc_studio.brick_lib_api.core.data.capability.builtin.IFluidStorage;
 import com.arc_studio.brick_lib_api.core.data.capability.builtin.impl.SimpleFluidStorage;
-import com.arc_studio.brick_lib_api.core.data.saved_data.SavedData;
+import com.arc_studio.brick_lib_api.core.data.saved_data.BrickSavedData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -10,25 +10,24 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.datafix.DataFixTypes;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * 管理石头方块的流体能力数据
  * <p>
- * 由于原版石头没有 BlockEntity，使用 SavedData 按世界维度存储
+ * 由于原版石头没有 BlockEntity，使用 BrickSavedData 按世界维度存储
  * 每个位置的石头可以储存最多 32 桶水。
  * </p>
  */
-public class StoneFluidData extends SavedData {
+public class StoneFluidData extends BrickSavedData {
 
     private static final String DATA_NAME = "brick_lib_stone_fluid";
-    private static final long CAPACITY = IFluidHandler.BUCKET * 32;
+    private static final long CAPACITY = IFluidStorage.BUCKET * 32;
 
     //? if >= 1.21.5 {
     /*private static final com.mojang.serialization.Codec<StoneFluidData> CODEC =
@@ -72,7 +71,7 @@ public class StoneFluidData extends SavedData {
             // 只存储水，所以重建时设置水
             SimpleFluidStorage storage = new SimpleFluidStorage(CAPACITY);
             if (amount > 0) {
-                storage.setContent(net.minecraft.world.level.material.Fluids.WATER, amount);
+                storage.setContent(Fluids.WATER, amount);
             }
             storageMap.put(pos.immutable(), storage);
         }
@@ -124,13 +123,13 @@ public class StoneFluidData extends SavedData {
         /*return level.getDataStorage().computeIfAbsent(TYPE);
         *///?} else if >= 1.20.6 {
         /*return level.getDataStorage().computeIfAbsent(
-            new net.minecraft.world.level.saveddata.SavedData.Factory<>(StoneFluidData::new, (compoundTag, provider) ->
+            new SavedData.Factory<>(StoneFluidData::new, (compoundTag, provider) ->
                 new StoneFluidData(compoundTag), DataFixTypes.CHUNK),
             DATA_NAME
         );
         *///?} else if >= 1.20.2 {
         /*return level.getDataStorage().computeIfAbsent(
-            new net.minecraft.world.level.saveddata.SavedData.Factory<>(
+            new SavedData.Factory<>(
                 StoneFluidData::new, StoneFluidData::new, DataFixTypes.CHUNK),
             DATA_NAME
         );
@@ -138,7 +137,6 @@ public class StoneFluidData extends SavedData {
         return level.getDataStorage().computeIfAbsent(
             StoneFluidData::new, StoneFluidData::new, DATA_NAME
         );
-
         //?}
     }
 

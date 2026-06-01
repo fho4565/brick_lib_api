@@ -1,5 +1,6 @@
 package com.arc_studio.brick_lib_api.core.data.capability.builtin.example;
 
+import com.arc_studio.brick_lib_api.core.data.capability.builtin.IFluidStorage;
 import com.arc_studio.brick_lib_api.core.data.capability.builtin.impl.SimpleFluidStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -11,7 +12,6 @@ import net.minecraft.world.level.block.state.BlockState;
 
 //? if forge {
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraftforge.common.capabilities.Capability;
 //? if >= 1.19.3 {
@@ -19,15 +19,15 @@ import net.minecraftforge.common.capabilities.ForgeCapabilities;
 //?}
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
-import com.arc_studio.brick_lib_api.core.data.capability.transaction.Transaction;
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickTransaction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 //?}
 
 //? if neoforge {
 /*import net.minecraft.core.Direction;
-import com.arc_studio.brick_lib_api.core.data.capability.transaction.Transaction;
+import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickTransaction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 *///?}
@@ -35,11 +35,11 @@ import org.jetbrains.annotations.Nullable;
 /**
  * 石头流体存储的 BlockEntity
  * <p>
- * 为石头方块提供加载器原生的流体能力支持（Forge IFluidHandler / NeoForge IFluidHandler），
+ * 为石头方块提供加载器原生的流体能力支持（Forge IFluidStorage / NeoForge IFluidStorage），
  * 使其他模组的管道（如 Mekanism 机械管道）能够连接并传输流体。
  * </p>
  * <p>
- * 实际数据由 {@link StoneFluidData}（SavedData）管理，此 BlockEntity 仅作为能力桥接。
+ * 实际数据由 {@link StoneFluidData}（BrickSavedData）管理，此 BlockEntity 仅作为能力桥接。
  * </p>
  */
 public class StoneFluidBlockEntity extends BlockEntity {
@@ -48,7 +48,7 @@ public class StoneFluidBlockEntity extends BlockEntity {
     public static BlockEntityType<StoneFluidBlockEntity> TYPE;
 
     //? if forge {
-    private LazyOptional<net.minecraftforge.fluids.capability.IFluidHandler> fluidHandlerLazy = LazyOptional.empty();
+    private LazyOptional<IFluidHandler> fluidHandlerLazy = LazyOptional.empty();
     //?}
 
     public StoneFluidBlockEntity(BlockPos pos, BlockState state) {
@@ -66,9 +66,9 @@ public class StoneFluidBlockEntity extends BlockEntity {
     //?}
 
     /**
-     * 获取此位置的 UCS SimpleFluidStorage（从 SavedData）
+     * 获取此位置的 UCS SimpleFluidStorage（从 BrickSavedData）
      */
-    @org.jetbrains.annotations.Nullable
+    @Nullable
     public SimpleFluidStorage getStorage() {
         if (level instanceof ServerLevel serverLevel
                 && getBlockState().is(Blocks.CHEST)
@@ -97,7 +97,7 @@ public class StoneFluidBlockEntity extends BlockEntity {
         return super.getCapability(cap, side);
     }
 
-    private LazyOptional<net.minecraftforge.fluids.capability.IFluidHandler> getFluidHandlerLazy() {
+    private LazyOptional<IFluidHandler> getFluidHandlerLazy() {
         if (!fluidHandlerLazy.isPresent()) {
             fluidHandlerLazy = LazyOptional.of(() -> new ForgeFluidHandlerBridge(this));
         }
@@ -117,9 +117,9 @@ public class StoneFluidBlockEntity extends BlockEntity {
     }
 
     /**
-     * 将 UCS SimpleFluidStorage 桥接为 Forge IFluidHandler
+     * 将 UCS SimpleFluidStorage 桥接为 Forge IFluidStorage
      */
-    private static class ForgeFluidHandlerBridge implements net.minecraftforge.fluids.capability.IFluidHandler {
+    private static class ForgeFluidHandlerBridge implements IFluidHandler {
         private final StoneFluidBlockEntity be;
 
         ForgeFluidHandlerBridge(StoneFluidBlockEntity be) {
@@ -143,14 +143,14 @@ public class StoneFluidBlockEntity extends BlockEntity {
             var fluid = s.getFluidInTank(tank);
             if (fluid == null) return FluidStack.EMPTY;
             long amount = s.getFluidAmountInTank(tank);
-            return new FluidStack(fluid, dropletsToMb(amount));
+            return new FluidStack(fluid, IFluidStorage.dropletsToMb(amount));
         }
 
         @Override
         public int getTankCapacity(int tank) {
             SimpleFluidStorage s = storage();
             if (s == null) return 0;
-            return dropletsToMb(s.getTankCapacity(tank));
+            return IFluidStorage.dropletsToMb(s.getTankCapacity(tank));
         }
 
         @Override
@@ -165,16 +165,16 @@ public class StoneFluidBlockEntity extends BlockEntity {
             SimpleFluidStorage s = storage();
             if (s == null || resource.isEmpty()) return 0;
             if (action.simulate()) {
-                return getFillableMb(s, resource.getFluid(), resource.getAmount());
+                return IFluidStorage.getFillableMb(s, resource.getFluid(), resource.getAmount());
             }
-            long droplets = mbToDroplets(resource.getAmount());
-            try (Transaction tx = Transaction.openOuter()) {
+            long droplets = IFluidStorage.mbToDroplets(resource.getAmount());
+            try (BrickTransaction tx = BrickTransaction.openOuter()) {
                 long filled = s.fill(resource.getFluid(), droplets, tx);
                 if (filled > 0) {
                     tx.commit();
                     markDataDirty();
                 }
-                return dropletsToMb(filled);
+                return IFluidStorage.dropletsToMb(filled);
             }
         }
 
@@ -183,16 +183,16 @@ public class StoneFluidBlockEntity extends BlockEntity {
             SimpleFluidStorage s = storage();
             if (s == null || resource.isEmpty()) return FluidStack.EMPTY;
             if (action.simulate()) {
-                int drained = getDrainableMb(s, resource.getFluid(), resource.getAmount());
+                int drained = IFluidStorage.getDrainableMb(s, resource.getFluid(), resource.getAmount());
                 return drained > 0 ? new FluidStack(resource.getFluid(), drained) : FluidStack.EMPTY;
             }
-            long droplets = mbToDroplets(resource.getAmount());
-            try (Transaction tx = Transaction.openOuter()) {
+            long droplets = IFluidStorage.mbToDroplets(resource.getAmount());
+            try (BrickTransaction tx = BrickTransaction.openOuter()) {
                 long drained = s.drain(resource.getFluid(), droplets, tx);
                 if (drained > 0) {
                     tx.commit();
                     markDataDirty();
-                    return new FluidStack(resource.getFluid(), dropletsToMb(drained));
+                    return new FluidStack(resource.getFluid(), IFluidStorage.dropletsToMb(drained));
                 }
                 return FluidStack.EMPTY;
             }
@@ -205,16 +205,16 @@ public class StoneFluidBlockEntity extends BlockEntity {
             var fluid = s.getFluidInTank(0);
             if (fluid == null) return FluidStack.EMPTY;
             if (action.simulate()) {
-                int drained = getDrainableMb(s, fluid, maxDrain);
+                int drained = IFluidStorage.getDrainableMb(s, fluid, maxDrain);
                 return drained > 0 ? new FluidStack(fluid, drained) : FluidStack.EMPTY;
             }
-            long droplets = mbToDroplets(maxDrain);
-            try (Transaction tx = Transaction.openOuter()) {
+            long droplets = IFluidStorage.mbToDroplets(maxDrain);
+            try (BrickTransaction tx = BrickTransaction.openOuter()) {
                 long drained = s.drain(droplets, tx);
                 if (drained > 0) {
                     tx.commit();
                     markDataDirty();
-                    return new FluidStack(fluid, dropletsToMb(drained));
+                    return new FluidStack(fluid, IFluidStorage.dropletsToMb(drained));
                 }
                 return FluidStack.EMPTY;
             }
@@ -224,29 +224,6 @@ public class StoneFluidBlockEntity extends BlockEntity {
             if (be.level instanceof ServerLevel serverLevel) {
                 StoneFluidData.get(serverLevel).setDirty();
             }
-        }
-
-        private static int getFillableMb(SimpleFluidStorage storage, net.minecraft.world.level.material.Fluid fluid, int maxFill) {
-            var storedFluid = storage.getFluidInTank(0);
-            if (storedFluid != null && storedFluid != fluid) return 0;
-            long remaining = storage.getTankCapacity(0) - storage.getFluidAmountInTank(0);
-            return Math.min(maxFill, dropletsToMb(remaining));
-        }
-
-        private static int getDrainableMb(SimpleFluidStorage storage, net.minecraft.world.level.material.Fluid fluid, int maxDrain) {
-            if (storage.getFluidInTank(0) != fluid) return 0;
-            return Math.min(maxDrain, dropletsToMb(storage.getFluidAmountInTank(0)));
-        }
-
-
-        /** Forge mB (1 bucket = 1000) → UCS droplets (1 bucket = 81000) */
-        private static long mbToDroplets(int mb) {
-            return (long) mb * 81;
-        }
-
-        /** UCS droplets (1 bucket = 81000) → Forge mB (1 bucket = 1000) */
-        private static int dropletsToMb(long droplets) {
-            return (int) (droplets / 81);
         }
     }
     //?}

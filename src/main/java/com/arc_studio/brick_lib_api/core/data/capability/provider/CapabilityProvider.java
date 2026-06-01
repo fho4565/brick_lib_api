@@ -1,6 +1,7 @@
 package com.arc_studio.brick_lib_api.core.data.capability.provider;
 
-import com.arc_studio.brick_lib_api.core.data.capability.core.Capability;
+import com.arc_studio.brick_lib_api.core.data.BrickLazyOptional;
+import com.arc_studio.brick_lib_api.core.data.capability.core.BrickCapability;
 import com.arc_studio.brick_lib_api.core.data.capability.storage.Storage;
 import net.minecraft.core.Direction;
 import org.jetbrains.annotations.Nullable;
@@ -20,14 +21,14 @@ public interface CapabilityProvider {
      *
      * @param cap  能力类型
      * @param side 方向（可为 null 表示无方向）
-     * @return LazyOptional，支持失效通知
+     * @return BrickLazyOptional，支持失效通知
      */
-    <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side);
+    <T> BrickLazyOptional<T> getCapability(BrickCapability<T> cap, @Nullable Direction side);
 
     /**
      * 获取所有能力（用于序列化/调试）
      */
-    default Map<Capability<?>, Storage<?>> getAllCapabilities() {
+    default Map<BrickCapability<?>, Storage<?>> getAllCapabilities() {
         return Map.of();
     }
 

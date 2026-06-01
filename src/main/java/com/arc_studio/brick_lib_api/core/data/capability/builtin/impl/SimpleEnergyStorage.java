@@ -1,8 +1,8 @@
 package com.arc_studio.brick_lib_api.core.data.capability.builtin.impl;
 
 import com.arc_studio.brick_lib_api.core.data.capability.builtin.IEnergyStorage;
-import com.arc_studio.brick_lib_api.core.data.capability.transaction.SnapshotParticipant;
-import com.arc_studio.brick_lib_api.core.data.capability.transaction.TransactionContext;
+import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickTransactionContext;
+import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickSnapshotParticipant;
 
 /**
  * 能量存储的默认实现
@@ -10,7 +10,7 @@ import com.arc_studio.brick_lib_api.core.data.capability.transaction.Transaction
  * 支持事务快照回滚，可配置接收/提取速率。
  * </p>
  */
-public class SimpleEnergyStorage extends SnapshotParticipant<Long> implements IEnergyStorage {
+public class SimpleEnergyStorage extends BrickSnapshotParticipant<Long> implements IEnergyStorage {
 
     private long energy;
     private final long capacity;
@@ -38,7 +38,7 @@ public class SimpleEnergyStorage extends SnapshotParticipant<Long> implements IE
     }
 
     @Override
-    public long receiveEnergy(long maxReceive, TransactionContext tx) {
+    public long receiveEnergy(long maxReceive, BrickTransactionContext tx) {
         if (!canReceive()) return 0;
         updateSnapshot(tx);
 
@@ -48,7 +48,7 @@ public class SimpleEnergyStorage extends SnapshotParticipant<Long> implements IE
     }
 
     @Override
-    public long extractEnergy(long maxExtract, TransactionContext tx) {
+    public long extractEnergy(long maxExtract, BrickTransactionContext tx) {
         if (!canExtract()) return 0;
         updateSnapshot(tx);
 
@@ -84,7 +84,7 @@ public class SimpleEnergyStorage extends SnapshotParticipant<Long> implements IE
         this.energy = Math.max(0, Math.min(energy, capacity));
     }
 
-    // ---- SnapshotParticipant ----
+    // ---- BrickSnapshotParticipant ----
 
     @Override
     protected Long createSnapshot() {

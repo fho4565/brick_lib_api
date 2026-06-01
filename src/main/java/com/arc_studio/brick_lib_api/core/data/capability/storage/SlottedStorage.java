@@ -1,6 +1,6 @@
 package com.arc_studio.brick_lib_api.core.data.capability.storage;
 
-import com.arc_studio.brick_lib_api.core.data.capability.transaction.TransactionContext;
+import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickTransactionContext;
 
 import java.util.Collections;
 import java.util.List;
@@ -44,7 +44,7 @@ public interface SlottedStorage<T> extends Storage<T> {
      * @param tx        事务上下文
      * @return 实际插入数量
      */
-    default long insertStacking(TransferVariant<T> resource, long maxAmount, TransactionContext tx) {
+    default long insertStacking(TransferVariant<T> resource, long maxAmount, BrickTransactionContext tx) {
         long remaining = maxAmount;
 
         // 第一轮：填充已有相同资源的槽位

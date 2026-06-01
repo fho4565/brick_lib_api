@@ -1,8 +1,6 @@
 package com.arc_studio.brick_lib_api.core.data.capability.builtin;
 
-import com.arc_studio.brick_lib_api.core.data.capability.core.Capability;
-import com.arc_studio.brick_lib_api.core.data.capability.core.CapabilityManager;
-import com.arc_studio.brick_lib_api.core.data.capability.core.CapabilityToken;
+import com.arc_studio.brick_lib_api.core.data.capability.core.BrickCapability;
 
 /**
  * 预设内置能力常量
@@ -39,21 +37,19 @@ public final class BuiltinCapabilities {
     /**
      * 物品处理能力
      * <p>
-     * 用于物品的插入、提取、查询操作（类似 Forge IItemHandler）。
+     * 用于物品的插入、提取、查询操作（类似 Forge IItemStorage）。
      * </p>
      */
-    public static final Capability<IItemHandler> ITEM_HANDLER =
-            CapabilityManager.get(new CapabilityToken<>() {});
+    public static final BrickCapability<IItemStorage> ITEM_HANDLER = BrickCapability.of(IItemStorage.class);
 
     /**
      * 流体处理能力
      * <p>
-     * 用于流体的填充、排出、查询操作（类似 Forge IFluidHandler）。
+     * 用于流体的填充、排出、查询操作（类似 Forge IFluidStorage）。
      * 数量单位为 droplets（1 bucket = 81000）。
      * </p>
      */
-    public static final Capability<IFluidHandler> FLUID_HANDLER =
-            CapabilityManager.get(new CapabilityToken<>() {});
+    public static final BrickCapability<IFluidStorage> FLUID_HANDLER = BrickCapability.of(IFluidStorage.class);
 
     /**
      * 能量存储能力
@@ -61,7 +57,6 @@ public final class BuiltinCapabilities {
      * 用于能量的接收、提取、查询操作（类似 Forge IEnergyStorage / FE）。
      * </p>
      */
-    public static final Capability<IEnergyStorage> ENERGY =
-            CapabilityManager.get(new CapabilityToken<>() {});
+    public static final BrickCapability<IEnergyStorage> ENERGY = BrickCapability.of(IEnergyStorage.class);
 }
 

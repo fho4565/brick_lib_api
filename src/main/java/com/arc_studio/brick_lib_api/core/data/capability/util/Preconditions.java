@@ -1,7 +1,7 @@
 package com.arc_studio.brick_lib_api.core.data.capability.util;
 
 import com.arc_studio.brick_lib_api.core.data.capability.storage.TransferVariant;
-import com.arc_studio.brick_lib_api.core.data.capability.transaction.TransactionContext;
+import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickTransactionContext;
 
 /**
  * 前置条件校验工具类
@@ -41,9 +41,9 @@ public final class Preconditions {
     /**
      * 检查事务上下文非空
      */
-    public static void inTransaction(TransactionContext tx) {
+    public static void inTransaction(BrickTransactionContext tx) {
         if (tx == null) {
-            throw new IllegalStateException("Operation requires an active TransactionContext.");
+            throw new IllegalStateException("Operation requires an active BrickTransactionContext.");
         }
     }
 }

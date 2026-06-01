@@ -1,5 +1,8 @@
 package com.arc_studio.brick_lib_api.core.data.capability.provider;
 
+import com.arc_studio.brick_lib_api.core.data.BrickLazyOptional;
+import com.arc_studio.brick_lib_api.core.data.capability.core.BrickCapability;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -89,8 +92,8 @@ public final class ProviderRegistry {
         INSTANCE;
 
         @Override
-        public <T> LazyOptional<T> getCapability(com.arc_studio.brick_lib_api.core.data.capability.core.Capability<T> cap, net.minecraft.core.Direction side) {
-            return LazyOptional.empty();
+        public <T> BrickLazyOptional<T> getCapability(BrickCapability<T> cap, net.minecraft.core.Direction side) {
+            return BrickLazyOptional.empty();
         }
     }
 }

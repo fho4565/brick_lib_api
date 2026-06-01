@@ -1,4 +1,4 @@
-package com.arc_studio.brick_lib_api.core.data.capability.provider;
+package com.arc_studio.brick_lib_api.core.data;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -9,16 +9,16 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * 惰性值 — 类似 Forge LazyOptional，但增加事务感知
+ * 惰性值 — 类似 Forge BrickLazyOptional，但增加事务感知
  * <p>
  * 支持惰性求值、失效通知和类型安全转换。
  * </p>
  *
  * @param <T> 值类型
  */
-public final class LazyOptional<T> {
+public final class BrickLazyOptional<T> {
 
-    private static final LazyOptional<?> EMPTY = new LazyOptional<>(null);
+    private static final BrickLazyOptional<?> EMPTY = new BrickLazyOptional<>(null);
 
     @Nullable
     private final Supplier<T> supplier;
@@ -28,16 +28,16 @@ public final class LazyOptional<T> {
     private boolean valid = true;
     private final List<Runnable> invalidateListeners = new ArrayList<>();
 
-    private LazyOptional(@Nullable Supplier<T> supplier) {
+    private BrickLazyOptional(@Nullable Supplier<T> supplier) {
         this.supplier = supplier;
     }
 
     /**
      * 创建已解析的实例
      */
-    public static <T> LazyOptional<T> of(T instance) {
+    public static <T> BrickLazyOptional<T> of(T instance) {
         Objects.requireNonNull(instance);
-        LazyOptional<T> opt = new LazyOptional<>(null);
+        BrickLazyOptional<T> opt = new BrickLazyOptional<>(null);
         opt.value = instance;
         opt.resolved = true;
         return opt;
@@ -46,17 +46,17 @@ public final class LazyOptional<T> {
     /**
      * 创建惰性实例，提供者工厂在首次访问时调用
      */
-    public static <T> LazyOptional<T> of(Supplier<T> supplier) {
+    public static <T> BrickLazyOptional<T> of(Supplier<T> supplier) {
         Objects.requireNonNull(supplier);
-        return new LazyOptional<>(supplier);
+        return new BrickLazyOptional<>(supplier);
     }
 
     /**
      * 创建空实例
      */
     @SuppressWarnings("unchecked")
-    public static <T> LazyOptional<T> empty() {
-        return (LazyOptional<T>) EMPTY;
+    public static <T> BrickLazyOptional<T> empty() {
+        return (BrickLazyOptional<T>) EMPTY;
     }
 
     /**
@@ -82,7 +82,7 @@ public final class LazyOptional<T> {
     public T orElseThrow() {
         T val = resolve();
         if (val == null || !valid) {
-            throw new IllegalStateException("LazyOptional is empty or invalidated.");
+            throw new IllegalStateException("BrickLazyOptional is empty or invalidated.");
         }
         return val;
     }
@@ -99,8 +99,8 @@ public final class LazyOptional<T> {
      * 转换类型（无检查 cast）
      */
     @SuppressWarnings("unchecked")
-    public <R> LazyOptional<R> cast() {
-        return (LazyOptional<R>) this;
+    public <R> BrickLazyOptional<R> cast() {
+        return (BrickLazyOptional<R>) this;
     }
 
     /**

@@ -1,4 +1,4 @@
-package com.arc_studio.brick_lib_api.datagen;
+package com.arc_studio.brick_lib_api.core.data.datagen;
 
 import com.arc_studio.brick_lib_api.register.BrickRegistries;
 import com.arc_studio.brick_lib_api.Constants;
