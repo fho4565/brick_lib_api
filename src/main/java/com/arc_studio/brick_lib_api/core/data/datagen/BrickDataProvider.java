@@ -32,11 +32,8 @@ public abstract class BrickDataProvider implements DataProvider {
         return CompletableFuture.allOf(list.toArray(CompletableFuture[]::new));
     }
 
-    //?} else {
-
-
-    /*//? if > 1.18.2 {
-    @Override
+    //?} elif > 1.18.2 {
+    /*@Override
     public void run(CachedOutput output) throws IOException {
         PathProvider provider = new PathProvider(map.get(type()), registerName());
         for (Pair<JsonElement, Path> pair : contents(provider)) {
@@ -44,8 +41,8 @@ public abstract class BrickDataProvider implements DataProvider {
         }
     }
 
-    //?} else {
-    /^private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    *///?} else {
+    /*private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     @Override
     public void run(HashCache output) throws IOException {
         PathProvider provider = new PathProvider(map.get(type()), registerName());
@@ -53,8 +50,6 @@ public abstract class BrickDataProvider implements DataProvider {
             DataProvider.save(GSON,output, pair.getLeft(), pair.getRight());
         }
     }
-
-    ^///?}
 
     *///?}
     private final Map<BrickDataGenerator.TargetType,Path> map;

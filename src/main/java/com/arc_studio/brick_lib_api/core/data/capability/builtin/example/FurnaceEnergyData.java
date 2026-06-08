@@ -1,6 +1,6 @@
 package com.arc_studio.brick_lib_api.core.data.capability.builtin.example;
 
-import com.arc_studio.brick_lib_api.core.data.capability.builtin.impl.SimpleEnergyStorage;
+import com.arc_studio.brick_lib_api.core.data.capability.impl.SimpleEnergyStorage;
 import com.arc_studio.brick_lib_api.core.data.saved_data.BrickSavedData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -94,6 +94,9 @@ public class FurnaceEnergyData extends BrickSavedData {
         });
         tag.put("entries", list);
         return tag;
+    }@Override
+    public String dataName() {
+        return "";
     }
 
     public SimpleEnergyStorage getOrCreate(BlockPos pos) {

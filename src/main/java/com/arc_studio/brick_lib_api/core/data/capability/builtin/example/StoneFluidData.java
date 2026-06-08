@@ -1,7 +1,7 @@
 package com.arc_studio.brick_lib_api.core.data.capability.builtin.example;
 
-import com.arc_studio.brick_lib_api.core.data.capability.builtin.IFluidStorage;
-import com.arc_studio.brick_lib_api.core.data.capability.builtin.impl.SimpleFluidStorage;
+import com.arc_studio.brick_lib_api.core.data.capability.IFluidStorage;
+import com.arc_studio.brick_lib_api.core.data.capability.impl.SimpleFluidStorage;
 import com.arc_studio.brick_lib_api.core.data.saved_data.BrickSavedData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -97,6 +97,11 @@ public class StoneFluidData extends BrickSavedData {
         });
         tag.put("entries", list);
         return tag;
+    }
+
+    @Override
+    public String dataName() {
+        return "";
     }
 
     /**

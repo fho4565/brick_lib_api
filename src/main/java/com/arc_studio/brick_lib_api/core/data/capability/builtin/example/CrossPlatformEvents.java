@@ -1,11 +1,10 @@
 package com.arc_studio.brick_lib_api.core.data.capability.builtin.example;
 
 import com.arc_studio.brick_lib_api.core.data.ResourceID;
-import com.arc_studio.brick_lib_api.core.data.capability.builtin.impl.SimpleEnergyStorage;
-import com.arc_studio.brick_lib_api.core.data.capability.compat.BlockInteractionApi;
-import com.arc_studio.brick_lib_api.core.data.capability.compat.CapabilityRegistration;
-import com.arc_studio.brick_lib_api.core.data.capability.compat.EnergyEjectorApi;
-import com.arc_studio.brick_lib_api.platform.NeoForgePlatform;
+import com.arc_studio.brick_lib_api.core.data.capability.CapabilityApi;
+import com.arc_studio.brick_lib_api.core.data.capability.core.CapabilityEntry;
+import com.arc_studio.brick_lib_api.core.register.BrickRegisterManager;
+import com.arc_studio.brick_lib_api.register.BrickRegistries;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -15,19 +14,13 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.phys.BlockHitResult;
 
-//? if forge {
-import com.arc_studio.brick_lib_api.core.register.BrickRegisterManager;
-import com.arc_studio.brick_lib_api.register.BrickRegistries;
-
-import java.util.function.BiConsumer;
-//?}
 //? if neoforge {
-/*import net.neoforged.bus.api.IEventBus;
+/*import com.arc_studio.brick_lib_api.platform.NeoForgePlatform;
+import net.neoforged.bus.api.IEventBus;
 *///?}
 
 /**
- * 跨加载器的事件入口 — 简化版，使用 {@link CapabilityRegistration} /
- * {@link BlockInteractionApi} / {@link EnergyEjectorApi} 声明式注册。
+ * 跨加载器的事件入口 — 简化版，使用 {@link CapabilityApi} 声明式注册。
  * <p>
  * 注册两种能力方块：
  * <ul>
@@ -43,33 +36,43 @@ public final class CrossPlatformEvents {
 
     public static void register() {
         // ===== 1. 注册熔炉能量能力 =====
-        CapabilityRegistration.registerEnergyBlock(Blocks.FURNACE,
-                new ResourceID("brick_lib_api", "furnace_energy"),
-                (level, pos, state, be, side) ->
-                    FurnaceEnergyData.get(level).getOrCreate(pos)
+        ResourceID furnaceEnergyId = new ResourceID("brick_lib_api", "furnace_energy");
+        BrickRegisterManager.register(
+                BrickRegistries.CAPABILITY_ENERGY,
+                furnaceEnergyId,
+                () -> new CapabilityEntry<>(
+                        Blocks.FURNACE,
+                        furnaceEnergyId,
+                        (level, pos, state, be, side) -> FurnaceEnergyData.get(level).getOrCreate(pos),
+                        (level, pos) -> FurnaceEnergyData.get(level).setDirty()
+                )
         );
 
         // ===== 2. 注册箱子流体能力 =====
-        CapabilityRegistration.registerFluidBlock(Blocks.CHEST,
-                new ResourceID("brick_lib_api", "chest_fluid"),
-                (level, pos, state, be, side) ->
-                    StoneFluidData.get(level).getOrCreate(pos)
+        ResourceID chestFluidId = new ResourceID("brick_lib_api", "chest_fluid");
+        BrickRegisterManager.register(
+                BrickRegistries.CAPABILITY_FLUID,
+                chestFluidId,
+                () -> new CapabilityEntry<>(
+                        Blocks.CHEST,
+                        chestFluidId,
+                        (level, pos, state, be, side) -> StoneFluidData.get(level).getOrCreate(pos),
+                        (level, pos) -> StoneFluidData.get(level).setDirty()
+                )
         );
 
-        // ===== 3. 初始化能力注册（平台钩子） =====
-        CapabilityRegistration.init();
+        // ===== 3. 注册方块交互处理 =====
+        CapabilityApi.registerInteraction(CrossPlatformEvents::handleInteraction);
 
-        // ===== 4. 注册方块交互处理 =====
-        BlockInteractionApi.register(CrossPlatformEvents::handleInteraction);
-        BlockInteractionApi.init();
-
-        // ===== 5. 注册熔炉能量主动推出 =====
-        EnergyEjectorApi.register(
+        // ===== 4. 注册熔炉能量主动推出 =====
+        CapabilityApi.registerEnergyEjector(
                 (level, consumer) ->
                     FurnaceEnergyData.get(level).forEachPosition(consumer::accept),
                 1000
         );
-        EnergyEjectorApi.init();
+
+        // ===== 5. 初始化平台钩子 =====
+        CapabilityApi.init();
     }
 
     //? if neoforge {

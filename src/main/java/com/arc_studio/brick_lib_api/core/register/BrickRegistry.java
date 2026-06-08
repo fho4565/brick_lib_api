@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 public class BrickRegistry<T> extends RegistryType<T> implements Iterable<T> {
     public static HashSet<BrickRegistry<?>> TO_CLEAN_BRICK_REGISTRIES = new HashSet<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(BrickRegistry.class);
-    protected HashMap<ResourceLocation, Supplier<T>> map = new HashMap<>();
+    protected Map<ResourceLocation, Supplier<T>> map = new LinkedHashMap<>();
     protected boolean registered = false;
 
     public boolean autoClean() {
@@ -127,7 +127,7 @@ public class BrickRegistry<T> extends RegistryType<T> implements Iterable<T> {
     }
 
     public Set<T> values() {
-        return map.values().stream().map(Supplier::get).collect(Collectors.toSet());
+        return map.values().stream().map(Supplier::get).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     public void foreachRegistered(BiConsumer<ResourceLocation, T> consumer) {
@@ -193,7 +193,7 @@ public class BrickRegistry<T> extends RegistryType<T> implements Iterable<T> {
 
     @Override
     public void forEach(Consumer<? super T> action) {
-        this.values().forEach(action);
+        map.values().forEach(supplier -> action.accept(supplier.get()));
     }
 
     @Override
@@ -207,6 +207,6 @@ public class BrickRegistry<T> extends RegistryType<T> implements Iterable<T> {
     }
 
     public void clean() {
-        this.map = new HashMap<>();
+        this.map = new LinkedHashMap<>();
     }
 }

@@ -6,8 +6,7 @@ import com.arc_studio.brick_lib_api.Constants;
 import com.arc_studio.brick_lib_api.core.PlatformInfo;
 import com.arc_studio.brick_lib_api.core.SideExecutor;
 import com.arc_studio.brick_lib_api.core.VillagerTradeEntry;
-import com.arc_studio.brick_lib_api.core.data.capability.compat.CapabilityRegistration;
-import com.arc_studio.brick_lib_api.core.data.capability.compat.FabricTransferAdapter;
+import com.arc_studio.brick_lib_api.core.data.capability.core.FabricTransferAdapter;
 import com.arc_studio.brick_lib_api.core.network.PacketContent;
 import com.arc_studio.brick_lib_api.core.network.context.C2SNetworkContext;
 import com.arc_studio.brick_lib_api.core.network.context.S2CNetworkContext;
@@ -21,12 +20,12 @@ import net.fabricmc.fabric.api.networking.v1.*;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 //? if >= 1.20.6 {
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+/^import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-//?}
+^///?}
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Registry;
 import net.minecraft.network.Connection;
@@ -62,39 +61,58 @@ public class FabricPlatform {
     /^*
      * 注册 Fabric 能力查找（lookup）。
      * <p>
-     * 由 {@link CapabilityRegistration#init()} 自动调用。
+     * 由 {@link com.arc_studio.brick_lib_api.core.data.capability.CapabilityApi#init()} 自动调用。
      * </p>
      ^/
     public static void registerCapabilityLookups() {
-        for (var entry : CapabilityRegistration.getEnergyBlocks().values()) {
+        BrickRegistries.CAPABILITY_ITEM.forEach(entry -> {
+            var block = entry.block();
+            var provider = entry.provider();
+            net.fabricmc.fabric.api.transfer.v1.item.ItemStorage.SIDED.registerForBlocks(
+                    (world, pos, state, blockEntity, direction) -> {
+                        if (!(world instanceof ServerLevel serverLevel)) {
+                            return null;
+                        }
+                        var ucs = provider.getItem(serverLevel, pos, state, blockEntity, direction);
+                        return ucs != null ? FabricTransferAdapter.wrapAsItemStorage(ucs) : null;
+                    },
+                    block
+            );
+        });
+        BrickRegistries.CAPABILITY_ENERGY.forEach(entry -> {
+            var block = entry.block();
+            var provider = entry.provider();
+            var dirtyNotifier = entry.dirtyNotifier();
             team.reborn.energy.api.EnergyStorage.SIDED.registerForBlocks(
                     (world, pos, state, blockEntity, direction) -> {
                         if (!(world instanceof ServerLevel serverLevel)) {
                             return null;
                         }
-                        var ucs = entry.provider().getEnergy(serverLevel, pos, state, blockEntity, direction);
+                        var ucs = provider.getEnergy(serverLevel, pos, state, blockEntity, direction);
                         if (ucs != null) {
                             return FabricTransferAdapter.wrapAsEnergyStorage(ucs,
-                                    () -> { if (entry.dirtyNotifier() != null) entry.dirtyNotifier().accept(serverLevel, pos); });
+                                    () -> { if (dirtyNotifier != null) dirtyNotifier.accept(serverLevel, pos); });
                         }
                         return null;
                     },
-                    entry.block()
+                    block
             );
-        }
-        for (var entry : CapabilityRegistration.getFluidBlocks().values()) {
+        });
+        BrickRegistries.CAPABILITY_FLUID.forEach(entry -> {
+            var block = entry.block();
+            var provider = entry.provider();
             net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage.SIDED.registerForBlocks(
                     (world, pos, state, blockEntity, direction) -> {
                         if (!(world instanceof ServerLevel serverLevel)) return null;
-                        var ucs = entry.provider().getFluid(serverLevel, pos, state, blockEntity, direction);
+                        var ucs = provider.getFluid(serverLevel, pos, state, blockEntity, direction);
                         if (ucs != null) {
                             return FabricTransferAdapter.wrapAsFluidStorage(ucs);
                         }
                         return null;
                     },
-                    entry.block()
+                    block
             );
-        }
+        });
     }
 
     // ===========================
@@ -155,20 +173,20 @@ public class FabricPlatform {
         ResourceLocation id = Optional.ofNullable(packet.id()).orElseGet(() -> BrickLibAPI.ofPath(packet.getClass().getName().replace(".", "_").toLowerCase() + "_s2c"));
         for (ServerPlayer serverPlayer : serverPlayers) {
             //? if < 1.20.6 {
-            /^ServerPlayNetworking.send(serverPlayer, id, packet.getEncodedPacketContent(new PacketContent()).friendlyByteBuf());
-            ^///?} else {
-            ServerPlayNetworking.send(serverPlayer, packet);
-            //?}
+            ServerPlayNetworking.send(serverPlayer, id, packet.getEncodedPacketContent(new PacketContent()).friendlyByteBuf());
+            //?} else {
+            /^ServerPlayNetworking.send(serverPlayer, packet);
+            ^///?}
         }
     }
 
     public static void sendToServer(ISHandlePacket packet) {
         //? if < 1.20.6 {
-        /^ResourceLocation id = Optional.ofNullable(packet.id()).orElseGet(() -> new ResourceLocation(BrickLibAPI.MOD_ID, packet.getClass().getName().replace(".", "_").toLowerCase() + "_c2s"));
+        ResourceLocation id = Optional.ofNullable(packet.id()).orElseGet(() -> new ResourceLocation(BrickLibAPI.MOD_ID, packet.getClass().getName().replace(".", "_").toLowerCase() + "_c2s"));
         ClientPlayNetworking.send(id, packet.getEncodedPacketContent(new PacketContent()).friendlyByteBuf());
-        ^///?} else {
-        ClientPlayNetworking.send(packet);
-        //?}
+        //?} else {
+        /^ClientPlayNetworking.send(packet);
+        ^///?}
     }
 
     public static Set<ResourceLocation> networkChannels(Connection connection, ConnectionProtocol protocol) {
@@ -201,7 +219,7 @@ public class FabricPlatform {
 
     public static void brickFinalizeRegistryPost() {
         //? if >= 1.20.6 {
-        BrickRegistries.NETWORK_PACKET.foreachRegisteredValue(packetConfig -> {
+        /^BrickRegistries.NETWORK_PACKET.foreachRegisteredValue(packetConfig -> {
             if (packetConfig instanceof PacketConfig.C2S c2S) {
                 c2s(c2S);
             } else if (packetConfig instanceof PacketConfig.S2C s2C) {
@@ -212,8 +230,8 @@ public class FabricPlatform {
                 login(login);
             }
         });
-        //?} else {
-        /^BrickRegistries.NETWORK_PACKET.foreachRegisteredValue(packetConfig -> {
+        ^///?} else {
+        BrickRegistries.NETWORK_PACKET.foreachRegisteredValue(packetConfig -> {
             if (packetConfig instanceof PacketConfig.C2S c2SPlay) {
                 SideExecutor.runOnServer(() -> () -> ServerPlayNetworking.registerGlobalReceiver(c2SPlay.id(),
                         (server, player, handler, buf, responseSender) -> {
@@ -288,7 +306,7 @@ public class FabricPlatform {
                 });
             }
         });
-        ^///?}
+        //?}
         BrickRegisterManager.getVanillaEntries().forEach((registry, map2) ->
                 map2.forEach((resourceLocation, supplier) -> {
             if (!registry.containsKey(resourceLocation)) {
@@ -302,7 +320,7 @@ public class FabricPlatform {
     }
 
     //? if >= 1.20.6 {
-    private static <T extends C2SPacket> void c2s(PacketConfig.C2S<T> c2S) {
+    /^private static <T extends C2SPacket> void c2s(PacketConfig.C2S<T> c2S) {
         CustomPacketPayload.Type<T> type = new CustomPacketPayload.Type<>(c2S.id());
         StreamCodec<RegistryFriendlyByteBuf, T> codec = new StreamCodec<>() {
             @Override
@@ -409,6 +427,6 @@ public class FabricPlatform {
             }
         });
     }
-    //?}
+    ^///?}
     *///?}
 }

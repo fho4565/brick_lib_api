@@ -2,7 +2,9 @@ package com.arc_studio.brick_lib_api.platform;
 
 //? if forge {
 import com.arc_studio.brick_lib_api.BrickLibAPI;
-import com.arc_studio.brick_lib_api.core.data.capability.builtin.IFluidStorage;
+import com.arc_studio.brick_lib_api.core.data.capability.CapabilityApi;
+import com.arc_studio.brick_lib_api.core.data.capability.IFluidStorage;
+import com.arc_studio.brick_lib_api.core.data.capability.IItemStorage;
 import com.arc_studio.brick_lib_api.core.network.PacketContent;
 import com.arc_studio.brick_lib_api.core.network.context.C2SNetworkContext;
 import com.arc_studio.brick_lib_api.core.network.context.S2CNetworkContext;
@@ -10,8 +12,7 @@ import com.arc_studio.brick_lib_api.core.network.type.*;
 import com.arc_studio.brick_lib_api.core.network.type.LoginPacket;
 import com.arc_studio.brick_lib_api.network.LogInReplyPacket;
 import com.arc_studio.brick_lib_api.register.BrickRegistries;
-import com.arc_studio.brick_lib_api.core.data.capability.compat.CapabilityRegistration;
-import com.arc_studio.brick_lib_api.core.data.capability.builtin.impl.SimpleFluidStorage;
+import com.arc_studio.brick_lib_api.core.data.capability.impl.SimpleFluidStorage;
 import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickTransaction;
 import com.arc_studio.brick_lib_api.core.PlatformInfo;
 import com.arc_studio.brick_lib_api.core.VillagerTradeEntry;
@@ -20,6 +21,7 @@ import com.arc_studio.brick_lib_api.core.register.BrickRegisterManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -28,9 +30,11 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.registries.RegisterEvent;
 //? } else {
-/*import net.minecraftforge.energy.CapabilityEnergy;
+/*import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
+import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 *///? }
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
@@ -42,7 +46,9 @@ import net.minecraftforge.energy.IEnergyStorage;
 
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.items.IItemHandler;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.Registry;
@@ -168,8 +174,8 @@ public class ForgePlatform {
         .serverAcceptedVersions(Channel.VersionTest.exact(1))
         .clientAcceptedVersions(Channel.VersionTest.exact(1))
         .simpleChannel();
-    */
-    //?}
+
+    *///?}
 
     protected static final AtomicInteger c2sID = new AtomicInteger(0);
     protected static final AtomicInteger s2cID = new AtomicInteger(0);
@@ -392,10 +398,10 @@ public class ForgePlatform {
                     .add();
 
                 //?} else {
-                /*
-                loginPacket(login);
-                */
-                //?}
+
+                /*loginPacket(login);
+
+                *///?}
             }
         });
     }
@@ -438,15 +444,65 @@ public class ForgePlatform {
 
     *///?}
 
+    /* Forge 物品提供者 — 将 UCS IItemStorage 包装为 Forge IItemHandler */
+    private static class ForgeItemProvider implements ICapabilityProvider {
+        private final BlockEntity be;
+        private final net.minecraft.world.level.block.Block block;
+        private final CapabilityApi.ItemProvider provider;
+        private final BiConsumer<ServerLevel, BlockPos> dirtyNotifier;
+        private final LazyOptional<IItemHandler>[] cache = new LazyOptional[7];
+
+        ForgeItemProvider(BlockEntity be, net.minecraft.world.level.block.Block block,
+                          CapabilityApi.ItemProvider provider,
+                          @Nullable BiConsumer<ServerLevel, BlockPos> dirtyNotifier) {
+            this.be = be;
+            this.block = block;
+            this.provider = provider;
+            this.dirtyNotifier = dirtyNotifier;
+        }
+
+        @Override
+        public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
+            //? if > 1.18.2 {
+            if (cap == ForgeCapabilities.ITEM_HANDLER) {
+            //? } else {
+            /*if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
+                *///? }
+                int index = side == null ? 6 : side.ordinal();
+                LazyOptional<IItemHandler> optional = cache[index];
+                if (optional == null || !optional.isPresent()) {
+                    if (!(be.getLevel() instanceof ServerLevel serverLevel) || !be.getBlockState().is(block)) {
+                        return LazyOptional.empty();
+                    }
+                    var ucs = provider.getItem(serverLevel, be.getBlockPos(), be.getBlockState(), be, side);
+                    if (ucs == null) {
+                        return LazyOptional.empty();
+                    }
+                    optional = LazyOptional.of(() ->
+                            new ForgeItemHandlerWrapper(serverLevel, be.getBlockPos(), be.getBlockState(), ucs, dirtyNotifier));
+                    cache[index] = optional;
+                }
+                return optional.cast();
+            }
+            return LazyOptional.empty();
+        }
+    }
+
     /* Forge 能量提供者 — 将 UCS IEnergyStorage 包装为 Forge IEnergyStorage */
     private static class ForgeEnergyProvider implements ICapabilityProvider {
         private final BlockEntity be;
-        private final CapabilityRegistration.EnergyEntry entry;
+        private final net.minecraft.world.level.block.Block block;
+        private final CapabilityApi.EnergyProvider provider;
+        private final BiConsumer<ServerLevel, BlockPos> dirtyNotifier;
         private LazyOptional<IEnergyStorage> cache;
 
-        ForgeEnergyProvider(BlockEntity be, CapabilityRegistration.EnergyEntry entry) {
+        ForgeEnergyProvider(BlockEntity be, net.minecraft.world.level.block.Block block,
+                            CapabilityApi.EnergyProvider provider,
+                            @Nullable BiConsumer<ServerLevel, BlockPos> dirtyNotifier) {
             this.be = be;
-            this.entry = entry;
+            this.block = block;
+            this.provider = provider;
+            this.dirtyNotifier = dirtyNotifier;
         }
 
         @Override
@@ -458,10 +514,10 @@ public class ForgePlatform {
                 *///? }
                 if (cache == null || !cache.isPresent()) {
                     cache = LazyOptional.of(() -> {
-                        if (be.getLevel() instanceof ServerLevel serverLevel && be.getBlockState().is(entry.block())) {
-                            var ucs = entry.provider().getEnergy(serverLevel, be.getBlockPos(), be.getBlockState(), be, side);
+                        if (be.getLevel() instanceof ServerLevel serverLevel && be.getBlockState().is(block)) {
+                            var ucs = provider.getEnergy(serverLevel, be.getBlockPos(), be.getBlockState(), be, side);
                             if (ucs != null) {
-                                return new ForgeEnergyStorageWrapper(serverLevel, be.getBlockPos(), be.getBlockState(), ucs, entry.dirtyNotifier());
+                                return new ForgeEnergyStorageWrapper(serverLevel, be.getBlockPos(), be.getBlockState(), ucs, dirtyNotifier);
                             }
                         }
                         return new IEnergyStorage() {
@@ -483,12 +539,18 @@ public class ForgePlatform {
     /* Forge 流体提供者 — 将 UCS IFluidStorage 包装为 Forge IFluidHandler */
     private static class ForgeFluidProvider implements ICapabilityProvider {
         private final BlockEntity be;
-        private final CapabilityRegistration.FluidEntry entry;
+        private final net.minecraft.world.level.block.Block block;
+        private final CapabilityApi.FluidProvider provider;
+        private final BiConsumer<ServerLevel, BlockPos> dirtyNotifier;
         private LazyOptional<IFluidHandler> cache;
 
-        ForgeFluidProvider(BlockEntity be, CapabilityRegistration.FluidEntry entry) {
+        ForgeFluidProvider(BlockEntity be, net.minecraft.world.level.block.Block block,
+                           CapabilityApi.FluidProvider provider,
+                           @Nullable BiConsumer<ServerLevel, BlockPos> dirtyNotifier) {
             this.be = be;
-            this.entry = entry;
+            this.block = block;
+            this.provider = provider;
+            this.dirtyNotifier = dirtyNotifier;
         }
 
         @Override
@@ -497,17 +559,17 @@ public class ForgePlatform {
             if (cap == ForgeCapabilities.FLUID_HANDLER) {
                 //? } else {
                 /*if (cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
-                 */
-                //? }
+
+                *///? }
                 if (cache == null || !cache.isPresent()) {
                     cache = LazyOptional.of(() -> {
                         if (be.getLevel() instanceof ServerLevel serverLevel
-                            && be.getBlockState().is(entry.block())) {
-                            var ucs = entry.provider().getFluid(serverLevel,
+                            && be.getBlockState().is(block)) {
+                            var ucs = provider.getFluid(serverLevel,
                                 be.getBlockPos(), be.getBlockState(), be, side);
                             if (ucs != null) {
                                 return new ForgeFluidHandlerWrapper(serverLevel,
-                                    be.getBlockPos(), be.getBlockState(), ucs, entry.dirtyNotifier());
+                                    be.getBlockPos(), be.getBlockState(), ucs, dirtyNotifier);
                             }
                         }
                         return null;
@@ -516,6 +578,114 @@ public class ForgePlatform {
                 return cache.cast();
             }
             return LazyOptional.empty();
+        }
+    }
+
+    /**
+     * 通用的 Forge IItemHandler 包装器。
+     * <p>
+     * 将 UCS IItemStorage 适配为 Forge IItemHandler，处理 simulate 模式、事务提交和 dirty 标记。
+     * </p>
+     */
+    @SuppressWarnings("unused")
+    protected static class ForgeItemHandlerWrapper implements IItemHandler {
+        private final ServerLevel level;
+        private final BlockPos pos;
+        private final BlockState state;
+        private final IItemStorage ucs;
+        @Nullable
+        private final BiConsumer<ServerLevel, BlockPos> dirtyNotifier;
+
+        public ForgeItemHandlerWrapper(ServerLevel level, BlockPos pos, BlockState state,
+                                       IItemStorage ucs,
+                                       @Nullable BiConsumer<ServerLevel, BlockPos> dirtyNotifier) {
+            this.level = level;
+            this.pos = pos;
+            this.state = state;
+            this.ucs = ucs;
+            this.dirtyNotifier = dirtyNotifier;
+        }
+
+        private boolean isValid() {
+            return level.getBlockState(pos).is(state.getBlock());
+        }
+
+        private boolean isValidSlot(int slot) {
+            return slot >= 0 && slot < ucs.getSlots();
+        }
+
+        @Override
+        public int getSlots() {
+            return isValid() ? ucs.getSlots() : 0;
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int slot) {
+            if (!isValid() || !isValidSlot(slot)) return ItemStack.EMPTY;
+            ItemStack stack = ucs.getStackInSlot(slot);
+            long amount = ucs.getAmountInSlot(slot);
+            if (stack == null || stack.isEmpty() || amount <= 0) return ItemStack.EMPTY;
+            ItemStack copy = stack.copy();
+            copy.setCount(IFluidStorage.clampToInt(amount));
+            return copy;
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+            if (!isValid() || !isValidSlot(slot) || stack == null || stack.isEmpty()) return stack;
+            if (!ucs.isItemValid(slot, stack)) return stack;
+
+            try (BrickTransaction tx = BrickTransaction.openOuter()) {
+                long inserted = ucs.insertItem(slot, stack, stack.getCount(), tx);
+                if (inserted <= 0) return stack;
+                if (!simulate) {
+                    tx.commit();
+                    markDirty();
+                }
+                return remainder(stack, inserted);
+            }
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            if (!isValid() || !isValidSlot(slot) || amount <= 0) return ItemStack.EMPTY;
+            ItemStack current = getStackInSlot(slot);
+            if (current.isEmpty()) return ItemStack.EMPTY;
+
+            try (BrickTransaction tx = BrickTransaction.openOuter()) {
+                long extracted = ucs.extractItem(slot, amount, tx);
+                if (extracted <= 0) return ItemStack.EMPTY;
+                if (!simulate) {
+                    tx.commit();
+                    markDirty();
+                }
+                ItemStack result = current.copy();
+                result.setCount(IFluidStorage.clampToInt(extracted));
+                return result;
+            }
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            if (!isValid() || !isValidSlot(slot)) return 0;
+            return IFluidStorage.clampToInt(ucs.getSlotCapacity(slot));
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return isValid() && isValidSlot(slot) && stack != null && !stack.isEmpty() && ucs.isItemValid(slot, stack);
+        }
+
+        private ItemStack remainder(ItemStack original, long inserted) {
+            int left = original.getCount() - IFluidStorage.clampToInt(inserted);
+            if (left <= 0) return ItemStack.EMPTY;
+            ItemStack result = original.copy();
+            result.setCount(left);
+            return result;
+        }
+
+        private void markDirty() {
+            if (dirtyNotifier != null) dirtyNotifier.accept(level, pos);
         }
     }
 
@@ -531,12 +701,12 @@ public class ForgePlatform {
         private final ServerLevel level;
         private final BlockPos pos;
         private final BlockState state;
-        private final com.arc_studio.brick_lib_api.core.data.capability.builtin.IEnergyStorage ucs;
+        private final com.arc_studio.brick_lib_api.core.data.capability.IEnergyStorage ucs;
         @Nullable
         private final BiConsumer<ServerLevel, BlockPos> dirtyNotifier;
 
         public ForgeEnergyStorageWrapper(ServerLevel level, BlockPos pos, BlockState state,
-                                         com.arc_studio.brick_lib_api.core.data.capability.builtin.IEnergyStorage ucs,
+                                         com.arc_studio.brick_lib_api.core.data.capability.IEnergyStorage ucs,
                                          @Nullable BiConsumer<ServerLevel, BlockPos> dirtyNotifier) {
             this.level = level;
             this.pos = pos;
@@ -824,16 +994,24 @@ public class ForgePlatform {
             BlockEntity be = event.getObject();
             Level level = be.getLevel();
 
-            for (CapabilityRegistration.EnergyEntry entry : CapabilityRegistration.getEnergyBlocks().values()) {
-                if (be.getBlockState().is(entry.block())) {
-                    event.addCapability(entry.capId(), new ForgePlatform.ForgeEnergyProvider(be, entry));
+            BrickRegistries.CAPABILITY_ITEM.forEach(entry -> {
+                var block = entry.block();
+                if (be.getBlockState().is(block)) {
+                    event.addCapability(entry.capId(), new ForgePlatform.ForgeItemProvider(be, block, entry.provider(), entry.dirtyNotifier()));
                 }
-            }
-            for (CapabilityRegistration.FluidEntry entry : CapabilityRegistration.getFluidBlocks().values()) {
-                if (be.getBlockState().is(entry.block())) {
-                    event.addCapability(entry.capId(), new ForgePlatform.ForgeFluidProvider(be, entry));
+            });
+            BrickRegistries.CAPABILITY_ENERGY.forEach(entry -> {
+                var block = entry.block();
+                if (be.getBlockState().is(block)) {
+                    event.addCapability(entry.capId(), new ForgePlatform.ForgeEnergyProvider(be, block, entry.provider(), entry.dirtyNotifier()));
                 }
-            }
+            });
+            BrickRegistries.CAPABILITY_FLUID.forEach(entry -> {
+                var block = entry.block();
+                if (be.getBlockState().is(block)) {
+                    event.addCapability(entry.capId(), new ForgePlatform.ForgeFluidProvider(be, block, entry.provider(), entry.dirtyNotifier()));
+                }
+            });
         }
     }
 

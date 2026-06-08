@@ -1,7 +1,7 @@
 package com.arc_studio.brick_lib_api.core.data.capability.builtin.example;
 
-import com.arc_studio.brick_lib_api.core.data.capability.builtin.impl.SimpleEnergyStorage;
-import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickTransaction;
+import com.arc_studio.brick_lib_api.core.data.capability.IEnergyStorage;
+import com.arc_studio.brick_lib_api.core.data.capability.impl.SimpleEnergyStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -62,24 +62,19 @@ public final class FurnaceEnergyInteraction {
         FurnaceEnergyData data = FurnaceEnergyData.get(level);
         SimpleEnergyStorage storage = data.getOrCreate(pos);
 
-        try (BrickTransaction tx = BrickTransaction.openOuter()) {
-            long received = storage.receiveEnergy(FurnaceEnergyData.TRANSFER_AMOUNT, tx);
-            if (received > 0) {
-                tx.commit();
-                data.setDirty();
-
-                if (!player.getAbilities().instabuild) {
-                    redstone.shrink(1);
-                    if (redstone.isEmpty()) {
-                        player.setItemInHand(hand, ItemStack.EMPTY);
-                    }
+        long received = IEnergyStorage.receive(storage, FurnaceEnergyData.TRANSFER_AMOUNT, data::setDirty);
+        if (received > 0) {
+            if (!player.getAbilities().instabuild) {
+                redstone.shrink(1);
+                if (redstone.isEmpty()) {
+                    player.setItemInHand(hand, ItemStack.EMPTY);
                 }
-
-                level.playSound(null, pos, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, 0.5F, 1.2F);
-                sendEnergyMessage(player, "§e熔炉能量 +" + received + " FE，当前: "
-                        + storage.getEnergyStored() + " / " + storage.getMaxEnergyStored() + " FE");
-                return InteractionResult.SUCCESS;
             }
+
+            level.playSound(null, pos, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, 0.5F, 1.2F);
+            sendEnergyMessage(player, "§e熔炉能量 +" + received + " FE，当前: "
+                    + storage.getEnergyStored() + " / " + storage.getMaxEnergyStored() + " FE");
+            return InteractionResult.SUCCESS;
         }
 
         sendEnergyMessage(player, "§c熔炉能量已满！(" + storage.getEnergyStored()
@@ -91,17 +86,12 @@ public final class FurnaceEnergyInteraction {
         FurnaceEnergyData data = FurnaceEnergyData.get(level);
         SimpleEnergyStorage storage = data.getOrCreate(pos);
 
-        try (BrickTransaction tx = BrickTransaction.openOuter()) {
-            long extracted = storage.extractEnergy(FurnaceEnergyData.TRANSFER_AMOUNT, tx);
-            if (extracted > 0) {
-                tx.commit();
-                data.setDirty();
-
-                level.playSound(null, pos, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, 0.5F, 0.6F);
-                sendEnergyMessage(player, "§b熔炉能量 -" + extracted + " FE，当前: "
-                        + storage.getEnergyStored() + " / " + storage.getMaxEnergyStored() + " FE");
-                return InteractionResult.SUCCESS;
-            }
+        long extracted = IEnergyStorage.extract(storage, FurnaceEnergyData.TRANSFER_AMOUNT, data::setDirty);
+        if (extracted > 0) {
+            level.playSound(null, pos, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, 0.5F, 0.6F);
+            sendEnergyMessage(player, "§b熔炉能量 -" + extracted + " FE，当前: "
+                    + storage.getEnergyStored() + " / " + storage.getMaxEnergyStored() + " FE");
+            return InteractionResult.SUCCESS;
         }
 
         sendEnergyMessage(player, "§7熔炉没有可减少的能量。当前: 0 / "

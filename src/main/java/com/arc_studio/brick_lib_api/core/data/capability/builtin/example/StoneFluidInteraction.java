@@ -1,8 +1,7 @@
 package com.arc_studio.brick_lib_api.core.data.capability.builtin.example;
 
-import com.arc_studio.brick_lib_api.core.data.capability.builtin.IFluidStorage;
-import com.arc_studio.brick_lib_api.core.data.capability.builtin.impl.SimpleFluidStorage;
-import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickTransaction;
+import com.arc_studio.brick_lib_api.core.data.capability.IFluidStorage;
+import com.arc_studio.brick_lib_api.core.data.capability.impl.SimpleFluidStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -85,45 +84,37 @@ public final class StoneFluidInteraction {
         StoneFluidData data = StoneFluidData.get(level);
         SimpleFluidStorage storage = data.getOrCreate(pos);
 
-        try (BrickTransaction tx = BrickTransaction.open()) {
-            long filled = storage.fill(Fluids.WATER, IFluidStorage.BUCKET, tx);
-            if (filled == IFluidStorage.BUCKET) {
-                tx.commit();
-                data.setDirty();
+        long filled = IFluidStorage.fill(storage, Fluids.WATER, IFluidStorage.BUCKET, data::setDirty);
+        if (filled == IFluidStorage.BUCKET) {
+            // Forge: 不再替换原版 ChestBlockEntity，流体能力通过 AttachCapabilitiesEvent 附加。
+            // NeoForge < 1.20.6: 放置 BlockEntity
+            //? if neoforge {
+            /*//? if < 1.20.6 {
+            /^ensureBlockEntity(level, pos);
+            ^///?}
+            *///?}
 
-                // Forge: 不再替换原版 ChestBlockEntity，流体能力通过 AttachCapabilitiesEvent 附加。
-                // NeoForge < 1.20.6: 放置 BlockEntity
-                //? if neoforge {
-                /*//? if < 1.20.6 {
-                ensureBlockEntity(level, pos);
-                //?}
-                *///?}
-
-                // 消耗水桶，给予空桶
-                if (!player.getAbilities().instabuild) {
-                    player.setItemInHand(hand, new ItemStack(Items.BUCKET));
-                }
-
-                // 播放倒水音效
-                level.playSound(null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
-
-                // 通知玩家当前存储量
-                long stored = storage.getFluidAmountInTank(0);
-                long buckets = stored / IFluidStorage.BUCKET;
-                player.displayClientMessage(
-                        //? if > 1.18.2 {
-                        net.minecraft.network.chat.Component.literal("§b水: " + buckets + " / 32 桶"),
-                        //?} else {
-                        /*new net.minecraft.network.chat.TextComponent("§b水: " + buckets + " / 32 桶"),
-                        *///?}
-                        true
-                );
-
-                return InteractionResult.SUCCESS;
+            // 消耗水桶，给予空桶
+            if (!player.getAbilities().instabuild) {
+                player.setItemInHand(hand, new ItemStack(Items.BUCKET));
             }
-            // 事务自动回滚（储罐满了）
-        } catch (Exception ignored) {
 
+            // 播放倒水音效
+            level.playSound(null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
+
+            // 通知玩家当前存储量
+            long stored = storage.getFluidAmountInTank(0);
+            long buckets = stored / IFluidStorage.BUCKET;
+            player.displayClientMessage(
+                    //? if > 1.18.2 {
+                    net.minecraft.network.chat.Component.literal("§b水: " + buckets + " / 32 桶"),
+                    //?} else {
+                    /*new net.minecraft.network.chat.TextComponent("§b水: " + buckets + " / 32 桶"),
+                    *///?}
+                    true
+            );
+
+            return InteractionResult.SUCCESS;
         }
 
         // 储罐满了，提示
@@ -152,40 +143,33 @@ public final class StoneFluidInteraction {
             return InteractionResult.PASS;
         }
 
-        try (BrickTransaction tx = BrickTransaction.openOuter()) {
-            long drained = storage.drain(Fluids.WATER, IFluidStorage.BUCKET, tx);
-            if (drained == IFluidStorage.BUCKET) {
-                tx.commit();
-                data.setDirty();
-
-                // 消耗空桶，给予水桶
-                if (!player.getAbilities().instabuild) {
-                    emptyBucket.shrink(1);
-                    ItemStack waterBucket = new ItemStack(Items.WATER_BUCKET);
-                    if (!player.getInventory().add(waterBucket)) {
-                        player.drop(waterBucket, false);
-                    }
+        long drained = IFluidStorage.drain(storage, Fluids.WATER, IFluidStorage.BUCKET, data::setDirty);
+        if (drained == IFluidStorage.BUCKET) {
+            // 消耗空桶，给予水桶
+            if (!player.getAbilities().instabuild) {
+                emptyBucket.shrink(1);
+                ItemStack waterBucket = new ItemStack(Items.WATER_BUCKET);
+                if (!player.getInventory().add(waterBucket)) {
+                    player.drop(waterBucket, false);
                 }
-
-                // 播放装水音效
-                level.playSound(null, pos, SoundEvents.BUCKET_FILL, SoundSource.BLOCKS, 1.0F, 1.0F);
-
-                // 通知玩家当前存储量
-                long stored = storage.getFluidAmountInTank(0);
-                long buckets = stored / IFluidStorage.BUCKET;
-                player.displayClientMessage(
-                        //? if > 1.18.2 {
-                        net.minecraft.network.chat.Component.literal("§b水: " + buckets + " / 32 桶"),
-                        //?} else {
-                        /*new net.minecraft.network.chat.TextComponent("§b水: " + buckets + " / 32 桶"),
-                        *///?}
-                        true
-                );
-
-
-                return InteractionResult.SUCCESS;
             }
-            // 不够一桶，事务自动回滚
+
+            // 播放装水音效
+            level.playSound(null, pos, SoundEvents.BUCKET_FILL, SoundSource.BLOCKS, 1.0F, 1.0F);
+
+            // 通知玩家当前存储量
+            long stored = storage.getFluidAmountInTank(0);
+            long buckets = stored / IFluidStorage.BUCKET;
+            player.displayClientMessage(
+                    //? if > 1.18.2 {
+                    net.minecraft.network.chat.Component.literal("§b水: " + buckets + " / 32 桶"),
+                    //?} else {
+                    /*new net.minecraft.network.chat.TextComponent("§b水: " + buckets + " / 32 桶"),
+                    *///?}
+                    true
+            );
+
+            return InteractionResult.SUCCESS;
         }
 
         return InteractionResult.PASS;
@@ -198,13 +182,13 @@ public final class StoneFluidInteraction {
 
     //? if neoforge {
     /*//? if < 1.20.6 {
-    private static void ensureBlockEntity(ServerLevel level, BlockPos pos) {
+    /^private static void ensureBlockEntity(ServerLevel level, BlockPos pos) {
         BlockEntity existing = level.getBlockEntity(pos);
         if (!(existing instanceof StoneFluidBlockEntity)) {
             level.setBlockEntity(new StoneFluidBlockEntity(pos, level.getBlockState(pos)));
         }
     }
-    //?}
+    ^///?}
     *///?}
 }
 

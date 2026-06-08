@@ -1,21 +1,17 @@
 package com.arc_studio.brick_lib_api.core.data.capability.core;
 
 import com.arc_studio.brick_lib_api.BrickLibAPI;
-import com.arc_studio.brick_lib_api.core.data.capability.builtin.BuiltinCapabilities;
-import com.arc_studio.brick_lib_api.core.data.capability.builtin.IEnergyStorage;
-import com.arc_studio.brick_lib_api.core.data.capability.builtin.IFluidStorage;
-import com.arc_studio.brick_lib_api.core.data.capability.builtin.IItemStorage;
-import com.arc_studio.brick_lib_api.core.data.capability.compat.FabricTransferAdapter;
-import com.arc_studio.brick_lib_api.core.data.capability.compat.ForgeCapabilityAdapter;
+import com.arc_studio.brick_lib_api.core.data.capability.BuiltinCapabilities;
+import com.arc_studio.brick_lib_api.core.data.capability.IEnergyStorage;
+import com.arc_studio.brick_lib_api.core.data.capability.IFluidStorage;
+import com.arc_studio.brick_lib_api.core.data.capability.IItemStorage;
 import com.arc_studio.brick_lib_api.core.data.BrickLazyOptional;
-import com.arc_studio.brick_lib_api.core.data.capability.provider.CapabilityProvider;
-import com.arc_studio.brick_lib_api.core.data.capability.provider.ProviderRegistry;
-import com.arc_studio.brick_lib_api.core.data.capability.builtin.IEnergyStorage;
+import com.arc_studio.brick_lib_api.core.data.capability.CapabilityProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.util.LazyOptional;
+
 import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 //? if forge {
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
 //?}
 //? if neoforge {
 /*import net.neoforged.neoforge.capabilities.BlockCapability;
@@ -33,7 +30,7 @@ import net.minecraftforge.common.capabilities.Capability;
 /**
  * 能力系统跨加载器兼容层。
  * <p>
- * 查询顺序：UCS Provider / ProviderRegistry → 当前加载器原生能力 → 自定义原生映射。
+ * 查询顺序：UCS Provider / 静态注册的 provider 工厂 → 当前加载器原生能力 → 自定义原生映射。
  * 这样 UCS 代码可以访问其他模组暴露的原生物品、流体、能量能力；同时各加载器入口会注册
  * UCS → 原生的 fallback/provider，使其他模组管道也能发现 UCS 能力。
  * </p>
@@ -80,7 +77,7 @@ public final class CapabilityManager {
             }
         }
 
-        CapabilityProvider registeredProvider = ProviderRegistry.getProviders(target);
+        CapabilityProvider registeredProvider = CapabilityProvider.getProviders(target);
         BrickLazyOptional<T> registeredResult = registeredProvider.getCapability(cap, side);
         if (registeredResult.isPresent()) {
             return registeredResult;
@@ -187,17 +184,17 @@ public final class CapabilityManager {
     @SuppressWarnings("unchecked")
     private static <T> BrickLazyOptional<T> getFromNeoForge(Level level, BlockPos pos, BrickCapability<T> ucsCap, @Nullable Direction side) {
         if (ucsCap == BuiltinCapabilities.ENERGY) {
-            com.arc_studio.brick_lib_api.core.data.capability.builtin.IEnergyStorage energy =
+            com.arc_studio.brick_lib_api.core.data.capability.IEnergyStorage energy =
                     ForgeCapabilityAdapter.findNeoForgeEnergy(level, pos, side);
             return energy != null ? BrickLazyOptional.of((T) energy) : BrickLazyOptional.empty();
         }
         if (ucsCap == BuiltinCapabilities.ITEM_HANDLER) {
-            com.arc_studio.brick_lib_api.core.data.capability.builtin.IItemStorage itemHandler =
+            com.arc_studio.brick_lib_api.core.data.capability.IItemStorage itemHandler =
                     ForgeCapabilityAdapter.findNeoForgeItemHandler(level, pos, side);
             return itemHandler != null ? BrickLazyOptional.of((T) itemHandler) : BrickLazyOptional.empty();
         }
         if (ucsCap == BuiltinCapabilities.FLUID_HANDLER) {
-            com.arc_studio.brick_lib_api.core.data.capability.builtin.IFluidStorage fluidHandler =
+            com.arc_studio.brick_lib_api.core.data.capability.IFluidStorage fluidHandler =
                     ForgeCapabilityAdapter.findNeoForgeFluidHandler(level, pos, side);
             return fluidHandler != null ? BrickLazyOptional.of((T) fluidHandler) : BrickLazyOptional.empty();
         }

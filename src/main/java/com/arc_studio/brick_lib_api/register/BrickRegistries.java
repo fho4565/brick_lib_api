@@ -5,6 +5,9 @@ import com.arc_studio.brick_lib_api.BrickLibAPI;
 import com.arc_studio.brick_lib_api.config.ConfigTracker;
 import com.arc_studio.brick_lib_api.config.ModConfig;
 import com.arc_studio.brick_lib_api.core.VillagerTradeEntry;
+import com.arc_studio.brick_lib_api.core.data.capability.CapabilityApi;
+import com.arc_studio.brick_lib_api.core.data.capability.core.CapabilityEntry;
+import com.arc_studio.brick_lib_api.core.data.saved_data.SavedDataCodec;
 import com.arc_studio.brick_lib_api.core.register.*;
 import com.arc_studio.brick_lib_api.core.json_function.JsonFunction;
 import com.arc_studio.brick_lib_api.core.network.type.PacketConfig;
@@ -385,6 +388,22 @@ public class BrickRegistries {
      * */
     public static final BrickRegistry<VillagerTradeEntry> WANDERING_TRADE = create("villager_trade");
 
+    public static final BrickRegistry<SavedDataCodec<?>> SAVED_DATA_CODEC = create("saved_data_codec");
+
+    /**
+     * 方块物品能力注册表
+     */
+    public static final BrickRegistry<CapabilityEntry<CapabilityApi.ItemProvider>> CAPABILITY_ITEM = create("capability_item");
+
+    /**
+     * 方块能量能力注册表
+     */
+    public static final BrickRegistry<CapabilityEntry<CapabilityApi.EnergyProvider>> CAPABILITY_ENERGY = create("capability_energy");
+
+    /**
+     * 方块流体能力注册表
+     */
+    public static final BrickRegistry<CapabilityEntry<CapabilityApi.FluidProvider>> CAPABILITY_FLUID = create("capability_fluid");
 
     private static <T> BrickRegistry<T> create(String name) {
         return new BrickRegistry<>(ResourceKey.createRegistryKey(BrickLibAPI.ofPath(name)));

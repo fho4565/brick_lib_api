@@ -1,7 +1,7 @@
 package com.arc_studio.brick_lib_api.core.data.capability.builtin.example;
 
-import com.arc_studio.brick_lib_api.core.data.capability.builtin.IFluidStorage;
-import com.arc_studio.brick_lib_api.core.data.capability.builtin.impl.SimpleFluidStorage;
+import com.arc_studio.brick_lib_api.core.data.capability.IFluidStorage;
+import com.arc_studio.brick_lib_api.core.data.capability.impl.SimpleFluidStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -9,7 +9,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 //? if forge {
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
@@ -20,14 +21,10 @@ import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickTransaction;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 //?}
 
 //? if neoforge {
 /*import net.minecraft.core.Direction;
-import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickTransaction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 *///?}
@@ -168,14 +165,8 @@ public class StoneFluidBlockEntity extends BlockEntity {
                 return IFluidStorage.getFillableMb(s, resource.getFluid(), resource.getAmount());
             }
             long droplets = IFluidStorage.mbToDroplets(resource.getAmount());
-            try (BrickTransaction tx = BrickTransaction.openOuter()) {
-                long filled = s.fill(resource.getFluid(), droplets, tx);
-                if (filled > 0) {
-                    tx.commit();
-                    markDataDirty();
-                }
-                return IFluidStorage.dropletsToMb(filled);
-            }
+            long filled = IFluidStorage.fill(s, resource.getFluid(), droplets, this::markDataDirty);
+            return IFluidStorage.dropletsToMb(filled);
         }
 
         @Override
@@ -187,15 +178,8 @@ public class StoneFluidBlockEntity extends BlockEntity {
                 return drained > 0 ? new FluidStack(resource.getFluid(), drained) : FluidStack.EMPTY;
             }
             long droplets = IFluidStorage.mbToDroplets(resource.getAmount());
-            try (BrickTransaction tx = BrickTransaction.openOuter()) {
-                long drained = s.drain(resource.getFluid(), droplets, tx);
-                if (drained > 0) {
-                    tx.commit();
-                    markDataDirty();
-                    return new FluidStack(resource.getFluid(), IFluidStorage.dropletsToMb(drained));
-                }
-                return FluidStack.EMPTY;
-            }
+            long drained = IFluidStorage.drain(s, resource.getFluid(), droplets, this::markDataDirty);
+            return drained > 0 ? new FluidStack(resource.getFluid(), IFluidStorage.dropletsToMb(drained)) : FluidStack.EMPTY;
         }
 
         @Override
@@ -209,15 +193,8 @@ public class StoneFluidBlockEntity extends BlockEntity {
                 return drained > 0 ? new FluidStack(fluid, drained) : FluidStack.EMPTY;
             }
             long droplets = IFluidStorage.mbToDroplets(maxDrain);
-            try (BrickTransaction tx = BrickTransaction.openOuter()) {
-                long drained = s.drain(droplets, tx);
-                if (drained > 0) {
-                    tx.commit();
-                    markDataDirty();
-                    return new FluidStack(fluid, IFluidStorage.dropletsToMb(drained));
-                }
-                return FluidStack.EMPTY;
-            }
+            long drained = IFluidStorage.drain(s, droplets, this::markDataDirty);
+            return drained > 0 ? new FluidStack(fluid, IFluidStorage.dropletsToMb(drained)) : FluidStack.EMPTY;
         }
 
         private void markDataDirty() {

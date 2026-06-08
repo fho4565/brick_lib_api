@@ -40,7 +40,7 @@ public final class BrickLibAPI {
     public static final Logger LOGGER = LogUtils.getLogger();
     public static final String MOD_ID = "brick_lib_api";
     public static final Version BRICK_LIB_API_VERSION = new Version.Builder(1, 0, 0)
-            .preRelease(Version.PreReleaseType.BETA,6).build();
+            .preRelease(Version.PreReleaseType.BETA,7).build();
 
     public static void init() {
         MixinExtrasBootstrap.init();
