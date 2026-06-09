@@ -256,6 +256,7 @@ public final class CapabilityManager {
     /**
      * 初始化内置能力映射 — 在模组初始化时调用。
      */
+    @SuppressWarnings("removal")
     public static synchronized void initBuiltinMappings() {
         if (BUILTIN_MAPPINGS_INITIALIZED) {
             return;

@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import groovy.json.JsonOutput
 import me.modmuss50.mpp.ReleaseType
 import net.darkhax.curseforgegradle.Constants
 import net.darkhax.curseforgegradle.TaskPublishCurseForge
@@ -462,6 +463,7 @@ class SpecialMultiversionedConstants {
         }
         if(!env.isFabric){
             out.add("fabric.mod.json")
+            out.add("fabric.mod.json.template")
         }
         if(!env.isNeo){
             out.add("META-INF/neoforge.mods.toml")
@@ -695,30 +697,42 @@ if(env.atMost("1.20.6")){
 val publishName = "${mod.displayName} ${mod.version} for ${env.loader} ${env.mcVersion.min}"
 tasks {
     processResources {
+        fun jsonString(value: String): String = JsonOutput.toJson(value)
+
         val map = mapOf<String,String>(
             "modid" to mod.id,
             "id" to mod.id,
             "name" to mod.displayName,
+            "json_name" to jsonString(mod.displayName),
             "display_name" to mod.displayName,
+            "json_description" to jsonString(mod.description),
             "version" to mod.version,
             "description" to mod.description,
+            "json_authors" to jsonString(mod.authors),
             "authors" to mod.authors,
             "github_url" to mod.sourceUrl,
             "source_url" to mod.sourceUrl,
+            "json_source_url" to jsonString(mod.sourceUrl),
             "website" to mod.generalWebsite,
+            "json_website" to jsonString(mod.generalWebsite),
             "icon" to mod.icon,
+            "json_icon" to jsonString(mod.icon),
             "fabric_common_entry" to modFabric.commonEntry,
+            "json_fabric_common_entry" to jsonString(modFabric.commonEntry),
             "fabric_client_entry" to modFabric.clientEntry,
+            "json_fabric_client_entry" to jsonString(modFabric.clientEntry),
             "credits" to mod.credits,
             "contributors" to mod.credits,
             "mc_min" to env.mcVersion.min,
             "mc_max" to env.mcVersion.max,
             "issue_tracker" to mod.issueTracker,
+            "json_issue_tracker" to jsonString(mod.issueTracker),
             "java_ver" to env.javaVer.toString(),
             "forgelike_loader_ver" to dynamics.forgelikeLoaderVer,
             "forgelike_api_ver" to dynamics.forgelikeAPIVer,
             "loader_id" to env.loader,
             "license" to mod.license,
+            "json_license" to jsonString(mod.license),
             "mixin_field" to dynamics.mixinField,
             "aw_field" to dynamics.awField,
             "dependencies_field" to dynamics.dependenciesField
@@ -732,8 +746,9 @@ tasks {
         filesMatching("pack.mcmeta") {
             expand(map)
         }
-        filesMatching("fabric.mod.json") {
+        filesMatching("fabric.mod.json.template") {
             expand(map)
+            name = "fabric.mod.json"
         }
         filesMatching("META-INF/mods.toml") { expand(map) }
         filesMatching("META-INF/neoforge.mods.toml") { expand(map) }

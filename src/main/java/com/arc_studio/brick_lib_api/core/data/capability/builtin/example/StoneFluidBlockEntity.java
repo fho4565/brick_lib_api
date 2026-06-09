@@ -83,6 +83,7 @@ public class StoneFluidBlockEntity extends BlockEntity {
     //? if forge {
 
     @Override
+    @SuppressWarnings("removal")
     public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
         //? if >= 1.19.3 {
         if (cap == ForgeCapabilities.FLUID_HANDLER) {

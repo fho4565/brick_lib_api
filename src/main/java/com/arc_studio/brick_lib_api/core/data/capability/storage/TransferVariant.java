@@ -28,7 +28,7 @@ public final class TransferVariant<O> {
     private TransferVariant(@Nullable O object, @Nullable CompoundTag nbt) {
         this.object = object;
         this.nbt = nbt != null ? nbt.copy() : null;
-        this.hashCodeCache = Objects.hash(object, this.nbt);
+        this.hashCodeCache = Objects.hashCode(object);
     }
 
     /**
@@ -113,7 +113,8 @@ public final class TransferVariant<O> {
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (!(obj instanceof TransferVariant<?> other)) return false;
-        return Objects.equals(object, other.object) && Objects.equals(nbt, other.nbt);
+        return Objects.equals(object, other.object)
+                && (nbt == null || other.nbt == null || Objects.equals(nbt, other.nbt));
     }
 
     @Override
