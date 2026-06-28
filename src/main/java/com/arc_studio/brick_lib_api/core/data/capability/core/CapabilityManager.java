@@ -7,11 +7,20 @@ import com.arc_studio.brick_lib_api.core.data.capability.IFluidStorage;
 import com.arc_studio.brick_lib_api.core.data.capability.IItemStorage;
 import com.arc_studio.brick_lib_api.core.data.BrickLazyOptional;
 import com.arc_studio.brick_lib_api.core.data.capability.CapabilityProvider;
+import com.arc_studio.brick_lib_api.core.data.capability.context.BlockCapabilityContext;
+import com.arc_studio.brick_lib_api.core.data.capability.context.EntityCapabilityContext;
+import com.arc_studio.brick_lib_api.core.data.capability.context.ItemCapabilityContext;
+import com.arc_studio.brick_lib_api.core.data.capability.item.BrickCapabilityItemProvider;
+import com.arc_studio.brick_lib_api.register.BrickRegistries;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
+import net.neoforged.neoforge.capabilities.Capabilities;
 import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,13 +28,13 @@ import java.util.concurrent.ConcurrentHashMap;
 /*import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 *///?}
 //? if forge {
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
+/*import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
-//?}
-//? if neoforge {
-/*import net.neoforged.neoforge.capabilities.BlockCapability;
 *///?}
+//? if neoforge {
+import net.neoforged.neoforge.capabilities.BlockCapability;
+//?}
 
 /**
  * 能力系统跨加载器兼容层。
@@ -51,6 +60,12 @@ public final class CapabilityManager {
         if (ucs.isPresent()) {
             return ucs;
         }
+        if (level instanceof ServerLevel serverLevel) {
+            BrickLazyOptional<T> attached = getFromAttachedBlockEntry(serverLevel, pos, be, cap, side);
+            if (attached.isPresent()) {
+                return attached;
+            }
+        }
         return getFromNativeLoader(level, pos, be, cap, side);
     }
 
@@ -62,7 +77,92 @@ public final class CapabilityManager {
         if (ucs.isPresent()) {
             return ucs;
         }
+        if (be.getLevel() instanceof ServerLevel serverLevel) {
+            BrickLazyOptional<T> attached = getFromAttachedBlockEntry(serverLevel, be.getBlockPos(), be, cap, side);
+            if (attached.isPresent()) {
+                return attached;
+            }
+        }
         return getFromNativeBlockEntity(be, cap, side);
+    }
+
+    /**
+     * Query Brick Lib item capabilities from an ItemStack.
+     */
+    public static <T> BrickLazyOptional<T> getCapability(ItemStack stack, BrickCapability<T> cap, @Nullable Direction side) {
+        if (stack == null || stack.isEmpty()) {
+            return BrickLazyOptional.empty();
+        }
+
+        if (stack.getItem() instanceof BrickCapabilityItemProvider provider) {
+            BrickLazyOptional<T> result = provider.getCapability(stack, cap, side);
+            if (result.isPresent()) {
+                return result;
+            }
+        }
+
+        BrickLazyOptional<T> stackProvider = getFromUcsProvider(stack, cap, side);
+        if (stackProvider.isPresent()) {
+            return stackProvider;
+        }
+
+        BrickLazyOptional<T> itemProvider = getFromUcsProvider(stack.getItem(), cap, side);
+        if (itemProvider.isPresent()) {
+            return itemProvider;
+        }
+
+        return getFromAttachedItemEntry(stack, cap, side);
+    }
+
+    public static <T> BrickLazyOptional<T> getCapability(Entity entity, BrickCapability<T> cap, @Nullable Direction side) {
+        BrickLazyOptional<T> ucs = getFromUcsProvider(entity, cap, side);
+        if (ucs.isPresent()) {
+            return ucs;
+        }
+        return getFromAttachedEntityEntry(entity, cap, side);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> BrickLazyOptional<T> getFromAttachedBlockEntry(
+            ServerLevel level, BlockPos pos, @Nullable BlockEntity be, BrickCapability<T> cap, @Nullable Direction side
+    ) {
+        var state = level.getBlockState(pos);
+        for (CapabilityEntry<?> entry : BrickRegistries.CAPABILITY) {
+            if (entry.capability() != cap) continue;
+            BlockCapabilityContext context = CapabilityEntries.blockContext(entry, level, pos, state, be);
+            if (context == null) continue;
+            BlockTransferConfig config = entry.transferConfig(context);
+            if (side != null && config != null && (!config.isEnabled(side) || config.isLocked(side))) {
+                continue;
+            }
+            Object value = entry.get(context, side);
+            if (value != null) return BrickLazyOptional.of((T) value);
+        }
+        return BrickLazyOptional.empty();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> BrickLazyOptional<T> getFromAttachedItemEntry(ItemStack stack, BrickCapability<T> cap, @Nullable Direction side) {
+        for (CapabilityEntry<?> entry : BrickRegistries.CAPABILITY) {
+            if (entry.capability() != cap) continue;
+            ItemCapabilityContext context = CapabilityEntries.itemContext(entry, stack);
+            if (context == null) continue;
+            Object value = entry.get(context, side);
+            if (value != null) return BrickLazyOptional.of((T) value);
+        }
+        return BrickLazyOptional.empty();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> BrickLazyOptional<T> getFromAttachedEntityEntry(Entity entity, BrickCapability<T> cap, @Nullable Direction side) {
+        for (CapabilityEntry<?> entry : BrickRegistries.CAPABILITY) {
+            if (entry.capability() != cap) continue;
+            EntityCapabilityContext context = CapabilityEntries.entityContext(entry, entity);
+            if (context == null) continue;
+            Object value = entry.get(context, side);
+            if (value != null) return BrickLazyOptional.of((T) value);
+        }
+        return BrickLazyOptional.empty();
     }
 
     private static <T> BrickLazyOptional<T> getFromUcsProvider(@Nullable Object target, BrickCapability<T> cap, @Nullable Direction side) {
@@ -94,20 +194,20 @@ public final class CapabilityManager {
             Level level, BlockPos pos, @Nullable BlockEntity be, BrickCapability<T> cap, @Nullable Direction side
     ) {
         //? if forge {
-        return be != null ? getFromForgeProvider(be, cap, side) : BrickLazyOptional.empty();
-        //?} else if neoforge {
-        /*return getFromNeoForge(level, pos, cap, side);
-        *///?} else if fabric {
+        /*return be != null ? getFromForgeProvider(be, cap, side) : BrickLazyOptional.empty();
+        *///?} else if neoforge {
+        return getFromNeoForge(level, pos, cap, side);
+        //?} else if fabric {
         /*return getFromFabric(level, pos, cap, side);
         *///?}
     }
 
     private static <T> BrickLazyOptional<T> getFromNativeBlockEntity(BlockEntity be, BrickCapability<T> cap, @Nullable Direction side) {
         //? if forge {
-        return getFromForgeProvider(be, cap, side);
-        //?} else if neoforge {
-        /*return be.getLevel() != null ? getFromNeoForge(be.getLevel(), be.getBlockPos(), cap, side) : BrickLazyOptional.empty();
-        *///?} else if fabric {
+        /*return getFromForgeProvider(be, cap, side);
+        *///?} else if neoforge {
+        return be.getLevel() != null ? getFromNeoForge(be.getLevel(), be.getBlockPos(), cap, side) : BrickLazyOptional.empty();
+        //?} else if fabric {
         /*return be.getLevel() != null ? getFromFabric(be.getLevel(), be.getBlockPos(), cap, side) : BrickLazyOptional.empty();
         *///?}
     }
@@ -117,7 +217,7 @@ public final class CapabilityManager {
     // ========================
 
     //? if forge {
-    private static final Map<String, net.minecraftforge.common.capabilities.Capability<?>> FORGE_CAP_CACHE = new ConcurrentHashMap<>();
+    /*private static final Map<String, net.minecraftforge.common.capabilities.Capability<?>> FORGE_CAP_CACHE = new ConcurrentHashMap<>();
 
     public static <T, R> void registerForgeMapping(BrickCapability<T> ucsCap, Capability<R> forgeCap) {
         FORGE_CAP_CACHE.put(ucsCap.getName(), forgeCap);
@@ -167,14 +267,14 @@ public final class CapabilityManager {
             }
         };
     }
-    //?}
+    *///?}
 
     // ========================
     // NeoForge 适配
     // ========================
 
     //? if neoforge {
-    /*private static final java.util.Map<String, BlockCapability<?, Direction>> NEOFORGE_CAP_CACHE =
+    private static final java.util.Map<String, BlockCapability<?, Direction>> NEOFORGE_CAP_CACHE =
             new java.util.concurrent.ConcurrentHashMap<>();
 
     public static <T, R> void registerNeoForgeMapping(BrickCapability<T> ucsCap, BlockCapability<R, Direction> neoCap) {
@@ -208,7 +308,7 @@ public final class CapabilityManager {
         }
         return BrickLazyOptional.empty();
     }
-    *///?}
+    //?}
 
     // ========================
     // Fabric 适配
@@ -264,20 +364,28 @@ public final class CapabilityManager {
         BUILTIN_MAPPINGS_INITIALIZED = true;
 
         //? if forge {
-        //? if >= 1.19.3 {
+
+        /*//? if >= 1.19.3 {
         registerForgeMapping(BuiltinCapabilities.ENERGY, net.minecraftforge.common.capabilities.ForgeCapabilities.ENERGY);
         registerForgeMapping(BuiltinCapabilities.ITEM_HANDLER, net.minecraftforge.common.capabilities.ForgeCapabilities.ITEM_HANDLER);
         registerForgeMapping(BuiltinCapabilities.FLUID_HANDLER, net.minecraftforge.common.capabilities.ForgeCapabilities.FLUID_HANDLER);
         //?} else {
-        /*registerForgeMapping(BuiltinCapabilities.ENERGY, net.minecraftforge.energy.CapabilityEnergy.ENERGY);
+        /^registerForgeMapping(BuiltinCapabilities.ENERGY, net.minecraftforge.energy.CapabilityEnergy.ENERGY);
         registerForgeMapping(BuiltinCapabilities.ITEM_HANDLER, net.minecraftforge.items.CapabilityItemHandler.ITEM_HANDLER_CAPABILITY);
         registerForgeMapping(BuiltinCapabilities.FLUID_HANDLER, net.minecraftforge.fluids.capability.CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY);
-        *///?}
-        //?} else if neoforge {
-        /*registerNeoForgeMapping(BuiltinCapabilities.ENERGY, net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.BLOCK);
-        registerNeoForgeMapping(BuiltinCapabilities.ITEM_HANDLER, net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.BLOCK);
-        registerNeoForgeMapping(BuiltinCapabilities.FLUID_HANDLER, net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.BLOCK);
-        *///?} else if fabric {
+        ^///?}
+
+        *///?} else if neoforge {
+        //? if < 1.21.5 {
+        /*registerNeoForgeMapping(BuiltinCapabilities.ENERGY, Capabilities.EnergyStorage.BLOCK);
+        registerNeoForgeMapping(BuiltinCapabilities.ITEM_HANDLER, Capabilities.ItemHandler.BLOCK);
+        registerNeoForgeMapping(BuiltinCapabilities.FLUID_HANDLER, Capabilities.FluidHandler.BLOCK);*/
+        //? } else {
+        registerNeoForgeMapping(BuiltinCapabilities.ENERGY, Capabilities.Energy.BLOCK);
+        registerNeoForgeMapping(BuiltinCapabilities.ITEM_HANDLER, Capabilities.Item.BLOCK);
+        registerNeoForgeMapping(BuiltinCapabilities.FLUID_HANDLER, Capabilities.Fluid.BLOCK);
+        //? }
+        //?} else if fabric {
         /*registerFabricMapping(BuiltinCapabilities.ENERGY, ENERGY_STORAGE_LOOKUP);
         FabricTransferAdapter.registerFallbacks();
         *///?}

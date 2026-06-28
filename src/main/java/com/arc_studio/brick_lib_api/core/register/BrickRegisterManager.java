@@ -1,8 +1,8 @@
 package com.arc_studio.brick_lib_api.core.register;
 
 import com.arc_studio.brick_lib_api.BrickLibAPI;
+import com.arc_studio.brick_lib_api.core.data.ResourceID;
 import net.minecraft.core.Registry;
-import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,14 +28,14 @@ public class BrickRegisterManager {
      */
     private static class VanillaRegistryData<T> {
         private final Registry<T> registry;
-        private final Map<ResourceLocation, Supplier<T>> entries;
+        private final Map<ResourceID, Supplier<T>> entries;
 
         public VanillaRegistryData(Registry<T> registry) {
             this.registry = Objects.requireNonNull(registry, "registry cannot be null");
             this.entries = new LinkedHashMap<>();
         }
 
-        public boolean register(ResourceLocation id, Supplier<T> supplier) {
+        public boolean register(ResourceID id, Supplier<T> supplier) {
             Objects.requireNonNull(id, "id cannot be null");
             Objects.requireNonNull(supplier, "supplier cannot be null");
 
@@ -46,7 +46,7 @@ public class BrickRegisterManager {
             return registry;
         }
 
-        public Map<ResourceLocation, Supplier<T>> getEntries() {
+        public Map<ResourceID, Supplier<T>> getEntries() {
             return Collections.unmodifiableMap(entries);
         }
     }
@@ -59,7 +59,7 @@ public class BrickRegisterManager {
      * @param supplier 注册对象提供者
      * @return 注册成功返回true，如果已存在返回false
      */
-    public static <T> boolean register(Registry<T> registry, ResourceLocation id, Supplier<T> supplier) {
+    public static <T> boolean register(Registry<T> registry, ResourceID id, Supplier<T> supplier) {
         Objects.requireNonNull(registry, "registry cannot be null");
         Objects.requireNonNull(id, "id cannot be null");
         Objects.requireNonNull(supplier, "supplier cannot be null");
@@ -74,7 +74,7 @@ public class BrickRegisterManager {
     /**
      * 注册到原版注册表中（使用VanillaRegistry包装器）
      */
-    public static <T> boolean register(VanillaRegistry<T> key, ResourceLocation id, Supplier<T> value) {
+    public static <T> boolean register(VanillaRegistry<T> key, ResourceID id, Supplier<T> value) {
         return register(key.getVanillaRegistry(), id, value);
     }
 
@@ -86,7 +86,7 @@ public class BrickRegisterManager {
      * @param supplier 注册对象提供者
      * @return 注册成功返回true，如果已存在返回false
      */
-    public static <T> boolean register(BrickRegistry<T> registry, ResourceLocation id, Supplier<T> supplier) {
+    public static <T> boolean register(BrickRegistry<T> registry, ResourceID id, Supplier<T> supplier) {
         Objects.requireNonNull(registry, "registry cannot be null");
         Objects.requireNonNull(id, "id cannot be null");
         Objects.requireNonNull(supplier, "supplier cannot be null");
@@ -107,12 +107,12 @@ public class BrickRegisterManager {
         Objects.requireNonNull(registry, "registry cannot be null");
         Objects.requireNonNull(supplier, "supplier cannot be null");
 
-        ResourceLocation autoId = generateAutoId(registry);
+        ResourceID autoId = generateAutoId(registry);
         return register(registry, autoId, supplier);
     }
 
 
-    private static ResourceLocation generateAutoId(BrickRegistry<?> registry) {
+    private static ResourceID generateAutoId(BrickRegistry<?> registry) {
         //? if > 1.18.2 {
         String key = registry.getRegisterKey().location().toLanguageKey();
         //?} else {
@@ -126,8 +126,8 @@ public class BrickRegisterManager {
     /**
      * 获取所有原版注册表条目（只读视图）
      */
-    public static Map<Registry<?>, Map<ResourceLocation, Supplier<?>>> getVanillaEntries() {
-        Map<Registry<?>, Map<ResourceLocation, Supplier<?>>> result = new HashMap<>();
+    public static Map<Registry<?>, Map<ResourceID, Supplier<?>>> getVanillaEntries() {
+        Map<Registry<?>, Map<ResourceID, Supplier<?>>> result = new HashMap<>();
 
         VANILLA_REGISTRY_DATA.forEach((registry, data) -> {
             result.put(registry, Collections.unmodifiableMap(data.getEntries()));
@@ -139,7 +139,7 @@ public class BrickRegisterManager {
     /**
      * 获取特定原版注册表的条目
      */
-    public static <T> Optional<Map<ResourceLocation, Supplier<T>>> getVanillaEntries(Registry<T> registry) {
+    public static <T> Optional<Map<ResourceID, Supplier<T>>> getVanillaEntries(Registry<T> registry) {
         @SuppressWarnings("unchecked")
         VanillaRegistryData<T> data = (VanillaRegistryData<T>) VANILLA_REGISTRY_DATA.get(registry);
 

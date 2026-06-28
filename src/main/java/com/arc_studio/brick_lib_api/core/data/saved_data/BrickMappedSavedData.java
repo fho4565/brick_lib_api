@@ -6,9 +6,9 @@ import com.mojang.serialization.Codec;
 import net.minecraft.nbt.*;
 import net.minecraft.server.level.ServerLevel;
 //? if >1.20.1 {
-/*import net.minecraft.util.datafix.DataFixTypes;
+import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.saveddata.SavedData;
-*///? }
+//? }
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,11 +21,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+@SuppressWarnings({"unchecked", "rawtypes", "deprecation", "removal"})
 public class BrickMappedSavedData<K,V> extends BrickSavedData {
     private static final String DATA_NAME = "brick_mapped_data";
 
     //? if >= 1.21.5 {
-    /*private static final com.mojang.serialization.Codec<BrickMappedSavedData> CODEC =
+    private static final com.mojang.serialization.Codec<BrickMappedSavedData> CODEC =
         CompoundTag.CODEC.xmap(BrickMappedSavedData::new, data -> data.saveData(new CompoundTag()));
     private static final net.minecraft.world.level.saveddata.SavedDataType<BrickMappedSavedData> TYPE =
         new net.minecraft.world.level.saveddata.SavedDataType<>(
@@ -35,20 +36,22 @@ public class BrickMappedSavedData<K,V> extends BrickSavedData {
             null
         );
 
-    *///?}
+    //?}
 
     private static final Map<Codec<?>, SavedDataCodec<?>> CODEC_CACHE = new ConcurrentHashMap<>();
+    private static final Map<ResourceID, SavedDataCodec<?>> CODEC_ID_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, SavedDataCodec<?>> VALUE_CLASS_CODEC_CACHE = new ConcurrentHashMap<>();
 
-    private final Map<K, StoredEntry<K,V>> storageMap = new ConcurrentHashMap<>();
+    protected final Map<K, StoredEntry<K,V>> storageMap = new ConcurrentHashMap<>();
 
-    private static final class StoredEntry<K,V> {
-        private final Codec<K> keyCodec;
-        private final ResourceID keyCodecId;
-        private final V value;
-        private final Codec<V> valueCodec;
-        private final ResourceID valueCodecId;
+    protected static final class StoredEntry<K,V> {
+        protected final Codec<K> keyCodec;
+        protected final ResourceID keyCodecId;
+        protected final V value;
+        protected final Codec<V> valueCodec;
+        protected final ResourceID valueCodecId;
 
-        private StoredEntry(Codec<K> keyCodec, ResourceID keyCodecId, V value, Codec<V> valueCodec, ResourceID valueCodecId) {
+        protected StoredEntry(Codec<K> keyCodec, ResourceID keyCodecId, V value, Codec<V> valueCodec, ResourceID valueCodecId) {
             this.keyCodec = keyCodec;
             this.keyCodecId = keyCodecId;
             this.value = value;
@@ -63,8 +66,19 @@ public class BrickMappedSavedData<K,V> extends BrickSavedData {
     @SuppressWarnings("unchecked")
     public BrickMappedSavedData(CompoundTag compoundTag) {
         //? if >= 1.21.5 {
-        /*ListTag tag = compoundTag.getList("entries").orElse(new ListTag());
+        ListTag tag = compoundTag.getList("entries").orElse(new ListTag());
+        loadEntryList(tag);
+        //?} else {
+        /*ListTag tag = compoundTag.getList("entries", Tag.TAG_COMPOUND);
+        loadEntryList(tag);
+
+        *///? }
+    }
+
+    @SuppressWarnings("unchecked")
+    protected void loadEntryList(ListTag tag) {
         for (int i = 0; i < tag.size(); i++) {
+            //? if >= 1.21.5 {
             CompoundTag it = tag.getCompound(i).orElseThrow();
             CompoundTag k = it.getCompound("k").orElseThrow();
             CompoundTag v = it.getCompound("v").orElseThrow();
@@ -78,12 +92,8 @@ public class BrickMappedSavedData<K,V> extends BrickSavedData {
                     .getOrThrow()
                 .getFirst();
             V value = vCodec.decode(NbtOps.INSTANCE,v.getCompound("v").orElseThrow()).getOrThrow().getFirst();
-            storageMap.put(key, new StoredEntry<>(kCodec, kSavedDataCodec.resourceID(), value, vCodec, vSavedDataCodec.resourceID()));
-        }
-        *///?} else {
-        ListTag tag = compoundTag.getList("entries", 9);
-        for (int i = 0; i < tag.size(); i++) {
-            CompoundTag it = tag.getCompound(i);
+            //?} else {
+            /*CompoundTag it = tag.getCompound(i);
             CompoundTag k = it.getCompound("k");
             CompoundTag v = it.getCompound("v");
             SavedDataCodec<K> kSavedDataCodec = (SavedDataCodec<K>) getSavedDataCodec(ResourceID.tryParse(k.getString("c")));
@@ -92,56 +102,67 @@ public class BrickMappedSavedData<K,V> extends BrickSavedData {
             Codec<V> vCodec = vSavedDataCodec.codec();
             K key = kCodec.decode(NbtOps.INSTANCE, k.getCompound("v"))
                     //? if >= 1.20.6 {
-                    /*.getOrThrow()
+                    .getOrThrow()
 
-                    *///?} else {
-                    .get().orThrow()
-                    //?}
+                    //?} else {
+                    /^.get().orThrow()
+                    ^///?}
                     .getFirst();
             V value = vCodec.decode(NbtOps.INSTANCE,v.getCompound("v"))
                     //? if >= 1.20.6 {
-                    /*.getOrThrow()
+                    .getOrThrow()
 
-                    *///? } else {
-                    .get().orThrow()
-                    //? }
+                    //? } else {
+                    /^.get().orThrow()
+                    ^///? }
                     .getFirst();
-            storageMap.put(key, new StoredEntry<>(kCodec, kSavedDataCodec.resourceID(), value, vCodec, vSavedDataCodec.resourceID()));
+            *///?}
+            StoredEntry<K, V> loaded = new StoredEntry<>(
+                kCodec,
+                kSavedDataCodec.resourceID(),
+                value,
+                vCodec,
+                vSavedDataCodec.resourceID()
+            );
+            StoredEntry<K, V> previous = storageMap.put(key, loaded);
+            onEntryLoaded(key, previous, loaded);
         }
-
-        //? }
     }
 
     @Override
     public CompoundTag saveData(CompoundTag tag) {
         ListTag list = new ListTag();
         storageMap.forEach((key, entry) -> {
-            CompoundTag compoundTag = new CompoundTag();
-            CompoundTag keyTag = new CompoundTag();
-            keyTag.putString("c", entry.keyCodecId.toString());
-            keyTag.put("v",entry.keyCodec.encodeStart(NbtOps.INSTANCE,key)
-                    //? if >= 1.20.6 {
-                    /*.getOrThrow()
-                    *///? } else {
-                    .get().orThrow()
-                //? }
-            );
-            compoundTag.put("k", keyTag);
-
-            CompoundTag valueTag = new CompoundTag();
-            valueTag.putString("c", entry.valueCodecId.toString());
-            valueTag.put("v",entry.valueCodec.encodeStart(NbtOps.INSTANCE,entry.value)
-                    //? if >= 1.20.6 {
-                    /*.getOrThrow()
-                    *///? } else {
-                    .get().orThrow()
-                //? }
-            );
-            compoundTag.put("v", valueTag);
-            list.add(compoundTag);
+            list.add(saveEntry(key, entry));
         });
         tag.put("entries", list);
         return tag;
+    }
+
+    protected CompoundTag saveEntry(K key, StoredEntry<K, V> entry) {
+        CompoundTag compoundTag = new CompoundTag();
+        CompoundTag keyTag = new CompoundTag();
+        keyTag.putString("c", entry.keyCodecId.toString());
+        keyTag.put("v",entry.keyCodec.encodeStart(NbtOps.INSTANCE,key)
+                //? if >= 1.20.6 {
+                .getOrThrow()
+                //? } else {
+                /*.get().orThrow()
+            *///? }
+        );
+        compoundTag.put("k", keyTag);
+
+        CompoundTag valueTag = new CompoundTag();
+        valueTag.putString("c", entry.valueCodecId.toString());
+        valueTag.put("v",entry.valueCodec.encodeStart(NbtOps.INSTANCE,entry.value)
+                //? if >= 1.20.6 {
+                .getOrThrow()
+                //? } else {
+                /*.get().orThrow()
+            *///? }
+        );
+        compoundTag.put("v", valueTag);
+        return compoundTag;
     }
 
     @SuppressWarnings("unchecked")
@@ -174,13 +195,15 @@ public class BrickMappedSavedData<K,V> extends BrickSavedData {
         Objects.requireNonNull(valueCodec, "valueCodec");
         SavedDataCodec<K> keySavedDataCodec = getSavedDataCodec(keyCodec);
         SavedDataCodec<V> valueSavedDataCodec = getSavedDataCodec(valueCodec);
-        StoredEntry<K, V> previous = storageMap.put(key, new StoredEntry<>(
+        StoredEntry<K, V> current = new StoredEntry<>(
             keyCodec,
             keySavedDataCodec.resourceID(),
             value,
             valueCodec,
             valueSavedDataCodec.resourceID()
-        ));
+        );
+        StoredEntry<K, V> previous = storageMap.put(key, current);
+        onEntryPut(key, previous, current);
         setDirty();
         return previous == null ? null : previous.value;
     }
@@ -190,7 +213,8 @@ public class BrickMappedSavedData<K,V> extends BrickSavedData {
     }
 
     public Optional<V> get(K key) {
-        return Optional.ofNullable(storageMap.get(key)).map(entry -> entry.value);
+        StoredEntry<K, V> entry = storageMap.get(key);
+        return entry == null ? Optional.empty() : Optional.of(entry.value);
     }
 
     public Optional<V> get(K key, Codec<K> codec) {
@@ -201,19 +225,23 @@ public class BrickMappedSavedData<K,V> extends BrickSavedData {
 
     @Nullable
     public V getOrNull(K key) {
-        return get(key).orElse(null);
+        StoredEntry<K, V> entry = storageMap.get(key);
+        return entry == null ? null : entry.value;
     }
 
     public V getOrDefault(K key, V defaultValue) {
-        return get(key).orElse(defaultValue);
+        StoredEntry<K, V> entry = storageMap.get(key);
+        return entry == null ? defaultValue : entry.value;
     }
 
     public Optional<Codec<V>> getValueCodec(K key) {
-        return Optional.ofNullable(storageMap.get(key)).map(entry -> entry.valueCodec);
+        StoredEntry<K, V> entry = storageMap.get(key);
+        return entry == null ? Optional.empty() : Optional.of(entry.valueCodec);
     }
 
     public Optional<Codec<K>> getKeyCodec(K key) {
-        return Optional.ofNullable(storageMap.get(key)).map(entry -> entry.keyCodec);
+        StoredEntry<K, V> entry = storageMap.get(key);
+        return entry == null ? Optional.empty() : Optional.of(entry.keyCodec);
     }
 
     public boolean containsKey(K key) {
@@ -232,6 +260,7 @@ public class BrickMappedSavedData<K,V> extends BrickSavedData {
     public Optional<V> remove(K key) {
         StoredEntry<K, V> removed = storageMap.remove(key);
         if (removed != null) {
+            onEntryRemoved(key, removed);
             setDirty();
         }
         return Optional.ofNullable(removed).map(entry -> entry.value);
@@ -244,6 +273,7 @@ public class BrickMappedSavedData<K,V> extends BrickSavedData {
         }
         boolean removed = storageMap.remove(key, entry);
         if (removed) {
+            onEntryRemoved(key, entry);
             setDirty();
         }
         return removed ? Optional.of(entry.value) : Optional.empty();
@@ -252,6 +282,7 @@ public class BrickMappedSavedData<K,V> extends BrickSavedData {
     public void clear() {
         if (!storageMap.isEmpty()) {
             storageMap.clear();
+            onCleared();
             setDirty();
         }
     }
@@ -272,30 +303,45 @@ public class BrickMappedSavedData<K,V> extends BrickSavedData {
         return Collections.unmodifiableMap(snapshot);
     }
 
-    private <T> SavedDataCodec<T> findSavedDataCodec(T value) {
+    protected <T> SavedDataCodec<T> findSavedDataCodec(T value) {
         Objects.requireNonNull(value, "value");
+        @SuppressWarnings("unchecked")
+        SavedDataCodec<T> cachedByClass = (SavedDataCodec<T>) VALUE_CLASS_CODEC_CACHE.get(value.getClass());
+        if (cachedByClass != null && canEncode(cachedByClass.codec(), value)) {
+            return cachedByClass;
+        }
+
         for (SavedDataCodec<?> savedDataCodec : BrickRegistries.SAVED_DATA_CODEC) {
             @SuppressWarnings("unchecked")
             Codec<T> codec = (Codec<T>) savedDataCodec.codec();
-            try {
-                codec.encodeStart(NbtOps.INSTANCE, value)
-                    //? if >= 1.20.6 {
-                    /*.getOrThrow();
-                    *///? } else {
-                    .get().orThrow();
-                    //? }
+            if (canEncode(codec, value)) {
                 @SuppressWarnings("unchecked")
                 SavedDataCodec<T> typedCodec = (SavedDataCodec<T>) savedDataCodec;
                 CODEC_CACHE.put(codec, savedDataCodec);
+                CODEC_ID_CACHE.put(savedDataCodec.resourceID(), savedDataCodec);
+                VALUE_CLASS_CODEC_CACHE.put(value.getClass(), savedDataCodec);
                 return typedCodec;
-            } catch (RuntimeException ignored) {
             }
         }
         throw new IllegalArgumentException("No registered SavedDataCodec can encode value: " + value);
     }
 
+    private static <T> boolean canEncode(Codec<T> codec, T value) {
+        try {
+            codec.encodeStart(NbtOps.INSTANCE, value)
+                //? if >= 1.20.6 {
+                .getOrThrow();
+                //? } else {
+                /*.get().orThrow();
+                *///? }
+            return true;
+        } catch (RuntimeException ignored) {
+            return false;
+        }
+    }
+
     @SuppressWarnings("unchecked")
-    private <T> SavedDataCodec<T> getSavedDataCodec(Codec<T> codec) {
+    protected <T> SavedDataCodec<T> getSavedDataCodec(Codec<T> codec) {
         SavedDataCodec<?> cached = CODEC_CACHE.get(codec);
         if (cached != null) {
             return (SavedDataCodec<T>) cached;
@@ -303,18 +349,40 @@ public class BrickMappedSavedData<K,V> extends BrickSavedData {
         for (SavedDataCodec<?> savedDataCodec : BrickRegistries.SAVED_DATA_CODEC) {
             if (savedDataCodec.codec().equals(codec)) {
                 CODEC_CACHE.put(codec, savedDataCodec);
+                CODEC_ID_CACHE.put(savedDataCodec.resourceID(), savedDataCodec);
                 return (SavedDataCodec<T>) savedDataCodec;
             }
         }
         throw new IllegalArgumentException("Codec is not registered in SAVED_DATA_CODEC: " + codec);
     }
 
-    private SavedDataCodec<?> getSavedDataCodec(@Nullable ResourceID resourceID) {
+    protected SavedDataCodec<?> getSavedDataCodec(@Nullable ResourceID resourceID) {
+        if (resourceID == null) {
+            throw new IllegalArgumentException("SavedDataCodec is not registered: null");
+        }
+        SavedDataCodec<?> cached = CODEC_ID_CACHE.get(resourceID);
+        if (cached != null) {
+            return cached;
+        }
         SavedDataCodec<?> savedDataCodec = BrickRegistries.SAVED_DATA_CODEC.get(resourceID);
         if (savedDataCodec == null) {
             throw new IllegalArgumentException("SavedDataCodec is not registered: " + resourceID);
         }
+        CODEC_ID_CACHE.put(resourceID, savedDataCodec);
+        CODEC_CACHE.put(savedDataCodec.codec(), savedDataCodec);
         return savedDataCodec;
+    }
+
+    protected void onEntryLoaded(K key, @Nullable StoredEntry<K, V> previous, StoredEntry<K, V> loaded) {
+    }
+
+    protected void onEntryPut(K key, @Nullable StoredEntry<K, V> previous, StoredEntry<K, V> current) {
+    }
+
+    protected void onEntryRemoved(K key, StoredEntry<K, V> removed) {
+    }
+
+    protected void onCleared() {
     }
 
     @Override
@@ -324,9 +392,9 @@ public class BrickMappedSavedData<K,V> extends BrickSavedData {
 
     public<T extends BrickMappedSavedData> T get(ServerLevel level, Function<CompoundTag, T> loadFunction, Supplier<T> createFunction) {
         //? if >= 1.21.5 {
-        /*return (T) level.getDataStorage().computeIfAbsent(TYPE);
+        return (T) level.getDataStorage().computeIfAbsent(TYPE);
 
-        *///?} else if >= 1.20.6 {
+        //?} else if >= 1.20.6 {
         /*return level.getDataStorage().computeIfAbsent(
             new SavedData.Factory<>(createFunction, (compoundTag, provider) ->
                 loadFunction.apply(compoundTag), DataFixTypes.CHUNK),
@@ -341,7 +409,7 @@ public class BrickMappedSavedData<K,V> extends BrickSavedData {
         );
 
         *///?} else {
-        return level.getDataStorage().computeIfAbsent(loadFunction, createFunction, dataName());
-        //?}
+        /*return level.getDataStorage().computeIfAbsent(loadFunction, createFunction, dataName());
+        *///?}
     }
 }

@@ -2,10 +2,10 @@ package com.arc_studio.brick_lib_api.core.network.type;
 
 
 import com.arc_studio.brick_lib_api.BrickLibAPI;
+import com.arc_studio.brick_lib_api.core.data.ResourceID;
 import com.arc_studio.brick_lib_api.core.network.PacketContent;
 import com.arc_studio.brick_lib_api.core.network.context.C2SNetworkContext;
 import com.arc_studio.brick_lib_api.core.network.context.S2CNetworkContext;
-import net.minecraft.resources.ResourceLocation;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -15,12 +15,12 @@ import java.util.function.Function;
 
 @ApiStatus.NonExtendable
 public abstract class PacketConfig {
-    ResourceLocation id;
+    ResourceID id;
 
     public PacketConfig() {
     }
 
-    public ResourceLocation id() {
+    public ResourceID id() {
         return id;
     }
 
@@ -165,9 +165,9 @@ public abstract class PacketConfig {
         /** 客户端网络处理器标志 */
         boolean clientNetHandle;
         /** 服务端到客户端的资源标识 */
-        ResourceLocation s2cID;
+        ResourceID s2cID;
         /** 客户端到服务端的资源标识 */
-        ResourceLocation c2sID;
+        ResourceID c2sID;
 
         /**
          * 创建双向通信数据包配置
@@ -199,11 +199,11 @@ public abstract class PacketConfig {
             this.clientNetHandle = clientNetHandle;
         }
 
-        public ResourceLocation s2cID() {
+        public ResourceID s2cID() {
             return s2cID;
         }
 
-        public ResourceLocation c2sID() {
+        public ResourceID c2sID() {
             return c2sID;
         }
 
@@ -268,9 +268,9 @@ public abstract class PacketConfig {
         Function<Boolean, List<Pair<String,T>>> packetGenerator;
 
         /** 服务端到客户端的资源标识 */
-        ResourceLocation s2cID;
+        ResourceID s2cID;
         /** 客户端到服务端的资源标识 */
-        ResourceLocation c2sID;
+        ResourceID c2sID;
 
         /**
          * 创建登录包配置
@@ -303,11 +303,11 @@ public abstract class PacketConfig {
             id = BrickLibAPI.ofPath(string);
         }
 
-        public ResourceLocation s2cID() {
+        public ResourceID s2cID() {
             return s2cID;
         }
 
-        public ResourceLocation c2sID() {
+        public ResourceID c2sID() {
             return c2sID;
         }
 

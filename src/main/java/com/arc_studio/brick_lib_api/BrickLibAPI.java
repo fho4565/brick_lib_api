@@ -2,8 +2,9 @@ package com.arc_studio.brick_lib_api;
 
 import com.arc_studio.brick_lib_api.core.Version;
 import com.arc_studio.brick_lib_api.core.data.ResourceID;
-import com.arc_studio.brick_lib_api.core.data.capability.builtin.example.CrossPlatformEvents;
+import com.arc_studio.brick_lib_api.core.data.capability.builtin.example.CapabilityExamples;
 import com.arc_studio.brick_lib_api.core.data.capability.core.CapabilityManager;
+import com.arc_studio.brick_lib_api.core.data.saved_data.SavedDataCodec;
 import com.arc_studio.brick_lib_api.core.network.BuiltInPacket;
 import com.arc_studio.brick_lib_api.core.network.type.PacketConfig;
 import com.arc_studio.brick_lib_api.core.register.BrickRegisterManager;
@@ -16,14 +17,17 @@ import com.arc_studio.brick_lib_api.register.BrickRegistries;
 import com.llamalad7.mixinextras.MixinExtrasBootstrap;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.*;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 
 //? if > 1.20.4 {
-/*import net.minecraft.world.item.trading.ItemCost;
-*///?}
+import net.minecraft.server.permissions.Permissions;
+import net.minecraft.world.item.trading.ItemCost;
+//?}
 import com.mojang.logging.LogUtils;
+import net.neoforged.neoforge.server.permission.PermissionAPI;
 import org.slf4j.Logger;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -47,7 +51,8 @@ public final class BrickLibAPI {
         Constants.initGeneral();
         BrickLibAPI.LOGGER.info("Brick Lib API Version : {}", BRICK_LIB_API_VERSION);
         CapabilityManager.initBuiltinMappings();
-        CrossPlatformEvents.register();
+        initSavedDataCodecs();
+        CapabilityExamples.register();
         preLoad();
         brickLibApiFinalize();
     }
@@ -79,7 +84,7 @@ public final class BrickLibAPI {
         );
         BrickRegisterManager.register(BrickRegistries.COMMAND, () -> buildContext ->
                 Commands.literal("brick_lib")
-                        .requires(stack -> stack.hasPermission(2))
+                        .requires(stack ->/*? if < 1.21.5 {*/ /*stack.hasPermission(2)*/ /*?} else {*/ stack.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER) /*?}*/)
                         .then(
                             Commands.literal("config")
                                 .then(Commands.literal("list")
@@ -141,14 +146,14 @@ public final class BrickLibAPI {
     private static void initPackets() {
         BrickRegisterManager.register(BrickRegistries.NETWORK_PACKET,
                 BrickLibAPI.ofPath("built_in_packet"),
-                () -> new PacketConfig.SAC<>(BuiltInPacket.class,
-                        BuiltInPacket::encoder,
-                        BuiltInPacket::new,
-                        BuiltInPacket::serverHandle,
-                        BuiltInPacket::clientHandle,
-                        false,
-                        false
-                )
+            () -> new PacketConfig.SAC<>(BuiltInPacket.class,
+                BuiltInPacket::encoder,
+                BuiltInPacket::new,
+                BuiltInPacket::serverHandle,
+                BuiltInPacket::clientHandle,
+                false,
+                false
+            )
         );
         BrickRegistries.NETWORK_PACKET.register(BrickLibAPI.ofPath("config_sync_packet"),() ->
                 new PacketConfig.Login<>(
@@ -183,6 +188,15 @@ public final class BrickLibAPI {
         );
     }
 
+    private static void initSavedDataCodecs() {
+        ResourceID blockPosId = ofPath("block_pos");
+        BrickRegisterManager.register(
+                BrickRegistries.SAVED_DATA_CODEC,
+                blockPosId,
+                () -> new SavedDataCodec<>(blockPosId, BlockPos.CODEC)
+        );
+    }
+
     private static int genData(CommandContext<CommandSourceStack> context, boolean client, boolean server) {
         try {
             BrickDataGenerator.run(client, server);
@@ -190,10 +204,10 @@ public final class BrickLibAPI {
             //? if > 1.18.2 {
             context.getSource().sendFailure(Component.literal("Error when generate data").withStyle(style -> style.withHoverEvent(
                 //? if < 1.21.5 {
-                new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(e.getMessage()))
-                //?} else {
-                /*new HoverEvent.ShowText(Component.literal(e.getMessage()))
-                 *///?}
+                /*new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(e.getMessage()))
+                *///?} else {
+                new HoverEvent.ShowText(Component.literal(e.getMessage()))
+                 //?}
             )));
             //?} else {
             /*context.getSource().sendFailure(new TextComponent("Error when generate data").withStyle(style -> style.withHoverEvent(
@@ -214,4 +228,3 @@ public final class BrickLibAPI {
     }
 
 }
-

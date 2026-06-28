@@ -1,15 +1,15 @@
 package com.arc_studio.brick_lib_api.core.event;
 
 //? if forge {
-import net.minecraftforge.eventbus.api.Event;
-//?}
+/*import net.minecraftforge.eventbus.api.Event;
+*///?}
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 /**
  * 事件包装器
  *
  */
-public class EventListenerWrapper<T extends BaseEvent> /*? if forge {*/ extends Event /*?}*/ implements Comparable<EventListenerWrapper<?>> {
+public class EventListenerWrapper<T extends BaseEvent> /*? if forge {*/ /*extends Event *//*?}*/ implements Comparable<EventListenerWrapper<?>> {
     String name = null;
     Priority priority = Priority.NORMAL;
     EventListener<T> listener;

@@ -3,17 +3,29 @@ package com.arc_studio.brick_lib_api.core.data;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
-import net.minecraft.ResourceLocationException;
+
 //? if > 1.18.2 {
+import net.minecraft.IdentifierException;
 import net.minecraft.network.chat.Component;
 //?} else {
 /*import net.minecraft.network.chat.TranslatableComponent;
 *///?}
-import net.minecraft.resources.ResourceLocation;
+
+//? if > 1.12.5 {
+import net.minecraft.resources.Identifier;
+//? } else {
+/*import net.minecraft.resources.ResourceLocation;
+import net.minecraft.ResourceLocationException;*/
+//? }
+
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
-public class ResourceID extends ResourceLocation {
+public class ResourceID extends
+    //~ if > 1.21.5 'ResourceLocation' -> 'Identifier'
+    Identifier
+{
     protected static final SimpleCommandExceptionType ERROR_INVALID =
         new SimpleCommandExceptionType(
             //? if <= 1.18.2 {
@@ -24,17 +36,17 @@ public class ResourceID extends ResourceLocation {
         );
     public ResourceID(String location) {
         //? if > 1.20.6 {
-        /*this(decompose(location, ':'));
-        *///?} else {
-        super(location);
-        //?}
+        this(decompose(location, ':'));
+        //?} else {
+        /*super(location);
+        *///?}
     }
 
     public ResourceID(String namespace, String path) {
         super(namespace, path);
     }
 
-    public ResourceID(ResourceLocation rl) {
+    public ResourceID(ResourceID rl) {
         super(rl.getNamespace(),rl.getPath());
     }
 
@@ -54,7 +66,7 @@ public class ResourceID extends ResourceLocation {
     public static ResourceID tryParse(String location) {
         try {
             return new ResourceID(location);
-        } catch (ResourceLocationException var2) {
+        } catch (/*? if < 1.21.5 {*/ /*ResourceLocationException*/ /*?} else {*/ IdentifierException /*?}*/ var2) {
             return null;
         }
     }
@@ -63,7 +75,7 @@ public class ResourceID extends ResourceLocation {
     public static ResourceID tryBuild(String namespace, String path) {
         try {
             return new ResourceID(namespace, path);
-        } catch (ResourceLocationException var3) {
+        } catch (/*? if < 1.21.5 {*/ /*ResourceLocationException*/ /*?} else {*/ IdentifierException /*?}*/ var3) {
             return null;
         }
     }
@@ -92,7 +104,7 @@ public class ResourceID extends ResourceLocation {
 
         try {
             return new ResourceID(s);
-        } catch (ResourceLocationException var4) {
+        } catch (/*? if < 1.21.5 {*/ /*ResourceLocationException*/ /*?} else {*/ IdentifierException /*?}*/ var4) {
             reader.setCursor(i);
             throw ERROR_INVALID.createWithContext(reader);
         }
@@ -124,7 +136,7 @@ public class ResourceID extends ResourceLocation {
 
     private static String assertValidNamespace(String namespace, String path) {
         if (!isValidNamespace(namespace)) {
-            throw new ResourceLocationException("Non [a-z0-9_.-] character in namespace of ResourceID: " + namespace + ":" + path);
+            throw new /*? if < 1.21.5 {*/ /*ResourceLocationException*/ /*?} else {*/ IdentifierException /*?}*/("Non [a-z0-9_.-] character in namespace of ResourceID: " + namespace + ":" + path);
         } else {
             return namespace;
         }
@@ -145,7 +157,7 @@ public class ResourceID extends ResourceLocation {
 
     private static String assertValidPath(String namespace, String path) {
         if (!isValidPath(path)) {
-            throw new ResourceLocationException("Non [a-z0-9/._-] character in path of ResourceID: " + namespace + ":" + path);
+            throw new /*? if < 1.21.5 {*/ /*ResourceLocationException*/ /*?} else {*/ IdentifierException /*?}*/("Non [a-z0-9/._-] character in path of ResourceID: " + namespace + ":" + path);
         } else {
             return path;
         }

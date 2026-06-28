@@ -1,19 +1,23 @@
 package com.arc_studio.brick_lib_api.core.data.capability.builtin.example;
 
 import com.arc_studio.brick_lib_api.core.data.capability.IFluidStorage;
+import com.arc_studio.brick_lib_api.core.data.capability.block_entity.BrickFluidCapabilityBlockEntity;
 import com.arc_studio.brick_lib_api.core.data.capability.impl.SimpleFluidStorage;
+import com.arc_studio.brick_lib_api.core.data.capability.transaction.BrickTransaction;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 //? if forge {
-import net.minecraft.core.Direction;
-import net.minecraft.world.level.block.entity.ChestBlockEntity;
+/*import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraftforge.common.capabilities.Capability;
 //? if >= 1.19.3 {
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
@@ -21,13 +25,13 @@ import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-//?}
+*///?}
 
 //? if neoforge {
-/*import net.minecraft.core.Direction;
+import net.minecraft.core.Direction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-*///?}
+//?}
 
 /**
  * 石头流体存储的 BlockEntity
@@ -39,34 +43,34 @@ import org.jetbrains.annotations.Nullable;
  * 实际数据由 {@link StoneFluidData}（BrickSavedData）管理，此 BlockEntity 仅作为能力桥接。
  * </p>
  */
-public class StoneFluidBlockEntity extends BlockEntity {
+public class StoneFluidBlockEntity extends BrickFluidCapabilityBlockEntity {
 
     /** BlockEntityType 实例 — 在 StoneFluidEvents 中注册 */
     public static BlockEntityType<StoneFluidBlockEntity> TYPE;
 
     //? if forge {
-    private LazyOptional<IFluidHandler> fluidHandlerLazy = LazyOptional.empty();
-    //?}
+    /*private LazyOptional<IFluidHandler> fluidHandlerLazy = LazyOptional.empty();
+    *///?}
 
     public StoneFluidBlockEntity(BlockPos pos, BlockState state) {
         super(TYPE, pos, state);
     }
 
     //? if forge {
-    @Override
+    /*@Override
     public void onLoad() {
         super.onLoad();
         if (level instanceof ServerLevel serverLevel && getBlockState().is(Blocks.CHEST)) {
             serverLevel.setBlockEntity(new ChestBlockEntity(worldPosition, getBlockState()));
         }
     }
-    //?}
+    *///?}
 
     /**
      * 获取此位置的 UCS SimpleFluidStorage（从 BrickSavedData）
      */
     @Nullable
-    public SimpleFluidStorage getStorage() {
+    public SimpleFluidStorage getStorage(Direction side) {
         if (level instanceof ServerLevel serverLevel
                 && getBlockState().is(Blocks.CHEST)
                 && level.getBlockState(worldPosition).is(Blocks.CHEST)) {
@@ -76,20 +80,26 @@ public class StoneFluidBlockEntity extends BlockEntity {
         return null;
     }
 
+    @Override
+    @Nullable
+    public IFluidStorage getFluidStorage(@Nullable Direction side) {
+        return getStorage(side);
+    }
+
     // ========================
     // Forge: ICapabilityProvider
     // ========================
 
     //? if forge {
 
-    @Override
+    /*@Override
     @SuppressWarnings("removal")
     public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
         //? if >= 1.19.3 {
         if (cap == ForgeCapabilities.FLUID_HANDLER) {
         //?} else {
-        /*if (cap == net.minecraftforge.fluids.capability.CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
-        *///?}
+        /^if (cap == net.minecraftforge.fluids.capability.CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
+        ^///?}
             return getFluidHandlerLazy().cast();
         }
         return super.getCapability(cap, side);
@@ -114,9 +124,9 @@ public class StoneFluidBlockEntity extends BlockEntity {
         fluidHandlerLazy = LazyOptional.empty();
     }
 
-    /**
+    /^*
      * 将 UCS SimpleFluidStorage 桥接为 Forge IFluidStorage
-     */
+     ^/
     private static class ForgeFluidHandlerBridge implements IFluidHandler {
         private final StoneFluidBlockEntity be;
 
@@ -125,7 +135,7 @@ public class StoneFluidBlockEntity extends BlockEntity {
         }
 
         private SimpleFluidStorage storage() {
-            return be.getStorage();
+            return be.getStorage(Direction.UP);
         }
 
         @Override
@@ -155,7 +165,7 @@ public class StoneFluidBlockEntity extends BlockEntity {
         public boolean isFluidValid(int tank, @NotNull FluidStack stack) {
             SimpleFluidStorage s = storage();
             if (s == null) return false;
-            return s.isFluidValid(tank, stack.getFluid());
+            return s.isFluidValid(tank, stack.getFluid(),Direction.UP);
         }
 
         @Override
@@ -163,10 +173,9 @@ public class StoneFluidBlockEntity extends BlockEntity {
             SimpleFluidStorage s = storage();
             if (s == null || resource.isEmpty()) return 0;
             if (action.simulate()) {
-                return IFluidStorage.getFillableMb(s, resource.getFluid(), resource.getAmount());
+                return IFluidStorage.getFillableMb(s, resource.getFluid(),Direction.UP, resource.getAmount());
             }
-            long droplets = IFluidStorage.mbToDroplets(resource.getAmount());
-            long filled = IFluidStorage.fill(s, resource.getFluid(), droplets, this::markDataDirty);
+            long filled = executePartialFill(s, resource.getFluid(), IFluidStorage.mbToDroplets(resource.getAmount()));
             return IFluidStorage.dropletsToMb(filled);
         }
 
@@ -178,8 +187,7 @@ public class StoneFluidBlockEntity extends BlockEntity {
                 int drained = IFluidStorage.getDrainableMb(s, resource.getFluid(), resource.getAmount());
                 return drained > 0 ? new FluidStack(resource.getFluid(), drained) : FluidStack.EMPTY;
             }
-            long droplets = IFluidStorage.mbToDroplets(resource.getAmount());
-            long drained = IFluidStorage.drain(s, resource.getFluid(), droplets, this::markDataDirty);
+            long drained = executePartialDrain(s, resource.getFluid(), IFluidStorage.mbToDroplets(resource.getAmount()));
             return drained > 0 ? new FluidStack(resource.getFluid(), IFluidStorage.dropletsToMb(drained)) : FluidStack.EMPTY;
         }
 
@@ -193,9 +201,44 @@ public class StoneFluidBlockEntity extends BlockEntity {
                 int drained = IFluidStorage.getDrainableMb(s, fluid, maxDrain);
                 return drained > 0 ? new FluidStack(fluid, drained) : FluidStack.EMPTY;
             }
-            long droplets = IFluidStorage.mbToDroplets(maxDrain);
-            long drained = IFluidStorage.drain(s, droplets, this::markDataDirty);
+            long drained = executePartialDrain(s, IFluidStorage.mbToDroplets(maxDrain));
             return drained > 0 ? new FluidStack(fluid, IFluidStorage.dropletsToMb(drained)) : FluidStack.EMPTY;
+        }
+
+        private long executePartialFill(SimpleFluidStorage storage, net.minecraft.world.level.material.Fluid fluid, long amount) {
+            if (fluid == null || amount <= 0) return 0;
+            try (BrickTransaction tx = BrickTransaction.openOuter()) {
+                long filled = storage.fill(fluid,Direction.UP, amount, tx);
+                if (filled > 0) {
+                    tx.commit();
+                    markDataDirty();
+                }
+                return filled;
+            }
+        }
+
+        private long executePartialDrain(SimpleFluidStorage storage, net.minecraft.world.level.material.Fluid fluid, long amount) {
+            if (fluid == null || amount <= 0) return 0;
+            try (BrickTransaction tx = BrickTransaction.openOuter()) {
+                long drained = storage.drain(fluid, Direction.UP, amount, tx);
+                if (drained > 0) {
+                    tx.commit();
+                    markDataDirty();
+                }
+                return drained;
+            }
+        }
+
+        private long executePartialDrain(SimpleFluidStorage storage, long amount) {
+            if (amount <= 0) return 0;
+            try (BrickTransaction tx = BrickTransaction.openOuter()) {
+                long drained = storage.drain(amount,Direction.UP, tx);
+                if (drained > 0) {
+                    tx.commit();
+                    markDataDirty();
+                }
+                return drained;
+            }
         }
 
         private void markDataDirty() {
@@ -204,7 +247,7 @@ public class StoneFluidBlockEntity extends BlockEntity {
             }
         }
     }
-    //?}
+    *///?}
 
     // ========================
 
@@ -214,17 +257,31 @@ public class StoneFluidBlockEntity extends BlockEntity {
 
     //? if !fabric {
     //? if >= 1.20.6 {
+    //? if < 1.21.5 {
     /*@Override
-    protected void saveAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-    }
-    *///?} else {
+    }*/
+    //? } else {
+
     @Override
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+    }
+
+    @Override
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+    }
+
+    //? }
+    //?} else {
+    /*@Override
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
     }
@@ -233,7 +290,7 @@ public class StoneFluidBlockEntity extends BlockEntity {
     public void load(CompoundTag tag) {
         super.load(tag);
     }
-    //?}
+    *///?}
     //?}
 }
 

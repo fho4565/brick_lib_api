@@ -34,6 +34,7 @@ plugins {
     //id("fabric-loom") // Leaving this here if you want to swap loom.
     id("dev.kikugie.stonecutter")
     id("dev.architectury.loom")
+    id("dev.mixinmcp.decompile")
     //id("dev.kikugie.j52j") // Recommended by kiku if using swaps in json5.
     id("me.modmuss50.mod-publish-plugin")
     id("net.darkhax.curseforgegradle")
@@ -47,15 +48,16 @@ repositories {
     mavenCentral()
     maven("https://repo.huaweicloud.com/repository/maven/")
     maven("https://mirrors.cloud.tencent.com/nexus/repository/maven-public/")
-    //maven("https://mirrors.163.com/maven/repository/maven-public/")
+    maven("https://mirrors.163.com/maven/repository/maven-public/")
     maven("https://maven.aliyun.com/repository/google")
     maven("https://maven.aliyun.com/repository/public")
     maven("https://maven.aliyun.com/repository/gradle-plugin")
     maven("https://maven.parchmentmc.org")
     maven("https://modmaven.dev/")
-    //maven("https://mirrors.imucraft.cn")
+    //maven("https://mirrors.imucraft.cn") // SSL 证书过期，禁用
     maven("https://mirror.nyist.edu.cn")
     maven("https://mirrors.qlu.edu.cn/")
+    maven("https://bmclapi2.bangbang93.com/maven/") { name = "BMCLAPI" }
     exclusiveContent {
         forRepository { maven("https://www.cursemaven.com") { name = "CurseForge" } }
         filter { includeGroup("curse.maven") }
@@ -64,19 +66,10 @@ repositories {
         forRepository { maven("https://api.modrinth.com/maven") { name = "Modrinth" } }
         filter { includeGroup("maven.modrinth") }
     }
-    //maven("https://maven.neoforged.net/releases/")
-    maven("http://maven.neoforged.net/releases/"){
-        isAllowInsecureProtocol = true
-    }
-    maven ("http://maven.fabricmc.net/"){
-        isAllowInsecureProtocol = true
-    }
-    maven("http://maven.architectury.dev/"){
-        isAllowInsecureProtocol = true
-    }
-    maven("http://maven.minecraftforge.net/"){
-        isAllowInsecureProtocol = true
-    }
+    maven("https://maven.architectury.dev/")
+    maven("https://maven.fabricmc.net/")
+    maven("https://maven.neoforged.net/releases/") // 国内网络连接被重置，使用 BMCLAPI 镜像替代
+    maven("https://maven.minecraftforge.net/")
 }
 
 fun bool(str: String) : Boolean {
@@ -180,6 +173,7 @@ enum class EnvType {
  */
 class Env {
     val parchmentVersions = mapOf(
+        "1.21.11" to "2025.12.20",
         "1.21.8" to "2025.07.20",
         "1.21.7" to "2025.07.18",
         "1.21.6" to "2025.06.29",
@@ -239,6 +233,12 @@ class Env {
             return split[1]
         }
         return ""
+    }
+
+    fun awName() = when {
+        env.atMost("1.21.10") -> "brick_lib_api"
+        env.loader == "neoforge" -> "brick_lib_api1211nf"
+        else -> "brick_lib_api1211"
     }
 }
 val env = Env()
@@ -302,7 +302,7 @@ val apis = arrayListOf(
         src.versionRange.isPresent && env.isFabric
     },
     APISource(DepType.INCLUDE, APIModInfo("team_reborn_energy"), "teamreborn:energy", optionalVersionProperty("deps.api.team_reborn_energy")) { src ->
-        src.versionRange.isPresent && env.isFabric
+        src.versionRange.isPresent && env.isFabric// && env.isNot("1.21.11")
     },
 )
 
@@ -363,7 +363,7 @@ class ModMixins {
 }
 
 class ModAWs {
-    val vanillaAW = "src/main/resources/${mod.id}.accesswidener"
+    val vanillaAW = "src/main/resources/${env.awName()}.accesswidener"
 
     fun getAWs() : String {
         return vanillaAW
@@ -447,7 +447,11 @@ val dependencies = ModDependencies()
 class SpecialMultiversionedConstants {
     private val mandatoryIndicator = if(env.isNeo) "required" else "mandatory"
     val mixinField = if(env.atLeast("1.20.4") && env.isNeo) neoForgeMixinField() else if(env.isFabric) fabricMixinField() else ""
-    val awField = if(env.isFabric) "  \"accessWidener\" : \"brick_lib_api.accesswidener\"," else ""
+    val awField = if(env.isFabric) {
+        "  \"accessWidener\" : \"${env.awName()}.accesswidener\","
+    } else {
+        ""
+    }
 
     val forgelikeLoaderVer =  if(env.isForge) env.forgeLanguageVersion.asForgelike() else env.neoforgeLoaderVersion.asForgelike()
     val forgelikeAPIVer = if(env.isForge) env.forgeVersion.asForgelike() else env.neoforgeVersion.asForgelike()
@@ -686,7 +690,7 @@ abstract class ProcessResourcesExtension : ProcessResources() {
 fletchingTable{
     if (env.isForge || env.isNeo){
         accessConverter.register(sourceSets.main) {
-            add("brick_lib_api.accesswidener")
+            add("${env.awName()}.accesswidener")
         }
     }
 }

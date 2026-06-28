@@ -1,5 +1,5 @@
 //? if forge {
-package com.arc_studio.brick_lib_api.entrypoints;
+/*package com.arc_studio.brick_lib_api.entrypoints;
 
 import com.arc_studio.brick_lib_api.BrickLibAPI;
 import com.arc_studio.brick_lib_api.platform.ForgePlatform;
@@ -8,19 +8,19 @@ import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 //? if >= 1.20.4 {
-/*import net.minecraftforge.network.tasks.ForgeNetworkConfigurationHandler;
-*///?}
+import net.minecraftforge.network.tasks.ForgeNetworkConfigurationHandler;
+//?}
 
-/**
+/^*
  * Forge模组的入口点
- */
+ ^/
 @Mod(BrickLibAPI.MOD_ID)
 public class ForgeEP {
     public ForgeEP() {
         CommonEP.init();
         //? if >= 1.20.4 {
-        /*MinecraftForge.EVENT_BUS.register(new ForgePlatform.InternalEventClass());
-        *///?}
+        MinecraftForge.EVENT_BUS.register(new ForgePlatform.InternalEventClass());
+        //?}
     }
 }
-//?}
+*///?}

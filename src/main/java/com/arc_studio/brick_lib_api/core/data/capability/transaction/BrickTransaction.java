@@ -227,5 +227,12 @@ public class BrickTransaction implements AutoCloseable, BrickTransactionContext 
             throw new BrickTransactionException("BrickTransaction is already committed.");
         }
     }
+
+    //? if > 1.21.5 {
+    @Override
+    public int depth() {
+        return this.depth;
+    }
+    //? }
 }
 

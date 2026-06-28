@@ -1,8 +1,8 @@
 package com.arc_studio.brick_lib_api.core.event;
 
 //? if forge {
-import net.minecraftforge.common.MinecraftForge;
-//?}
+/*import net.minecraftforge.common.MinecraftForge;
+*///?}
 
 import java.util.HashSet;
 import java.util.HashMap;
@@ -251,10 +251,10 @@ public final class BrickEventBus {
                     return true;
                 }
                 //? if forge {
-                else {
+                /*else {
                     return MinecraftForge.EVENT_BUS.post(wrapper);
                 }
-                //?}
+                *///?}
             }
         }
         return false;

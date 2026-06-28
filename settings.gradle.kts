@@ -1,5 +1,8 @@
 pluginManagement {
     repositories {
+        maven("https://maven.kikugie.dev/releases")
+        maven("https://maven.kikugie.dev/snapshots")
+        maven("https://maven.muon.rip/releases")
         gradlePluginPortal()
         mavenCentral()
         maven {
@@ -16,8 +19,6 @@ pluginManagement {
         maven("https://maven.minecraftforge.net/")
         maven("https://maven.neoforged.net/releases/")
         maven("https://repo.spongepowered.org/maven")
-        maven("https://maven.kikugie.dev/releases")
-        maven("https://maven.kikugie.dev/snapshots")
         maven("https://maven.aliyun.com/repository/google")
         maven("https://maven.aliyun.com/repository/public")
         maven("https://maven.aliyun.com/repository/gradle-plugin")
@@ -25,13 +26,11 @@ pluginManagement {
         maven("https://mirrors.cloud.tencent.com/nexus/repository/maven-public/")
         maven("https://mirrors.163.com/maven/repository/maven-public/")
         maven("https://maven.parchmentmc.org")
-        maven("https://maven.neoforged.net/releases/")
         maven("https://maven.architectury.dev/")
         maven("https://modmaven.dev/")
         maven("https://mirrors.imucraft.cn")
         maven("https://mirrors.imucraft.cn/neoforge/")
         maven("https://mirrors.qlu.edu.cn/bmclapi/")
-        maven("https://maven.kikugie.dev/snapshots") { name = "KikuGie Snapshots" }
     }
     plugins {
         kotlin("jvm") version "2.2.0"
@@ -70,6 +69,8 @@ stonecutter {
         version("1.21.4-neoforge","1.21.4")
         version("1.21.5-fabric","1.21.5")
         version("1.21.5-neoforge","1.21.5")
+        version("1.21.11-neoforge","1.21.11")
+        version("1.21.11-fabric","1.21.11")
         vcsVersion="1.20.1-forge"
     }
 }

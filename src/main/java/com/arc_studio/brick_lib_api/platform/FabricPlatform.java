@@ -6,6 +6,10 @@ import com.arc_studio.brick_lib_api.Constants;
 import com.arc_studio.brick_lib_api.core.PlatformInfo;
 import com.arc_studio.brick_lib_api.core.SideExecutor;
 import com.arc_studio.brick_lib_api.core.VillagerTradeEntry;
+import com.arc_studio.brick_lib_api.core.data.capability.EnergyEjectorApi;
+import com.arc_studio.brick_lib_api.core.data.capability.context.BlockCapabilityContext;
+import com.arc_studio.brick_lib_api.core.data.capability.core.BlockTransferConfig;
+import com.arc_studio.brick_lib_api.core.data.capability.core.CapabilityEntries;
 import com.arc_studio.brick_lib_api.core.data.capability.core.FabricTransferAdapter;
 import com.arc_studio.brick_lib_api.core.network.PacketContent;
 import com.arc_studio.brick_lib_api.core.network.context.C2SNetworkContext;
@@ -37,6 +41,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +55,7 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings({"unchecked", "rawtypes", "deprecation", "removal"})
 public class FabricPlatform {
     private static final Logger LOGGER = LoggerFactory.getLogger(FabricPlatform.class);
 
@@ -65,54 +71,65 @@ public class FabricPlatform {
      * </p>
      ^/
     public static void registerCapabilityLookups() {
-        BrickRegistries.CAPABILITY_ITEM.forEach(entry -> {
-            var block = entry.block();
-            var provider = entry.provider();
-            net.fabricmc.fabric.api.transfer.v1.item.ItemStorage.SIDED.registerForBlocks(
-                    (world, pos, state, blockEntity, direction) -> {
-                        if (!(world instanceof ServerLevel serverLevel)) {
+        BrickRegistries.CAPABILITY.forEach(entry -> {
+            Block block = entry.target().exactBlock();
+            if (block == null) {
+                return;
+            }
+            if (entry.capability() == com.arc_studio.brick_lib_api.core.data.capability.BuiltinCapabilities.ITEM_HANDLER) {
+                net.fabricmc.fabric.api.transfer.v1.item.ItemStorage.SIDED.registerForBlocks(
+                        (world, pos, state, blockEntity, direction) -> {
+                            if (!(world instanceof ServerLevel serverLevel)) {
+                                return null;
+                            }
+                            BlockCapabilityContext context = CapabilityEntries.blockContext(entry, serverLevel, pos, state, blockEntity);
+                            if (context == null || sideClosed(entry.transferConfig(context), direction)) return null;
+                            var ucs = entry.get(context, direction);
+                            return ucs instanceof com.arc_studio.brick_lib_api.core.data.capability.IItemStorage item
+                                    ? FabricTransferAdapter.wrapAsItemStorage(item, direction)
+                                    : null;
+                        },
+                        block
+                );
+            } else if (entry.capability() == com.arc_studio.brick_lib_api.core.data.capability.BuiltinCapabilities.ENERGY) {
+                team.reborn.energy.api.EnergyStorage.SIDED.registerForBlocks(
+                        (world, pos, state, blockEntity, direction) -> {
+                            if (!(world instanceof ServerLevel serverLevel)) {
+                                return null;
+                            }
+                            BlockCapabilityContext context = CapabilityEntries.blockContext(entry, serverLevel, pos, state, blockEntity);
+                            if (context == null) return null;
+                            BlockTransferConfig config = entry.transferConfig(context);
+                            if (sideClosed(config, direction)) return null;
+                            var ucs = entry.get(context, direction);
+                            if (ucs instanceof com.arc_studio.brick_lib_api.core.data.capability.IEnergyStorage energy) {
+                                if (config != null) EnergyEjectorApi.track(serverLevel, pos);
+                                return FabricTransferAdapter.wrapAsEnergyStorage(energy, direction,
+                                        () -> entry.markDirty(context));
+                            }
                             return null;
-                        }
-                        var ucs = provider.getItem(serverLevel, pos, state, blockEntity, direction);
-                        return ucs != null ? FabricTransferAdapter.wrapAsItemStorage(ucs) : null;
-                    },
-                    block
-            );
+                        },
+                        block
+                );
+            } else if (entry.capability() == com.arc_studio.brick_lib_api.core.data.capability.BuiltinCapabilities.FLUID_HANDLER) {
+                net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage.SIDED.registerForBlocks(
+                        (world, pos, state, blockEntity, direction) -> {
+                            if (!(world instanceof ServerLevel serverLevel)) return null;
+                            BlockCapabilityContext context = CapabilityEntries.blockContext(entry, serverLevel, pos, state, blockEntity);
+                            if (context == null || sideClosed(entry.transferConfig(context), direction)) return null;
+                            var ucs = entry.get(context, direction);
+                            return ucs instanceof com.arc_studio.brick_lib_api.core.data.capability.IFluidStorage fluid
+                                    ? FabricTransferAdapter.wrapAsFluidStorage(fluid, direction)
+                                    : null;
+                        },
+                        block
+                );
+            }
         });
-        BrickRegistries.CAPABILITY_ENERGY.forEach(entry -> {
-            var block = entry.block();
-            var provider = entry.provider();
-            var dirtyNotifier = entry.dirtyNotifier();
-            team.reborn.energy.api.EnergyStorage.SIDED.registerForBlocks(
-                    (world, pos, state, blockEntity, direction) -> {
-                        if (!(world instanceof ServerLevel serverLevel)) {
-                            return null;
-                        }
-                        var ucs = provider.getEnergy(serverLevel, pos, state, blockEntity, direction);
-                        if (ucs != null) {
-                            return FabricTransferAdapter.wrapAsEnergyStorage(ucs,
-                                    () -> { if (dirtyNotifier != null) dirtyNotifier.accept(serverLevel, pos); });
-                        }
-                        return null;
-                    },
-                    block
-            );
-        });
-        BrickRegistries.CAPABILITY_FLUID.forEach(entry -> {
-            var block = entry.block();
-            var provider = entry.provider();
-            net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage.SIDED.registerForBlocks(
-                    (world, pos, state, blockEntity, direction) -> {
-                        if (!(world instanceof ServerLevel serverLevel)) return null;
-                        var ucs = provider.getFluid(serverLevel, pos, state, blockEntity, direction);
-                        if (ucs != null) {
-                            return FabricTransferAdapter.wrapAsFluidStorage(ucs);
-                        }
-                        return null;
-                    },
-                    block
-            );
-        });
+    }
+
+    private static boolean sideClosed(BlockTransferConfig config, net.minecraft.core.Direction direction) {
+        return direction != null && config != null && (!config.isEnabled(direction) || config.isLocked(direction));
     }
 
     // ===========================

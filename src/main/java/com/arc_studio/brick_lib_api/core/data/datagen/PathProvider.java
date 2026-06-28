@@ -1,6 +1,6 @@
 package com.arc_studio.brick_lib_api.core.data.datagen;
 
-import net.minecraft.resources.ResourceLocation;
+import com.arc_studio.brick_lib_api.core.data.ResourceID;
 
 import java.nio.file.Path;
 
@@ -13,11 +13,11 @@ public class PathProvider {
         this.kind = kind;
     }
 
-    public Path file(ResourceLocation location, String extension) {
+    public Path file(ResourceID location, String extension) {
         return this.root.resolve(location.getNamespace()).resolve(this.kind).resolve(location.getPath() + "." + extension);
     }
 
-    public Path json(ResourceLocation location) {
+    public Path json(ResourceID location) {
         return this.root.resolve(location.getNamespace()).resolve(this.kind).resolve(location.getPath() + ".json");
     }
 }

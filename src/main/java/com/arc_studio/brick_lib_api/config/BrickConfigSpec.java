@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
  * <li>Class name changed to BrickConfigSpec.</li>
  * </ol>
  */
+@SuppressWarnings({"deprecation", "removal"})
 public class BrickConfigSpec extends UnmodifiableConfigWrapper<UnmodifiableConfig> {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final Pattern WINDOWS_NEWLINE = Pattern.compile("\r\n");

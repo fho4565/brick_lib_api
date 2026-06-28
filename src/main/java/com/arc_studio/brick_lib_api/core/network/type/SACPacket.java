@@ -3,13 +3,13 @@ package com.arc_studio.brick_lib_api.core.network.type;
 
 
 import com.arc_studio.brick_lib_api.BrickLibAPI;
+import com.arc_studio.brick_lib_api.core.data.ResourceID;
 import com.arc_studio.brick_lib_api.core.network.context.C2SNetworkContext;
 import com.arc_studio.brick_lib_api.core.network.context.S2CNetworkContext;
 import com.arc_studio.brick_lib_api.core.SideExecutor;
 //? if >= 1.20.4 {
-/*import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-*///?}
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+//?}
 import org.jetbrains.annotations.ApiStatus;
 
 /**
@@ -18,11 +18,11 @@ import org.jetbrains.annotations.ApiStatus;
 public abstract class SACPacket extends Packet implements ICHandlePacket, ISHandlePacket {
 
     //? if > 1.20.4 {
-    /*@Override
+    @Override
     public Type<? extends CustomPacketPayload> type() {
         return new Type<>(id());
     }
-    *///?}
+    //?}
     @ApiStatus.Internal
     public final void serverHandleI(C2SNetworkContext context) {
         context.enqueueWork(() -> serverHandle(context));
@@ -34,7 +34,7 @@ public abstract class SACPacket extends Packet implements ICHandlePacket, ISHand
     }
 
     @Override
-    public ResourceLocation id() {
+    public ResourceID id() {
         return BrickLibAPI.ofPath(this.getClass().getName().replace(".", "_").toLowerCase());
     }
 }

@@ -32,9 +32,9 @@ import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentUtils;
 //? if >=1.21.2 {
-/*import net.minecraft.util.profiling.Profiler;
+import net.minecraft.util.profiling.Profiler;
 import net.minecraft.util.profiling.ProfilerFiller;
-*///?}
+//?}
 //? if <= 1.18.2 {
 /*import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -88,11 +88,11 @@ public final class ClientCommandInternals {
 		ClientSuggestionProvider commandSource = client.getConnection().getSuggestionsProvider();
 
         //? if >= 1.21.2 {
-        /*ProfilerFiller filler = Profiler.get();
+        ProfilerFiller filler = Profiler.get();
         filler.push("[CLIENT COMMAND]" + command);
-        *///?} else {
-        client.getProfiler().push("[CLIENT COMMAND]" + command);
-        //?}
+        //?} else {
+        /*client.getProfiler().push("[CLIENT COMMAND]" + command);
+        *///?}
 
 		try {
             if (activeDispatcher != null) {
@@ -118,10 +118,10 @@ public final class ClientCommandInternals {
 			return true;
 		} finally {
             //? if >= 1.21.2 {
-            /*filler.pop();
-            *///?} else {
-            client.getProfiler().pop();
-            //?}
+            filler.pop();
+            //?} else {
+            /*client.getProfiler().pop();
+            *///?}
 		}
 	}
 

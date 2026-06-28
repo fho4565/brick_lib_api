@@ -1,10 +1,10 @@
 package com.arc_studio.brick_lib_api.core.json_function;
 
+import com.arc_studio.brick_lib_api.core.data.ResourceID;
 import com.arc_studio.brick_lib_api.register.BrickRegistries;
 import com.google.gson.*;
 import com.google.gson.JsonObject;
 import com.google.gson.internal.LazilyParsedNumber;
-import net.minecraft.resources.ResourceLocation;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import java.math.BigDecimal;
@@ -75,7 +75,7 @@ public final class JsonFunctionExecutor {
             throw new IllegalArgumentException("function name cannot be null");
         }
 
-        JsonFunction function = BrickRegistries.JSON_FUNCTION.get(ResourceLocation.tryParse(id));
+        JsonFunction function = BrickRegistries.JSON_FUNCTION.get(ResourceID.tryParse(id));
         if (function == null) {
             throw new IllegalArgumentException("Unregistered Function: " + id);
         }

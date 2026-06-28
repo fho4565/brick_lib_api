@@ -39,8 +39,8 @@ public abstract class ClientPacketListenerMixin {
 //? if >1.19.2 {
 
     //? if > 1.20.6 {
-    /*@Final
-     *///?}
+    @Final
+     //?}
     @Shadow
     private FeatureFlagSet enabledFeatures;
 
@@ -59,11 +59,11 @@ public abstract class ClientPacketListenerMixin {
     private ClientSuggestionProvider suggestionsProvider;
 
     //? if <= 1.20.1 {
-    @Shadow
+    /*@Shadow
     private LayeredRegistryAccess<ClientRegistryLayer> registryAccess;
-    //?} else {
-    /*@Shadow @Final private RegistryAccess.Frozen registryAccess;
-     *///?}
+    *///?} else {
+    @Shadow @Final private RegistryAccess.Frozen registryAccess;
+     //?}
 
     @Inject(method = "handleLogin", at = @At("RETURN"))
     private void onGameJoin(ClientboundLoginPacket packet, CallbackInfo info) {
@@ -71,17 +71,17 @@ public abstract class ClientPacketListenerMixin {
         ClientCommandInternals.setActiveDispatcher(dispatcher);
         BrickRegistries.CLIENT_COMMAND.foreachRegisteredValue(function -> {
             //? if >= 1.20.6 {
-            /*dispatcher.register(function.apply(CommandBuildContext.simple(this.registryAccess, this.enabledFeatures)));
-             *///?} else {
-            dispatcher.register(function.apply(CommandBuildContext
+            dispatcher.register(function.apply(CommandBuildContext.simple(this.registryAccess, this.enabledFeatures)));
+             //?} else {
+            /*dispatcher.register(function.apply(CommandBuildContext
                 .configurable(
                     //? if <= 1.20.1 {
-                    this.registryAccess.compositeAccess()
-                    //?} else {
-                    /*this.registryAccess
-                     *///?}
+                    /^this.registryAccess.compositeAccess()
+                    ^///?} else {
+                    this.registryAccess
+                     //?}
                     , this.enabledFeatures)));
-            //?}
+            *///?}
         });
         ClientCommandInternals.finalizeInit();
     }

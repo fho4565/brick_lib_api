@@ -9,8 +9,8 @@ import io.netty.buffer.Unpooled;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 //? if > 1.20.4 {
-/*import net.minecraft.core.component.DataComponentMap;
- *///?}
+import net.minecraft.core.component.DataComponentMap;
+ //?}
 //? if > 1.19.2 {
 import net.minecraft.core.registries.BuiltInRegistries;
 import org.joml.Vector3f;
@@ -97,7 +97,7 @@ public class PacketContent {
 
     public PacketContent writeItemStack(ItemStack itemStack) {
         //? if >= 1.20.6 {
-        /*if (itemStack.isEmpty()) {
+        if (itemStack.isEmpty()) {
             friendlyByteBuf.writeBoolean(false);
         } else {
             friendlyByteBuf.writeBoolean(true);
@@ -116,9 +116,9 @@ public class PacketContent {
                 }
             });
         }
-        *///?} else {
-        friendlyByteBuf.writeItem(itemStack);
-        //?}
+        //?} else {
+        /*friendlyByteBuf.writeItem(itemStack);
+        *///?}
         return this;
     }
 
@@ -178,7 +178,7 @@ public class PacketContent {
 
     public PacketContent writeGameProfile(GameProfile gameProfile) {
         //? if >= 1.20.6 {
-        /*friendlyByteBuf.writeUUID(gameProfile.getId());
+        friendlyByteBuf.writeUUID(gameProfile.getId());
         friendlyByteBuf.writeUtf(gameProfile.getName());
         friendlyByteBuf.writeCollection(gameProfile.getProperties().values(), (buf, property) -> {
             buf.writeUtf(property.name());
@@ -192,9 +192,9 @@ public class PacketContent {
                 buf.writeBoolean(false);
             }
         });
-        *///?} elif > 1.18.2 {
-        friendlyByteBuf.writeGameProfile(gameProfile);
-        //?} else {
+        //?} elif > 1.18.2 {
+        /*friendlyByteBuf.writeGameProfile(gameProfile);
+        *///?} else {
         /*friendlyByteBuf.writeUUID(gameProfile.getId());
         friendlyByteBuf.writeUtf(gameProfile.getName());
         friendlyByteBuf.writeCollection(gameProfile.getProperties().values(), (friendlyByteBuf, property) -> {
@@ -250,7 +250,7 @@ public class PacketContent {
 
     public ItemStack readItemStack() {
         //? if >= 1.20.6 {
-        /*if (!friendlyByteBuf.readBoolean()) {
+        if (!friendlyByteBuf.readBoolean()) {
             return ItemStack.EMPTY;
         } else {
             int varInt = friendlyByteBuf.readVarInt();
@@ -261,9 +261,9 @@ public class PacketContent {
             result.ifPresent(pair -> itemstack.applyComponents(pair.getFirst()));
             return itemstack;
         }
-        *///?} else {
-        return friendlyByteBuf.readItem();
-        //?}
+        //?} else {
+        /*return friendlyByteBuf.readItem();
+        *///?}
     }
 
     public String readUTF() {
@@ -312,7 +312,7 @@ public class PacketContent {
 
     public GameProfile readGameProfile() {
         //? if >= 1.20.6 {
-        /*UUID uuid = friendlyByteBuf.readUUID();
+        UUID uuid = friendlyByteBuf.readUUID();
         String s0 = friendlyByteBuf.readUtf(16);
         GameProfile gameprofile = new GameProfile(uuid, s0);
         friendlyByteBuf.readWithCount((buf) -> {
@@ -328,9 +328,9 @@ public class PacketContent {
             gameprofile.getProperties().put(property.name(), property);
         });
         return gameprofile;
-        *///?} elif > 1.18.2 {
-        return friendlyByteBuf.readGameProfile();
-        //?} else {
+        //?} elif > 1.18.2 {
+        /*return friendlyByteBuf.readGameProfile();
+        *///?} else {
         /*UUID uUID = friendlyByteBuf.readUUID();
         String string = friendlyByteBuf.readUtf(16);
         GameProfile gameProfile = new GameProfile(uUID, string);

@@ -1,10 +1,15 @@
 package com.arc_studio.brick_lib_api.platform;
 
 //? if forge {
-import com.arc_studio.brick_lib_api.BrickLibAPI;
-import com.arc_studio.brick_lib_api.core.data.capability.CapabilityApi;
+/*import com.arc_studio.brick_lib_api.BrickLibAPI;
+import com.arc_studio.brick_lib_api.core.data.capability.BuiltinCapabilities;
+import com.arc_studio.brick_lib_api.core.data.capability.EnergyEjectorApi;
 import com.arc_studio.brick_lib_api.core.data.capability.IFluidStorage;
 import com.arc_studio.brick_lib_api.core.data.capability.IItemStorage;
+import com.arc_studio.brick_lib_api.core.data.capability.context.BlockCapabilityContext;
+import com.arc_studio.brick_lib_api.core.data.capability.core.BlockTransferConfig;
+import com.arc_studio.brick_lib_api.core.data.capability.core.CapabilityEntries;
+import com.arc_studio.brick_lib_api.core.data.capability.core.CapabilityEntry;
 import com.arc_studio.brick_lib_api.core.network.PacketContent;
 import com.arc_studio.brick_lib_api.core.network.context.C2SNetworkContext;
 import com.arc_studio.brick_lib_api.core.network.context.S2CNetworkContext;
@@ -30,13 +35,13 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.registries.RegisterEvent;
 //? } else {
-/*import net.minecraftforge.common.capabilities.Capability;
+/^import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.registries.IForgeRegistryEntry;
-*///? }
+^///? }
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
 
@@ -67,37 +72,36 @@ import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.NetworkDirection;
 //? if < 1.20.1 {
-/*import net.minecraftforge.network.simple.SimpleChannel;
+/^import net.minecraftforge.network.simple.SimpleChannel;
 import net.minecraftforge.network.HandshakeHandler;
 import net.minecraftforge.network.NetworkHooks;
-*///? }
+^///? }
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 import org.apache.commons.lang3.tuple.Pair;
 
 //? if < 1.20.4 {
-import net.minecraftforge.fml.common.Mod;
+/^import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.simple.SimpleChannel;
 import net.minecraftforge.network.HandshakeHandler;
 import net.minecraftforge.network.NetworkHooks;
-//?} else {
-/*import net.minecraftforge.fml.common.Mod;
+^///?} else {
+import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.ChannelBuilder;
 import net.minecraftforge.network.SimpleChannel;
 import net.minecraftforge.network.config.SimpleConfigurationTask;
 import net.minecraft.server.network.ConfigurationTask;
 import net.minecraftforge.event.network.GatherLoginConfigurationTasksEvent;
 
-*///? }
+//? }
 
 
 //? if >= 1.21.5 {
-/*import net.minecraft.core.registries.BuiltInRegistries;
- */
+import net.minecraft.core.registries.BuiltInRegistries;
+ 
 //?}
 
 import net.minecraft.network.FriendlyByteBuf;
@@ -108,15 +112,15 @@ import net.minecraftforge.network.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
-//?}
+*///?}
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class ForgePlatform {
     //? if forge {
-    protected static final String PROTOCOL_VERSION = "0";
+    /*protected static final String PROTOCOL_VERSION = "0";
 
     //? if < 1.20.4 {
-    public static final SimpleChannel c2sPlayChannel = NetworkRegistry.newSimpleChannel(
+    /^public static final SimpleChannel c2sPlayChannel = NetworkRegistry.newSimpleChannel(
             BrickLibAPI.ofPath("c2s_play"),
             () -> PROTOCOL_VERSION,
             PROTOCOL_VERSION::equals,
@@ -144,10 +148,10 @@ public class ForgePlatform {
             PROTOCOL_VERSION::equals
     );
 
-    //?}
+    ^///?}
 
     //? if >= 1.20.4 {
-    /*public static final SimpleChannel c2sPlayChannel = ChannelBuilder.named(BrickLibAPI.ofPath("c2s_play"))
+    public static final SimpleChannel c2sPlayChannel = ChannelBuilder.named(BrickLibAPI.ofPath("c2s_play"))
         .optional()
         .networkProtocolVersion(1)
         .serverAcceptedVersions(Channel.VersionTest.exact(1))
@@ -175,7 +179,7 @@ public class ForgePlatform {
         .clientAcceptedVersions(Channel.VersionTest.exact(1))
         .simpleChannel();
 
-    *///?}
+    //?}
 
     protected static final AtomicInteger c2sID = new AtomicInteger(0);
     protected static final AtomicInteger s2cID = new AtomicInteger(0);
@@ -190,45 +194,45 @@ public class ForgePlatform {
                     .decoder(buf -> c2S.decoder().apply(new PacketContent((FriendlyByteBuf) buf)));
                 if (c2S.netHandle()) {
                     //? if < 1.20.4 {
-                    //? if > 1.18.2 {
+                    /^//? if > 1.18.2 {
                     command.consumerNetworkThread((msg, contextSupplier) -> {
                         c2S.packetHandler().accept(msg, new C2SNetworkContext(
                             contextSupplier.get().getSender()
                         ));
                     });
                     //? } else {
-                    /*command.consumer((msg, contextSupplier) -> {
+                    /^¹command.consumer((msg, contextSupplier) -> {
                         c2S.packetHandler().accept(msg, new C2SNetworkContext(
                             contextSupplier.get().getSender()
                         ));
                     });
-                    *///? }
+                    ¹^///? }
 
-                    //?} else {
-                    /*command.consumerNetworkThread((msg, contextSupplier) -> {
+                    ^///?} else {
+                    command.consumerNetworkThread((msg, contextSupplier) -> {
                         c2S.packetHandler().accept(msg, new C2SNetworkContext(
                             contextSupplier.getSender()
                         ));
                     });
-                    *///?}
+                    //?}
                 } else {
                     //? if < 1.20.4 {
-                    //? if > 1.18.2 {
+                    /^//? if > 1.18.2 {
                     command.consumerMainThread((msg, contextSupplier) -> c2S.packetHandler().accept(msg, new C2SNetworkContext(
                         contextSupplier.get().getSender()
                     )));
                     //? } else {
-                    /*command.consumer((msg, contextSupplier) -> {
+                    /^¹command.consumer((msg, contextSupplier) -> {
                         c2S.packetHandler().accept(msg, new C2SNetworkContext(contextSupplier.get().getSender()));
                     });
-                    *///? }
+                    ¹^///? }
 
-                    //?}
+                    ^///?}
                     //? if >= 1.20.4 {
-                    /*command.consumerMainThread((msg, contextSupplier) -> c2S.packetHandler().accept(msg, new C2SNetworkContext(
+                    command.consumerMainThread((msg, contextSupplier) -> c2S.packetHandler().accept(msg, new C2SNetworkContext(
                         contextSupplier.getSender()
                     )));
-                    *///?}
+                    //?}
                 }
                 command.add();
             }
@@ -239,36 +243,36 @@ public class ForgePlatform {
                     .decoder(buf -> s2C.decoder().apply(new PacketContent((FriendlyByteBuf) buf)));
                 if (s2C.netHandle()) {
                     //? if < 1.20.4 {
-                        //? if > 1.18.2 {
+                        /^//? if > 1.18.2 {
                         command.consumerNetworkThread((msg, contextSupplier) -> {
                             s2C.packetHandler().accept(msg, new S2CNetworkContext());
                         });
                         //? } else {
-                        /*command.consumer((msg, contextSupplier) -> {
+                        /^¹command.consumer((msg, contextSupplier) -> {
                             s2C.packetHandler().accept(msg, new S2CNetworkContext());
                         });
-                        *///? }
-                    //?} else {
-                    /*command.consumerNetworkThread((msg, contextSupplier) -> {
+                        ¹^///? }
+                    ^///?} else {
+                    command.consumerNetworkThread((msg, contextSupplier) -> {
                         s2C.packetHandler().accept(msg, new S2CNetworkContext());
                     });
-                    *///?}
+                    //?}
                 } else {
                     //? if < 1.20.4 {
-                        //? if > 1.18.2 {
+                        /^//? if > 1.18.2 {
                         command.consumerMainThread((msg, contextSupplier) -> {
                             s2C.packetHandler().accept(msg, new S2CNetworkContext());
                         });
                         //? } else {
-                        /*command.consumer((msg, contextSupplier) -> {
+                        /^¹command.consumer((msg, contextSupplier) -> {
                             s2C.packetHandler().accept(msg, new S2CNetworkContext());
                         });
-                        *///? }
-                    //?} else {
-                    /*command.consumerMainThread((msg, contextSupplier) -> {
+                        ¹^///? }
+                    ^///?} else {
+                    command.consumerMainThread((msg, contextSupplier) -> {
                         s2C.packetHandler().accept(msg, new S2CNetworkContext());
                     });
-                    *///?}
+                    //?}
                 }
                 command.add();
             } else if (packetConfig instanceof PacketConfig.SAC sac) {
@@ -278,36 +282,36 @@ public class ForgePlatform {
                     .decoder(buf -> sac.decoder().apply(new PacketContent((FriendlyByteBuf) buf)));
                 if (sac.netHandle()) {
                     //? if < 1.20.4 {
-                        //? if > 1.18.2 {
+                        /^//? if > 1.18.2 {
                         s2cBuilder.consumerNetworkThread((msg, contextSupplier) -> {
                             sac.clientHandler().accept(msg, new S2CNetworkContext());
                         });
                         //? } else {
-                        /*s2cBuilder.consumer((msg, contextSupplier) -> {
+                        /^¹s2cBuilder.consumer((msg, contextSupplier) -> {
                             sac.clientHandler().accept(msg, new S2CNetworkContext());
                         });
-                        *///? }
-                    //?} else {
-                    /*s2cBuilder.consumerNetworkThread((msg, contextSupplier) -> {
+                        ¹^///? }
+                    ^///?} else {
+                    s2cBuilder.consumerNetworkThread((msg, contextSupplier) -> {
                         sac.clientHandler().accept(msg, new S2CNetworkContext());
                     });
-                    *///?}
+                    //?}
                 } else {
                     //? if < 1.20.4 {
-                        //? if > 1.18.2 {
+                        /^//? if > 1.18.2 {
                         s2cBuilder.consumerMainThread((msg, contextSupplier) -> {
                             sac.clientHandler().accept(msg, new S2CNetworkContext());
                         });
                         //? } else {
-                        /*s2cBuilder.consumer((msg, contextSupplier) -> {
+                        /^¹s2cBuilder.consumer((msg, contextSupplier) -> {
                             sac.clientHandler().accept(msg, new S2CNetworkContext());
                         });
-                        *///? }
-                    //?} else {
-                    /*s2cBuilder.consumerMainThread((msg, contextSupplier) -> {
+                        ¹^///? }
+                    ^///?} else {
+                    s2cBuilder.consumerMainThread((msg, contextSupplier) -> {
                         sac.clientHandler().accept(msg, new S2CNetworkContext());
                     });
-                    *///?}
+                    //?}
                 }
                 s2cBuilder.add();
 
@@ -317,51 +321,51 @@ public class ForgePlatform {
                     .decoder(buf -> sac.decoder().apply(new PacketContent((FriendlyByteBuf) buf)));
                 if (sac.netHandle()) {
                     //? if < 1.20.4 {
-                        //? if > 1.18.2 {
+                        /^//? if > 1.18.2 {
                             c2sBuilder.consumerNetworkThread((msg, contextSupplier) -> {
                             sac.serverHandler().accept(msg, new C2SNetworkContext(
                                 contextSupplier.get().getSender()
                             ));
                         });
                         //? } else {
-                        /*c2sBuilder.consumer((msg, contextSupplier) -> {
+                        /^¹c2sBuilder.consumer((msg, contextSupplier) -> {
                             sac.serverHandler().accept(msg, new C2SNetworkContext(
                                 contextSupplier.get().getSender()
                             ));
                         });
-                        *///? }
-                    //?} else {
-                    /*c2sBuilder.consumerNetworkThread((msg, contextSupplier) -> {
+                        ¹^///? }
+                    ^///?} else {
+                    c2sBuilder.consumerNetworkThread((msg, contextSupplier) -> {
                         sac.serverHandler().accept(msg, new C2SNetworkContext(
                             contextSupplier.getSender()
                         ));
                     });
 
-                    *///?}
+                    //?}
                 } else {
                     //? if < 1.20.4 {
-                        //? if > 1.18.2 {
+                        /^//? if > 1.18.2 {
                             c2sBuilder.consumerMainThread((msg, contextSupplier) -> sac.serverHandler().accept(msg, new C2SNetworkContext(
                             contextSupplier.get().getSender()
                         )));
                         //? } else {
-                        /*c2sBuilder.consumer((msg, contextSupplier) -> {
+                        /^¹c2sBuilder.consumer((msg, contextSupplier) -> {
                             sac.serverHandler().accept(msg, new C2SNetworkContext(
                                 contextSupplier.get().getSender()));
                         });
-                        *///? }
-                    //?} else {
-                    /*c2sBuilder.consumerMainThread((msg, contextSupplier) -> sac.serverHandler().accept(msg, new C2SNetworkContext(
+                        ¹^///? }
+                    ^///?} else {
+                    c2sBuilder.consumerMainThread((msg, contextSupplier) -> sac.serverHandler().accept(msg, new C2SNetworkContext(
                         contextSupplier.getSender()
                     )));
 
-                    *///?}
+                    //?}
                 }
                 c2sBuilder.add();
             }
             else if (packetConfig instanceof PacketConfig.Login login) {
                 //? if < 1.20.4 {
-                    if(LogInReplyPacket.class.isAssignableFrom(login.type())){
+                    /^if(LogInReplyPacket.class.isAssignableFrom(login.type())){
                         SimpleChannel.MessageBuilder<? extends LoginPacket> c2sBuilder = c2sLoginChannel
                                 .messageBuilder(LogInReplyPacket.class, 999, NetworkDirection.LOGIN_TO_SERVER)
                                 .encoder((o, o2) -> {})
@@ -372,10 +376,10 @@ public class ForgePlatform {
                             HandshakeHandler.indexFirst((handshakeHandler, intSupplier, supplier) ->
                                 supplier.get().setPacketHandled(true)));
                         //? } else {
-                        /*c2sBuilder.consumer(
+                        /^¹c2sBuilder.consumer(
                             HandshakeHandler.indexFirst((handshakeHandler, intSupplier, supplier) ->
                                 supplier.get().setPacketHandled(true)));
-                        *///? }
+                        ¹^///? }
                         c2sBuilder.add();
                     }
                     SimpleChannel.MessageBuilder<? extends LoginPacket> s2cBuilder = s2cLoginChannel
@@ -390,24 +394,24 @@ public class ForgePlatform {
                         c2sLoginChannel.reply(new LogInReplyPacket(), contextSupplier.get());
                     })
                     //? } else {
-                    /*s2cBuilder.consumer((s2CLoginPacket, contextSupplier) -> {
+                    /^¹s2cBuilder.consumer((s2CLoginPacket, contextSupplier) -> {
                         login.clientHandler().accept(s2CLoginPacket, new S2CNetworkContext());
                         c2sLoginChannel.reply(new LogInReplyPacket(), contextSupplier.get());
                     })
-                    *///? }
+                    ¹^///? }
                     .add();
 
-                //?} else {
+                ^///?} else {
 
-                /*loginPacket(login);
+                loginPacket(login);
 
-                *///?}
+                //?}
             }
         });
     }
 
     //? if >= 1.20.4 {
-    /*private static<T extends LoginPacket> void loginPacket(PacketConfig.Login<T> login){
+    private static<T extends LoginPacket> void loginPacket(PacketConfig.Login<T> login){
         if(LogInReplyPacket.class.isAssignableFrom(login.type())){
             c2sLoginChannel.messageBuilder(login.type(),NetworkDirection.PLAY_TO_SERVER)
                 .encoder((t, buf) -> login.encoder().accept(t,new PacketContent(buf)))
@@ -442,151 +446,93 @@ public class ForgePlatform {
         }
     }
 
-    *///?}
+    //?}
 
-    /* Forge 物品提供者 — 将 UCS IItemStorage 包装为 Forge IItemHandler */
-    private static class ForgeItemProvider implements ICapabilityProvider {
+    /^ Forge 能力提供者 — 将 Brick 能力按需包装为 Forge 原生能力 ^/
+    private static class ForgeCapabilityProvider implements ICapabilityProvider {
         private final BlockEntity be;
-        private final net.minecraft.world.level.block.Block block;
-        private final CapabilityApi.ItemProvider provider;
-        private final BiConsumer<ServerLevel, BlockPos> dirtyNotifier;
-        private final LazyOptional<IItemHandler>[] cache = new LazyOptional[7];
+        private final CapabilityEntry<?> entry;
+        private final LazyOptional<?>[] cache = new LazyOptional[7];
 
-        ForgeItemProvider(BlockEntity be, net.minecraft.world.level.block.Block block,
-                          CapabilityApi.ItemProvider provider,
-                          @Nullable BiConsumer<ServerLevel, BlockPos> dirtyNotifier) {
+        ForgeCapabilityProvider(BlockEntity be, CapabilityEntry<?> entry) {
             this.be = be;
-            this.block = block;
-            this.provider = provider;
-            this.dirtyNotifier = dirtyNotifier;
+            this.entry = entry;
         }
 
         @Override
         public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
+            if (!matchesNativeCapability(cap)) {
+                return LazyOptional.empty();
+            }
+
+            int index = side == null ? 6 : side.ordinal();
+            LazyOptional<?> optional = cache[index];
+            if (optional == null || !optional.isPresent()) {
+                Object wrapped = wrap(side);
+                if (wrapped == null) {
+                    return LazyOptional.empty();
+                }
+                optional = LazyOptional.of(() -> wrapped);
+                cache[index] = optional;
+            }
+            return optional.cast();
+        }
+
+        private boolean matchesNativeCapability(Capability<?> cap) {
             //? if > 1.18.2 {
-            if (cap == ForgeCapabilities.ITEM_HANDLER) {
+            return (entry.capability() == BuiltinCapabilities.ITEM_HANDLER && cap == ForgeCapabilities.ITEM_HANDLER)
+                    || (entry.capability() == BuiltinCapabilities.ENERGY && cap == ForgeCapabilities.ENERGY)
+                    || (entry.capability() == BuiltinCapabilities.FLUID_HANDLER && cap == ForgeCapabilities.FLUID_HANDLER);
             //? } else {
-            /*if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
-                *///? }
-                int index = side == null ? 6 : side.ordinal();
-                LazyOptional<IItemHandler> optional = cache[index];
-                if (optional == null || !optional.isPresent()) {
-                    if (!(be.getLevel() instanceof ServerLevel serverLevel) || !be.getBlockState().is(block)) {
-                        return LazyOptional.empty();
-                    }
-                    var ucs = provider.getItem(serverLevel, be.getBlockPos(), be.getBlockState(), be, side);
-                    if (ucs == null) {
-                        return LazyOptional.empty();
-                    }
-                    optional = LazyOptional.of(() ->
-                            new ForgeItemHandlerWrapper(serverLevel, be.getBlockPos(), be.getBlockState(), ucs, dirtyNotifier));
-                    cache[index] = optional;
-                }
-                return optional.cast();
+            /^return (entry.capability() == BuiltinCapabilities.ITEM_HANDLER && cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY)
+                    || (entry.capability() == BuiltinCapabilities.ENERGY && cap == CapabilityEnergy.ENERGY)
+                    || (entry.capability() == BuiltinCapabilities.FLUID_HANDLER && cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY);
+            ^///? }
+        }
+
+        @Nullable
+        private Object wrap(@Nullable Direction side) {
+            if (!(be.getLevel() instanceof ServerLevel serverLevel)) {
+                return null;
             }
-            return LazyOptional.empty();
+
+            BlockCapabilityContext context = CapabilityEntries.blockContext(entry, serverLevel, be);
+            if (context == null) {
+                return null;
+            }
+            BlockTransferConfig config = entry.transferConfig(context);
+            if (side != null && config != null && (!config.isEnabled(side) || config.isLocked(side))) {
+                return null;
+            }
+
+            Object storage = entry.get(context, side);
+            if (storage == null) {
+                return null;
+            }
+            Runnable dirty = () -> entry.markDirty(context);
+            if (entry.capability() == BuiltinCapabilities.ITEM_HANDLER && storage instanceof IItemStorage itemStorage) {
+                return new ForgeItemHandlerWrapper(serverLevel, be.getBlockPos(), be.getBlockState(), itemStorage, dirty, side);
+            }
+            if (entry.capability() == BuiltinCapabilities.ENERGY
+                    && storage instanceof com.arc_studio.brick_lib_api.core.data.capability.IEnergyStorage energyStorage) {
+                if (config != null) {
+                    EnergyEjectorApi.track(serverLevel, be.getBlockPos());
+                }
+                return new ForgeEnergyStorageWrapper(serverLevel, be.getBlockPos(), be.getBlockState(), energyStorage, dirty, side, config);
+            }
+            if (entry.capability() == BuiltinCapabilities.FLUID_HANDLER && storage instanceof IFluidStorage fluidStorage) {
+                return new ForgeFluidHandlerWrapper(serverLevel, be.getBlockPos(), be.getBlockState(), fluidStorage, dirty, side);
+            }
+            return null;
         }
     }
 
-    /* Forge 能量提供者 — 将 UCS IEnergyStorage 包装为 Forge IEnergyStorage */
-    private static class ForgeEnergyProvider implements ICapabilityProvider {
-        private final BlockEntity be;
-        private final net.minecraft.world.level.block.Block block;
-        private final CapabilityApi.EnergyProvider provider;
-        private final BiConsumer<ServerLevel, BlockPos> dirtyNotifier;
-        private LazyOptional<IEnergyStorage> cache;
-
-        ForgeEnergyProvider(BlockEntity be, net.minecraft.world.level.block.Block block,
-                            CapabilityApi.EnergyProvider provider,
-                            @Nullable BiConsumer<ServerLevel, BlockPos> dirtyNotifier) {
-            this.be = be;
-            this.block = block;
-            this.provider = provider;
-            this.dirtyNotifier = dirtyNotifier;
-        }
-
-        @Override
-        public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
-            //? if > 1.18.2 {
-            if (cap == ForgeCapabilities.ENERGY) {
-            //? } else {
-            /*if (cap == CapabilityEnergy.ENERGY) {
-                *///? }
-                if (cache == null || !cache.isPresent()) {
-                    cache = LazyOptional.of(() -> {
-                        if (be.getLevel() instanceof ServerLevel serverLevel && be.getBlockState().is(block)) {
-                            var ucs = provider.getEnergy(serverLevel, be.getBlockPos(), be.getBlockState(), be, side);
-                            if (ucs != null) {
-                                return new ForgeEnergyStorageWrapper(serverLevel, be.getBlockPos(), be.getBlockState(), ucs, dirtyNotifier);
-                            }
-                        }
-                        return new IEnergyStorage() {
-                            @Override public int receiveEnergy(int i, boolean b) { return 0; }
-                            @Override public int extractEnergy(int i, boolean b) { return 0; }
-                            @Override public int getEnergyStored() { return 0; }
-                            @Override public int getMaxEnergyStored() { return 0; }
-                            @Override public boolean canExtract() { return false; }
-                            @Override public boolean canReceive() { return false; }
-                        };
-                    });
-                }
-                return cache.cast();
-            }
-            return LazyOptional.empty();
-        }
-    }
-
-    /* Forge 流体提供者 — 将 UCS IFluidStorage 包装为 Forge IFluidHandler */
-    private static class ForgeFluidProvider implements ICapabilityProvider {
-        private final BlockEntity be;
-        private final net.minecraft.world.level.block.Block block;
-        private final CapabilityApi.FluidProvider provider;
-        private final BiConsumer<ServerLevel, BlockPos> dirtyNotifier;
-        private LazyOptional<IFluidHandler> cache;
-
-        ForgeFluidProvider(BlockEntity be, net.minecraft.world.level.block.Block block,
-                           CapabilityApi.FluidProvider provider,
-                           @Nullable BiConsumer<ServerLevel, BlockPos> dirtyNotifier) {
-            this.be = be;
-            this.block = block;
-            this.provider = provider;
-            this.dirtyNotifier = dirtyNotifier;
-        }
-
-        @Override
-        public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
-            //? if > 1.18.2 {
-            if (cap == ForgeCapabilities.FLUID_HANDLER) {
-                //? } else {
-                /*if (cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
-
-                *///? }
-                if (cache == null || !cache.isPresent()) {
-                    cache = LazyOptional.of(() -> {
-                        if (be.getLevel() instanceof ServerLevel serverLevel
-                            && be.getBlockState().is(block)) {
-                            var ucs = provider.getFluid(serverLevel,
-                                be.getBlockPos(), be.getBlockState(), be, side);
-                            if (ucs != null) {
-                                return new ForgeFluidHandlerWrapper(serverLevel,
-                                    be.getBlockPos(), be.getBlockState(), ucs, dirtyNotifier);
-                            }
-                        }
-                        return null;
-                    });
-                }
-                return cache.cast();
-            }
-            return LazyOptional.empty();
-        }
-    }
-
-    /**
+    /^*
      * 通用的 Forge IItemHandler 包装器。
      * <p>
      * 将 UCS IItemStorage 适配为 Forge IItemHandler，处理 simulate 模式、事务提交和 dirty 标记。
      * </p>
-     */
+     ^/
     @SuppressWarnings("unused")
     protected static class ForgeItemHandlerWrapper implements IItemHandler {
         private final ServerLevel level;
@@ -594,16 +540,20 @@ public class ForgePlatform {
         private final BlockState state;
         private final IItemStorage ucs;
         @Nullable
-        private final BiConsumer<ServerLevel, BlockPos> dirtyNotifier;
+        private final Runnable dirtyNotifier;
+        @Nullable
+        private final Direction side;
 
         public ForgeItemHandlerWrapper(ServerLevel level, BlockPos pos, BlockState state,
                                        IItemStorage ucs,
-                                       @Nullable BiConsumer<ServerLevel, BlockPos> dirtyNotifier) {
+                                       @Nullable Runnable dirtyNotifier,
+                                       @Nullable Direction side) {
             this.level = level;
             this.pos = pos;
             this.state = state;
             this.ucs = ucs;
             this.dirtyNotifier = dirtyNotifier;
+            this.side = side;
         }
 
         private boolean isValid() {
@@ -633,10 +583,10 @@ public class ForgePlatform {
         @Override
         public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
             if (!isValid() || !isValidSlot(slot) || stack == null || stack.isEmpty()) return stack;
-            if (!ucs.isItemValid(slot, stack)) return stack;
+            if (!ucs.isItemValid(slot, stack, side)) return stack;
 
             try (BrickTransaction tx = BrickTransaction.openOuter()) {
-                long inserted = ucs.insertItem(slot, stack, stack.getCount(), tx);
+                long inserted = ucs.insertItem(slot, stack, side, stack.getCount(), tx);
                 if (inserted <= 0) return stack;
                 if (!simulate) {
                     tx.commit();
@@ -653,7 +603,7 @@ public class ForgePlatform {
             if (current.isEmpty()) return ItemStack.EMPTY;
 
             try (BrickTransaction tx = BrickTransaction.openOuter()) {
-                long extracted = ucs.extractItem(slot, amount, tx);
+                long extracted = ucs.extractItem(slot, side, amount, tx);
                 if (extracted <= 0) return ItemStack.EMPTY;
                 if (!simulate) {
                     tx.commit();
@@ -673,7 +623,7 @@ public class ForgePlatform {
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return isValid() && isValidSlot(slot) && stack != null && !stack.isEmpty() && ucs.isItemValid(slot, stack);
+            return isValid() && isValidSlot(slot) && stack != null && !stack.isEmpty() && ucs.isItemValid(slot, stack, side);
         }
 
         private ItemStack remainder(ItemStack original, long inserted) {
@@ -685,17 +635,17 @@ public class ForgePlatform {
         }
 
         private void markDirty() {
-            if (dirtyNotifier != null) dirtyNotifier.accept(level, pos);
+            if (dirtyNotifier != null) dirtyNotifier.run();
         }
     }
 
-    /**
+    /^*
      * 通用的 Forge IEnergyStorage 包装器。
      * <p>
      * 将 UCS IEnergyStorage 适配为 Forge IEnergyStorage，处理 int/long 转换、
      * simulate 模式、dirty 标记。
      * </p>
-     */
+     ^/
     @SuppressWarnings("unused")
     protected static class ForgeEnergyStorageWrapper implements IEnergyStorage {
         private final ServerLevel level;
@@ -703,31 +653,43 @@ public class ForgePlatform {
         private final BlockState state;
         private final com.arc_studio.brick_lib_api.core.data.capability.IEnergyStorage ucs;
         @Nullable
-        private final BiConsumer<ServerLevel, BlockPos> dirtyNotifier;
+        private final Runnable dirtyNotifier;
+        @Nullable
+        private final Direction side;
+        @Nullable
+        private final BlockTransferConfig transferConfig;
 
         public ForgeEnergyStorageWrapper(ServerLevel level, BlockPos pos, BlockState state,
                                          com.arc_studio.brick_lib_api.core.data.capability.IEnergyStorage ucs,
-                                         @Nullable BiConsumer<ServerLevel, BlockPos> dirtyNotifier) {
+                                         @Nullable Runnable dirtyNotifier,
+                                         @Nullable Direction side,
+                                         @Nullable BlockTransferConfig transferConfig) {
             this.level = level;
             this.pos = pos;
             this.state = state;
             this.ucs = ucs;
             this.dirtyNotifier = dirtyNotifier;
+            this.side = side;
+            this.transferConfig = transferConfig;
         }
 
         private boolean isValid() {
             return level.getBlockState(pos).is(state.getBlock());
         }
 
+        private boolean sideOpen() {
+            return side == null || transferConfig == null || (transferConfig.isEnabled(side) && !transferConfig.isLocked(side));
+        }
+
         @Override
         public int receiveEnergy(int maxReceive, boolean simulate) {
-            if (!isValid() || maxReceive <= 0 || !ucs.canReceive()) return 0;
+            if (!isValid() || !sideOpen() || maxReceive <= 0 || !ucs.canReceive(side)) return 0;
             if (simulate) {
                 return IFluidStorage.clampToInt(Math.min(maxReceive,
-                    ucs.getMaxEnergyStored() - ucs.getEnergyStored()));
+                    getExposedCapacity() - ucs.getEnergyStored()));
             }
             try (BrickTransaction tx = BrickTransaction.openOuter()) {
-                long received = ucs.receiveEnergy(maxReceive, tx);
+                long received = ucs.receiveEnergy(side, maxReceive, tx);
                 if (received > 0) {
                     tx.commit();
                     markDirty();
@@ -738,12 +700,12 @@ public class ForgePlatform {
 
         @Override
         public int extractEnergy(int maxExtract, boolean simulate) {
-            if (!isValid() || maxExtract <= 0 || !ucs.canExtract()) return 0;
+            if (!isValid() || !sideOpen() || maxExtract <= 0 || !ucs.canExtract(side)) return 0;
             if (simulate) {
                 return IFluidStorage.clampToInt(Math.min(maxExtract, ucs.getEnergyStored()));
             }
             try (BrickTransaction tx = BrickTransaction.openOuter()) {
-                long extracted = ucs.extractEnergy(maxExtract, tx);
+                long extracted = ucs.extractEnergy(side, maxExtract, tx);
                 if (extracted > 0) {
                     tx.commit();
                     markDirty();
@@ -753,22 +715,26 @@ public class ForgePlatform {
         }
 
         @Override public int getEnergyStored() { return isValid() ? IFluidStorage.clampToInt(ucs.getEnergyStored()) : 0; }
-        @Override public int getMaxEnergyStored() { return isValid() ? IFluidStorage.clampToInt(ucs.getMaxEnergyStored()) : 0; }
-        @Override public boolean canExtract() { return isValid() && ucs.canExtract(); }
-        @Override public boolean canReceive() { return isValid() && ucs.canReceive(); }
+        @Override public int getMaxEnergyStored() { return isValid() ? IFluidStorage.clampToInt(getExposedCapacity()) : 0; }
+        @Override public boolean canExtract() { return isValid() && sideOpen() && ucs.canExtract(side); }
+        @Override public boolean canReceive() { return isValid() && sideOpen() && ucs.canReceive(side); }
+
+        private long getExposedCapacity() {
+            return transferConfig == null ? ucs.getMaxEnergyStored() : Math.min(ucs.getMaxEnergyStored(), transferConfig.capacity());
+        }
 
         private void markDirty() {
-            if (dirtyNotifier != null) dirtyNotifier.accept(level, pos);
+            if (dirtyNotifier != null) dirtyNotifier.run();
         }
     }
 
-    /**
+    /^*
      * 通用的 Forge IFluidHandler 包装器。
      * <p>
      * 将 UCS IFluidStorage 适配为 Forge IFluidHandler，处理 droplets/mB 转换、
      * simulate 模式、dirty 标记。
      * </p>
-     */
+     ^/
     @SuppressWarnings("unused")
     protected static class ForgeFluidHandlerWrapper implements IFluidHandler {
         private final ServerLevel level;
@@ -776,16 +742,19 @@ public class ForgePlatform {
         private final BlockState state;
         private final IFluidStorage ucs;
         @Nullable
-        private final BiConsumer<ServerLevel, BlockPos> dirtyNotifier;
+        private final Runnable dirtyNotifier;
+
+        private final Direction side;
 
         public ForgeFluidHandlerWrapper(ServerLevel level, BlockPos pos, BlockState state,
                                         IFluidStorage ucs,
-                                        @Nullable BiConsumer<ServerLevel, BlockPos> dirtyNotifier) {
+                                        @Nullable Runnable dirtyNotifier, @Nullable Direction side) {
             this.level = level;
             this.pos = pos;
             this.state = state;
             this.ucs = ucs;
             this.dirtyNotifier = dirtyNotifier;
+            this.side = side;
         }
 
         private boolean isValid() {
@@ -824,7 +793,7 @@ public class ForgePlatform {
         public boolean isFluidValid(int tank, FluidStack stack) {
             if (!isValid() || stack.isEmpty()) return false;
             SimpleFluidStorage s = simple();
-            return s != null && s.isFluidValid(tank, stack.getFluid());
+            return s != null && s.isFluidValid(tank, stack.getFluid(),side);
         }
 
         @Override
@@ -833,11 +802,11 @@ public class ForgePlatform {
             SimpleFluidStorage s = simple();
             if (s == null) return 0;
             if (action.simulate()) {
-                return IFluidStorage.getFillableMb(s, resource.getFluid(), resource.getAmount());
+                return IFluidStorage.getFillableMb(s, resource.getFluid(),side, resource.getAmount());
             }
             long droplets = IFluidStorage.mbToDroplets(resource.getAmount());
             try (BrickTransaction tx = BrickTransaction.openOuter()) {
-                long filled = s.fill(resource.getFluid(), droplets, tx);
+                long filled = s.fill(resource.getFluid(),side, droplets, tx);
                 if (filled > 0) {
                     tx.commit();
                     markDirty();
@@ -857,7 +826,7 @@ public class ForgePlatform {
             }
             long droplets = IFluidStorage.mbToDroplets(resource.getAmount());
             try (BrickTransaction tx = BrickTransaction.openOuter()) {
-                long drained = s.drain(resource.getFluid(), droplets, tx);
+                long drained = s.drain(resource.getFluid(),side, droplets, tx);
                 if (drained > 0) {
                     tx.commit();
                     markDirty();
@@ -880,7 +849,7 @@ public class ForgePlatform {
             }
             long droplets = IFluidStorage.mbToDroplets(maxDrain);
             try (BrickTransaction tx = BrickTransaction.openOuter()) {
-                long drained = s.drain(droplets, tx);
+                long drained = s.drain(droplets,side, tx);
                 if (drained > 0) {
                     tx.commit();
                     markDirty();
@@ -891,7 +860,7 @@ public class ForgePlatform {
         }
 
         private void markDirty() {
-            if (dirtyNotifier != null) dirtyNotifier.accept(level, pos);
+            if (dirtyNotifier != null) dirtyNotifier.run();
         }
     }
 
@@ -950,40 +919,40 @@ public class ForgePlatform {
     public static void sendToPlayer(ICHandlePacket packet, Iterable<ServerPlayer> serverPlayers) {
         for (ServerPlayer serverPlayer : serverPlayers) {
             //? if >= 1.20.4 {
-            /*s2cPlayChannel.send(packet, PacketDistributor.PLAYER.with(serverPlayer));
-
-            *///?}
-            //? if < 1.20.4 {
-            s2cPlayChannel.send(PacketDistributor.PLAYER.with(() -> serverPlayer), packet);
+            s2cPlayChannel.send(packet, PacketDistributor.PLAYER.with(serverPlayer));
 
             //?}
+            //? if < 1.20.4 {
+            /^s2cPlayChannel.send(PacketDistributor.PLAYER.with(() -> serverPlayer), packet);
+
+            ^///?}
         }
     }
 
     public static void sendToServer(ISHandlePacket packet) {
         //? if >= 1.20.4 {
-        /*c2sPlayChannel.send(packet, PacketDistributor.SERVER.noArg());
-
-        *///?}
-        //? if < 1.20.4 {
-        c2sPlayChannel.sendToServer(packet);
+        c2sPlayChannel.send(packet, PacketDistributor.SERVER.noArg());
 
         //?}
+        //? if < 1.20.4 {
+        /^c2sPlayChannel.sendToServer(packet);
+
+        ^///?}
     }
 
     public static Set<ResourceLocation> networkChannels(Connection connection, ConnectionProtocol protocol) {
         //? if >= 1.20.4 {
-        /*return Set.of();
+        return Set.of();
 
-        *///?}
+        //?}
         //? if < 1.20.4 {
-        MCRegisterPacketHandler.ChannelList list = NetworkHooks.getChannelList(connection);
+        /^MCRegisterPacketHandler.ChannelList list = NetworkHooks.getChannelList(connection);
         if (list != null) {
             return list.getRemoteLocations();
         }
         return Set.of();
 
-        //?}
+        ^///?}
     }
 
     @Mod.EventBusSubscriber(modid = BrickLibAPI.MOD_ID)
@@ -992,24 +961,11 @@ public class ForgePlatform {
         static void onAttachCapabilities(AttachCapabilitiesEvent<BlockEntity> event) {
             System.out.println("ForgePlatform.onAttachCapabilities");
             BlockEntity be = event.getObject();
-            Level level = be.getLevel();
 
-            BrickRegistries.CAPABILITY_ITEM.forEach(entry -> {
-                var block = entry.block();
-                if (be.getBlockState().is(block)) {
-                    event.addCapability(entry.capId(), new ForgePlatform.ForgeItemProvider(be, block, entry.provider(), entry.dirtyNotifier()));
-                }
-            });
-            BrickRegistries.CAPABILITY_ENERGY.forEach(entry -> {
-                var block = entry.block();
-                if (be.getBlockState().is(block)) {
-                    event.addCapability(entry.capId(), new ForgePlatform.ForgeEnergyProvider(be, block, entry.provider(), entry.dirtyNotifier()));
-                }
-            });
-            BrickRegistries.CAPABILITY_FLUID.forEach(entry -> {
-                var block = entry.block();
-                if (be.getBlockState().is(block)) {
-                    event.addCapability(entry.capId(), new ForgePlatform.ForgeFluidProvider(be, block, entry.provider(), entry.dirtyNotifier()));
+            BrickRegistries.CAPABILITY.forEach(entry -> {
+                if (entry.target().kind() == com.arc_studio.brick_lib_api.core.data.capability.core.CapabilityTarget.Kind.BLOCK
+                        || entry.target().kind() == com.arc_studio.brick_lib_api.core.data.capability.core.CapabilityTarget.Kind.BLOCK_ENTITY) {
+                    event.addCapability(entry.id(), new ForgePlatform.ForgeCapabilityProvider(be, entry));
                 }
             });
         }
@@ -1049,7 +1005,7 @@ public class ForgePlatform {
         //?}
 
         //? if <= 1.18.2 {
-        /*@SubscribeEvent
+        /^@SubscribeEvent
     public static <T extends IForgeRegistryEntry<T>> void onRegister(RegistryEvent.Register event) {
         ResourceKey<? extends Registry<T>> registeringKey = event.getRegistry().getRegistryKey();
         for (Map.Entry<Registry<?>, Map<ResourceLocation, Supplier<?>>> entry : BrickRegisterManager.getVanillaEntries().entrySet()) {
@@ -1063,8 +1019,8 @@ public class ForgePlatform {
             }
         }
     }
-    *///?}
+    ^///?}
     }
 
-    //?}
+    *///?}
 }

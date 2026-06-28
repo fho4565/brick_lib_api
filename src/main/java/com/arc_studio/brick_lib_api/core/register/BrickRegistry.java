@@ -1,8 +1,9 @@
 package com.arc_studio.brick_lib_api.core.register;
 
+import com.arc_studio.brick_lib_api.core.data.BrickResourceKey;
+import com.arc_studio.brick_lib_api.core.data.ResourceID;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -18,7 +19,7 @@ import java.util.stream.Collectors;
 public class BrickRegistry<T> extends RegistryType<T> implements Iterable<T> {
     public static HashSet<BrickRegistry<?>> TO_CLEAN_BRICK_REGISTRIES = new HashSet<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(BrickRegistry.class);
-    protected Map<ResourceLocation, Supplier<T>> map = new LinkedHashMap<>();
+    protected Map<ResourceID, Supplier<T>> map = new LinkedHashMap<>();
     protected boolean registered = false;
 
     public boolean autoClean() {
@@ -33,13 +34,13 @@ public class BrickRegistry<T> extends RegistryType<T> implements Iterable<T> {
 
     protected int count = 0;
 
-    private final ResourceKey<? extends Registry<T>> key;
+    private final BrickResourceKey<? extends Registry<T>> key;
 
-    public BrickRegistry(ResourceKey<? extends Registry<T>> key) {
+    public BrickRegistry(BrickResourceKey<? extends Registry<T>> key) {
         this.key = key;
     }
 
-    public BrickRegistry(ResourceKey<? extends Registry<T>> key,boolean autoClean) {
+    public BrickRegistry(BrickResourceKey<? extends Registry<T>> key,boolean autoClean) {
         this.key = key;
         this.autoClean = autoClean;
         if (autoClean){
@@ -52,8 +53,8 @@ public class BrickRegistry<T> extends RegistryType<T> implements Iterable<T> {
     }
 
     @Nullable
-    public ResourceLocation getKey(T value) {
-        for (Map.Entry<ResourceLocation, Supplier<T>> entry : map.entrySet()) {
+    public ResourceID getKey(T value) {
+        for (Map.Entry<ResourceID, Supplier<T>> entry : map.entrySet()) {
             if (entry.getValue().get().equals(value)) {
                 return entry.getKey();
             }
@@ -62,7 +63,7 @@ public class BrickRegistry<T> extends RegistryType<T> implements Iterable<T> {
     }
 
     public Optional<ResourceKey<T>> getResourceKey(T value) {
-        ResourceLocation resourceLocation = getKey(value);
+        ResourceID resourceLocation = getKey(value);
         if (resourceLocation != null) {
             return Optional.of(ResourceKey.create(key, resourceLocation));
         }
@@ -70,7 +71,7 @@ public class BrickRegistry<T> extends RegistryType<T> implements Iterable<T> {
     }
 
     @Nullable
-    public T get(@Nullable ResourceKey<T> key) {
+    public T get(@Nullable BrickResourceKey<T> key) {
         if (key != null) {
             Supplier<T> supplier = map.get(key.location());
             if (supplier == null) {
@@ -82,7 +83,7 @@ public class BrickRegistry<T> extends RegistryType<T> implements Iterable<T> {
     }
 
     @Nullable
-    public T get(@Nullable ResourceLocation name) {
+    public T get(@Nullable ResourceID name) {
         if (name != null) {
             Supplier<T> supplier = map.get(name);
             if (supplier == null) {
@@ -93,15 +94,15 @@ public class BrickRegistry<T> extends RegistryType<T> implements Iterable<T> {
         return null;
     }
 
-    public Optional<T> getOptional(@Nullable ResourceLocation name) {
+    public Optional<T> getOptional(@Nullable ResourceID name) {
         return Optional.ofNullable(this.get(name));
     }
 
-    public Optional<T> getOptional(@Nullable ResourceKey<T> registryKey) {
+    public Optional<T> getOptional(@Nullable BrickResourceKey<T> registryKey) {
         return Optional.ofNullable(this.get(registryKey));
     }
 
-    public T getOrThrow(ResourceKey<T> key) {
+    public T getOrThrow(BrickResourceKey<T> key) {
         T object = this.get(key);
         if (object == null) {
             throw new IllegalStateException("Missing key in " + this.getRegisterKey() + ": " + key);
@@ -110,11 +111,11 @@ public class BrickRegistry<T> extends RegistryType<T> implements Iterable<T> {
         }
     }
 
-    public void remove(ResourceKey<T> key) {
+    public void remove(BrickResourceKey<T> key) {
         map.remove(key.location());
     }
 
-    public void remove(ResourceLocation key) {
+    public void remove(ResourceID key) {
         map.remove(key);
     }
 
@@ -122,7 +123,7 @@ public class BrickRegistry<T> extends RegistryType<T> implements Iterable<T> {
         map.remove(getKey(value));
     }
 
-    public Set<ResourceLocation> keySet() {
+    public Set<ResourceID> keySet() {
         return this.map.keySet();
     }
 
@@ -130,7 +131,7 @@ public class BrickRegistry<T> extends RegistryType<T> implements Iterable<T> {
         return map.values().stream().map(Supplier::get).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    public void foreachRegistered(BiConsumer<ResourceLocation, T> consumer) {
+    public void foreachRegistered(BiConsumer<ResourceID, T> consumer) {
         if(!registered){
             map.forEach((rl, supplier) -> consumer.accept(rl, supplier.get()));
             registered = true;
@@ -145,7 +146,7 @@ public class BrickRegistry<T> extends RegistryType<T> implements Iterable<T> {
     }
 
     public Set<Map.Entry<ResourceKey<T>, T>> entrySet() {
-        return map.entrySet().stream().map((Function<Map.Entry<ResourceLocation, Supplier<T>>, Map.Entry<ResourceKey<T>, T>>) t -> new AbstractMap.SimpleEntry<>(ResourceKey.create(key, t.getKey()), t.getValue().get())).collect(Collectors.toSet());
+        return map.entrySet().stream().map((Function<Map.Entry<ResourceID, Supplier<T>>, Map.Entry<ResourceKey<T>, T>>) t -> new AbstractMap.SimpleEntry<>(ResourceKey.create(key, t.getKey()), t.getValue().get())).collect(Collectors.toSet());
     }
 
     public Set<ResourceKey<T>> registryKeySet() {
@@ -154,29 +155,29 @@ public class BrickRegistry<T> extends RegistryType<T> implements Iterable<T> {
 
     public T register(String name, Supplier<T> value) {
         //? if >= 1.21 {
-        /*return register(ResourceLocation.fromNamespaceAndPath("minecraft",name), value.get());
-         *///?} else {
-        return register(new ResourceLocation("minecraft",name), value.get());
-        //?}
+        return register(new ResourceID("minecraft",name), value.get());
+         //?} else {
+        /*return register(new ResourceLocation("minecraft",name), value.get());
+        *///?}
     }
 
-    public T register(ResourceLocation resourceLocation, Supplier<T> value) {
+    public T register(ResourceID resourceLocation, Supplier<T> value) {
         return register(resourceLocation, value.get());
     }
 
     public T register(String name, T value) {
         //? if >= 1.21 {
-        /*return register(ResourceLocation.fromNamespaceAndPath("minecraft",name), value);
-         *///?} else {
-        return register(new ResourceLocation("minecraft",name), value);
-        //?}
+        return register(new ResourceID("minecraft",name), value);
+         //?} else {
+        /*return register(new ResourceLocation("minecraft",name), value);
+        *///?}
     }
 
-    public T register(ResourceLocation name, T value) {
-        return register(ResourceKey.create(key, name), value);
+    public T register(ResourceID name, T value) {
+        return register(BrickResourceKey.create(key, name), value);
     }
 
-    public T register(ResourceKey<T> key, T value) {
+    public T register(BrickResourceKey<T> key, T value) {
         if (map.containsKey(key.location())) {
             LOGGER.error("Duplicated key {} in registry {}",key,this.key);
         } else {
@@ -202,7 +203,7 @@ public class BrickRegistry<T> extends RegistryType<T> implements Iterable<T> {
     }
 
     @Override
-    public ResourceKey<? extends Registry<T>> getRegisterKey() {
+    public BrickResourceKey<? extends Registry<T>> getRegisterKey() {
         return key;
     }
 

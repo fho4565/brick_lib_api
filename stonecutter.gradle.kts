@@ -1,6 +1,7 @@
 plugins {
     id("dev.kikugie.stonecutter")
-    id("dev.architectury.loom") version "1.10-SNAPSHOT" apply false
+    id("dev.mixinmcp.decompile") version "0.9.0"
+    id("dev.architectury.loom") version "1.14.476" apply false
     id("dev.kikugie.j52j") version "1.0" apply false // Enables asset processing by writing json5 files
     id("architectury-plugin") version "3.4-SNAPSHOT" apply false
     id("me.modmuss50.mod-publish-plugin") version "1.1.0" apply false
@@ -9,4 +10,4 @@ plugins {
     id("dev.kikugie.fletching-table") version "0.1.0-alpha.23" apply false
 }
 
-stonecutter active "1.20.1-forge" /* You may have to edit this. Make sure it matches one of the versions present in settings.gradle.kts */
+stonecutter active "1.21.11-neoforge" /* You may have to edit this. Make sure it matches one of the versions present in settings.gradle.kts */

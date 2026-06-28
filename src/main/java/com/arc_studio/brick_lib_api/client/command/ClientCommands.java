@@ -21,14 +21,13 @@ import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.Component;
 //? if <= 1.18.2 {
 /*import net.minecraft.network.chat.TextComponent;
-
+import net.minecraft.Util;
 *///?}
 import org.jetbrains.annotations.Nullable;
 /**
@@ -71,7 +70,7 @@ public final class ClientCommands {
             Minecraft client = Minecraft.getInstance();
             //? if > 1.18.2 {
             client.gui.getChat().addMessage(message);
-            client.getNarrator().sayNow(message);
+            client.getNarrator()./*~ if >1.21.5 'sayNow' -> 'sayChatQueued' {*/sayChatQueued/*~}*/(message);
             //?} else {
             /*client.gui.handleChat(ChatType.SYSTEM,message, Util.NIL_UUID);
             *///?}
@@ -86,7 +85,7 @@ public final class ClientCommands {
             Minecraft client = Minecraft.getInstance();
             //? if > 1.18.2 {
             client.gui.getChat().addMessage(Component.literal("").append(message).withStyle(ChatFormatting.RED));
-            client.getNarrator().sayNow(Component.literal("").append(message).withStyle(ChatFormatting.RED));
+            client.getNarrator()./*~ if >1.21.5 'sayNow' -> 'sayChatQueued' {*/sayChatQueued/*~}*/(Component.literal("").append(message).withStyle(ChatFormatting.RED));
             //?} else {
             /*client.gui.handleChat(ChatType.SYSTEM,new TextComponent("").append(message).withStyle(ChatFormatting.RED), Util.NIL_UUID);
             *///?}

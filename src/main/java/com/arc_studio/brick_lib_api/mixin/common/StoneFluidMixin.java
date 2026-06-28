@@ -1,6 +1,6 @@
 package com.arc_studio.brick_lib_api.mixin.common;
 
-import com.arc_studio.brick_lib_api.core.data.capability.builtin.example.StoneFluidInteraction;
+import com.arc_studio.brick_lib_api.core.data.capability.builtin.example.CapabilityExamples;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -18,38 +18,38 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Mixin 拦截方块右键交互，将石头方块的桶交互路由到能力系统
+ * Mixin 拦截箱子右键交互，将桶操作路由到流体能力示例
  */
 @Mixin(ChestBlock.class)
 public abstract class StoneFluidMixin {
 
 
     //? if >= 1.20.6 {
-    /*@Inject(method = "useWithoutItem", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "useWithoutItem", at = @At("HEAD"), cancellable = true)
     private void brickLib$onUseStone(
             BlockState state, Level level, BlockPos pos,
             Player player, BlockHitResult hitResult,
             CallbackInfoReturnable<InteractionResult> cir
     ) {
-        InteractionResult result = StoneFluidInteraction.handleUseOnStone(
+        InteractionResult result = CapabilityExamples.handleChestUse(
                 state, level, pos, player, InteractionHand.MAIN_HAND, hitResult
         );
         if (result != InteractionResult.PASS) {
             cir.setReturnValue(result);
         }
     }
-    *///?} else {
-    @Inject(method = "use", at = @At("HEAD"), cancellable = true)
+    //?} else {
+    /*@Inject(method = "use", at = @At("HEAD"), cancellable = true)
     private void brickLib$onUseStone(
         BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand,
         BlockHitResult hit, CallbackInfoReturnable<InteractionResult> cir
     ) {
-        InteractionResult result = StoneFluidInteraction.handleUseOnStone(
+        InteractionResult result = CapabilityExamples.handleChestUse(
                 state, level, pos, player, player.getUsedItemHand(), hit
         );
         if (result != InteractionResult.PASS) {
             cir.setReturnValue(InteractionResult.CONSUME);
         }
     }
-    //?}
+    *///?}
 }

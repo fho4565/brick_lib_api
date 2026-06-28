@@ -1,5 +1,6 @@
 package com.arc_studio.brick_lib_api.core.register;
 
+import com.arc_studio.brick_lib_api.core.data.BrickResourceKey;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import org.jetbrains.annotations.ApiStatus;
@@ -18,7 +19,7 @@ public final class VanillaRegistry<T> extends RegistryType<T> {
     }
 
     @Override
-    public ResourceKey<? extends Registry<T>> getRegisterKey() {
-        return vanillaRegistry.key();
+    public BrickResourceKey<? extends Registry<T>> getRegisterKey() {
+        return (BrickResourceKey<? extends Registry<T>>) vanillaRegistry.key();
     }
 }
