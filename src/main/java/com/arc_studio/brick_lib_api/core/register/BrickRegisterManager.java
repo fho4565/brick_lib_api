@@ -116,7 +116,7 @@ public class BrickRegisterManager {
         //? if > 1.18.2 {
         String key = registry.getRegisterKey().location().toLanguageKey();
         //?} else {
-        /*ResourceLocation location = registry.getRegisterKey().location();
+        /*ResourceID location = registry.getRegisterKey().location();
         String key = location.getNamespace() + "." + location.getPath();
         *///?}
         int count = registry.count();

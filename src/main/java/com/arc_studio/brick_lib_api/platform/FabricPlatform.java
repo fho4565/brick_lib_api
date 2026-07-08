@@ -24,19 +24,17 @@ import net.fabricmc.fabric.api.networking.v1.*;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 //? if >= 1.20.6 {
-/^import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-^///?}
+//?}
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Registry;
 import net.minecraft.network.Connection;
 import net.minecraft.network.ConnectionProtocol;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import com.arc_studio.brick_lib_api.core.data.ResourceID;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -180,33 +178,37 @@ public class FabricPlatform {
     }
 
     public static <T extends C2SNetworkContext> void enqueueWork(T context, Runnable runnable) {
+        //? if > 1.21.8 {
+        /^MinecraftServer server = context.getSender().server;
+        ^///? } else {
         MinecraftServer server = context.getSender().getServer();
+        //? }
         if (server != null) {
             server.execute(runnable);
         }
     }
 
     public static void sendToPlayer(ICHandlePacket packet, Iterable<ServerPlayer> serverPlayers) {
-        ResourceLocation id = Optional.ofNullable(packet.id()).orElseGet(() -> BrickLibAPI.ofPath(packet.getClass().getName().replace(".", "_").toLowerCase() + "_s2c"));
+        ResourceID id = Optional.ofNullable(packet.id()).orElseGet(() -> BrickLibAPI.ofPath(packet.getClass().getName().replace(".", "_").toLowerCase() + "_s2c"));
         for (ServerPlayer serverPlayer : serverPlayers) {
             //? if < 1.20.6 {
-            ServerPlayNetworking.send(serverPlayer, id, packet.getEncodedPacketContent(new PacketContent()).friendlyByteBuf());
-            //?} else {
-            /^ServerPlayNetworking.send(serverPlayer, packet);
-            ^///?}
+            /^ServerPlayNetworking.send(serverPlayer, id, packet.getEncodedPacketContent(new PacketContent()).friendlyByteBuf());
+            ^///?} else {
+            ServerPlayNetworking.send(serverPlayer, packet);
+            //?}
         }
     }
 
     public static void sendToServer(ISHandlePacket packet) {
         //? if < 1.20.6 {
-        ResourceLocation id = Optional.ofNullable(packet.id()).orElseGet(() -> new ResourceLocation(BrickLibAPI.MOD_ID, packet.getClass().getName().replace(".", "_").toLowerCase() + "_c2s"));
+        /^ResourceID id = Optional.ofNullable(packet.id()).orElseGet(() -> new ResourceID(BrickLibAPI.MOD_ID, packet.getClass().getName().replace(".", "_").toLowerCase() + "_c2s"));
         ClientPlayNetworking.send(id, packet.getEncodedPacketContent(new PacketContent()).friendlyByteBuf());
-        //?} else {
-        /^ClientPlayNetworking.send(packet);
-        ^///?}
+        ^///?} else {
+        ClientPlayNetworking.send(packet);
+        //?}
     }
 
-    public static Set<ResourceLocation> networkChannels(Connection connection, ConnectionProtocol protocol) {
+    public static Set<ResourceID> networkChannels(Connection connection, ConnectionProtocol protocol) {
         return Set.of();
     }
 
@@ -236,7 +238,7 @@ public class FabricPlatform {
 
     public static void brickFinalizeRegistryPost() {
         //? if >= 1.20.6 {
-        /^BrickRegistries.NETWORK_PACKET.foreachRegisteredValue(packetConfig -> {
+        BrickRegistries.NETWORK_PACKET.foreachRegisteredValue(packetConfig -> {
             if (packetConfig instanceof PacketConfig.C2S c2S) {
                 c2s(c2S);
             } else if (packetConfig instanceof PacketConfig.S2C s2C) {
@@ -247,8 +249,8 @@ public class FabricPlatform {
                 login(login);
             }
         });
-        ^///?} else {
-        BrickRegistries.NETWORK_PACKET.foreachRegisteredValue(packetConfig -> {
+        //?} else {
+        /^BrickRegistries.NETWORK_PACKET.foreachRegisteredValue(packetConfig -> {
             if (packetConfig instanceof PacketConfig.C2S c2SPlay) {
                 SideExecutor.runOnServer(() -> () -> ServerPlayNetworking.registerGlobalReceiver(c2SPlay.id(),
                         (server, player, handler, buf, responseSender) -> {
@@ -323,7 +325,7 @@ public class FabricPlatform {
                 });
             }
         });
-        //?}
+        ^///?}
         BrickRegisterManager.getVanillaEntries().forEach((registry, map2) ->
                 map2.forEach((resourceLocation, supplier) -> {
             if (!registry.containsKey(resourceLocation)) {
@@ -337,7 +339,7 @@ public class FabricPlatform {
     }
 
     //? if >= 1.20.6 {
-    /^private static <T extends C2SPacket> void c2s(PacketConfig.C2S<T> c2S) {
+    private static <T extends C2SPacket> void c2s(PacketConfig.C2S<T> c2S) {
         CustomPacketPayload.Type<T> type = new CustomPacketPayload.Type<>(c2S.id());
         StreamCodec<RegistryFriendlyByteBuf, T> codec = new StreamCodec<>() {
             @Override
@@ -355,7 +357,12 @@ public class FabricPlatform {
             if (c2S.netHandle()) {
                 c2S.packetHandler().accept(payload, new C2SNetworkContext(context.player()));
             } else {
-                context.player().getServer().execute(() -> c2S.packetHandler().accept(payload, new C2SNetworkContext(context.player())));
+                //? if > 1.21.8 {
+                /^MinecraftServer server = context.player().server;
+                ^///? } else {
+                MinecraftServer server = context.player().getServer();
+                //? }
+                server.execute(() -> c2S.packetHandler().accept(payload, new C2SNetworkContext(context.player())));
             }
         });
     }
@@ -440,10 +447,15 @@ public class FabricPlatform {
             if (sAC.serverNetHandle()) {
                 sAC.serverHandler().accept(payload, new C2SNetworkContext(context.player()));
             } else {
-                context.player().getServer().execute(() -> sAC.serverHandler().accept(payload, new C2SNetworkContext(context.player())));
+                //? if > 1.21.8 {
+                /^MinecraftServer server = context.player().server;
+                ^///? } else {
+                MinecraftServer server = context.player().getServer();
+                //? }
+                server.execute(() -> sAC.serverHandler().accept(payload, new C2SNetworkContext(context.player())));
             }
         });
     }
-    ^///?}
+    //?}
     *///?}
 }

@@ -1,5 +1,8 @@
 package com.arc_studio.brick_lib_api.core.data.capability.transaction;
 
+//? if fabric && > 1.21.8 {
+/*import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
+*///? }
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -23,7 +26,7 @@ import java.util.List;
  * }
  * }</pre>
  */
-public class BrickTransaction implements AutoCloseable, BrickTransactionContext {
+public class BrickTransaction implements AutoCloseable, BrickTransactionContext /*? if fabric && > 1.21.8 {*/ /*,Transaction *//*?}*/ {
 
     private static final ThreadLocal<BrickTransaction> CURRENT = new ThreadLocal<>();
 
@@ -197,6 +200,28 @@ public class BrickTransaction implements AutoCloseable, BrickTransactionContext 
         }
     }
 
+    //? if fabric && > 1.21.8 {
+    /*@Override
+    public Transaction openNested() {
+        return null;
+    }
+
+    @Override
+    public Transaction getOpenTransaction(int nestingDepth) {
+        return this.getTransaction();
+    }
+
+    @Override
+    public void addCloseCallback(CloseCallback closeCallback) {
+
+    }
+
+    @Override
+    public void addOuterCloseCallback(OuterCloseCallback outerCloseCallback) {
+
+    }
+    *///?}
+
     @Override
     public int nestingDepth() {
         return depth;
@@ -228,11 +253,11 @@ public class BrickTransaction implements AutoCloseable, BrickTransactionContext 
         }
     }
 
-    //? if > 1.21.5 {
-    @Override
+    //? if > 1.21.5 && neoforge {
+    /*@Override
     public int depth() {
         return this.depth;
     }
-    //? }
+    *///? }
 }
 

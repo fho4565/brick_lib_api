@@ -19,12 +19,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.Connection;
 import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.server.level.ServerPlayer;
-//? if < 1.21.5 {
-/*import net.minecraft.world.entity.npc.VillagerProfession;
-import net.minecraft.world.entity.npc.VillagerTrades;*/
+//? if < 1.21.8 {
+import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.entity.npc.VillagerTrades;
 //? } else {
-import net.minecraft.world.entity.npc.villager.VillagerProfession;
-import net.minecraft.world.entity.npc.villager.VillagerTrades;
+/*import net.minecraft.world.entity.npc.villager.VillagerProfession;
+import net.minecraft.world.entity.npc.villager.VillagerTrades;*/
 //? }
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.LevelResource;
@@ -36,9 +36,9 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.ApiStatus;
 
 //? if >= 1.21.5 {
-import net.minecraft.core.registries.BuiltInRegistries;
+/*import net.minecraft.core.registries.BuiltInRegistries;
 
-//?}
+*///?}
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,13 +77,13 @@ public class Platform {
         /*return FabricPlatform.getConfigDirectory();
 
         *///?} else if forge {
-        /*return ForgePlatform.getConfigDirectory();
+        return ForgePlatform.getConfigDirectory();
 
-        *///?} else if neoforge {
-        return NeoForgePlatform.getConfigDirectory();
+        //?} else if neoforge {
+        /*return NeoForgePlatform.getConfigDirectory();
 
 
-        //?}
+        *///?}
     }
 
     public static Path versionPath() {
@@ -91,11 +91,11 @@ public class Platform {
         /*return FabricPlatform.versionPath();
 
         *///?} else if forge {
-        /*return ForgePlatform.versionPath();
-         *///?} else if neoforge {
-        return NeoForgePlatform.versionPath();
+        return ForgePlatform.versionPath();
+         //?} else if neoforge {
+        /*return NeoForgePlatform.versionPath();
 
-        //?}
+        *///?}
     }
 
     public static boolean isDev() {
@@ -103,11 +103,11 @@ public class Platform {
         /*return FabricPlatform.isDev();
 
         *///?} else if forge {
-        /*return ForgePlatform.isDev();
-         *///?} else if neoforge {
-        return NeoForgePlatform.isDev();
+        return ForgePlatform.isDev();
+         //?} else if neoforge {
+        /*return NeoForgePlatform.isDev();
 
-        //?}
+        *///?}
     }
 
     public static String[] launchArgs() {
@@ -124,11 +124,11 @@ public class Platform {
         /*return FabricPlatform.platform();
 
         *///?} else if forge {
-        /*return ForgePlatform.platform();
-         *///?} else if neoforge {
-        return NeoForgePlatform.platform();
+        return ForgePlatform.platform();
+         //?} else if neoforge {
+        /*return NeoForgePlatform.platform();
 
-        //?}
+        *///?}
     }
 
     public static boolean isClient() {
@@ -136,11 +136,11 @@ public class Platform {
         /*return FabricPlatform.isClient();
 
         *///?} else if forge {
-        /*return ForgePlatform.isClient();
-         *///?} else if neoforge {
-        return NeoForgePlatform.isClient();
+        return ForgePlatform.isClient();
+         //?} else if neoforge {
+        /*return NeoForgePlatform.isClient();
 
-        //?}
+        *///?}
     }
 
     public static boolean isServer() {
@@ -148,11 +148,11 @@ public class Platform {
         /*return FabricPlatform.isServer();
 
         *///?} else if forge {
-        /*return ForgePlatform.isServer();
-         *///?} else if neoforge {
-        return NeoForgePlatform.isServer();
+        return ForgePlatform.isServer();
+         //?} else if neoforge {
+        /*return NeoForgePlatform.isServer();
 
-        //?}
+        *///?}
     }
 
     public static <T extends S2CNetworkContext> void enqueueWork(T context, Runnable runnable) {
@@ -160,11 +160,11 @@ public class Platform {
         /*FabricPlatform.enqueueWork(context, runnable);
 
         *///?} else if forge {
-        /*ForgePlatform.enqueueWork(context, runnable);
-         *///?} else if neoforge {
-        NeoForgePlatform.enqueueWork(context, runnable);
+        ForgePlatform.enqueueWork(context, runnable);
+         //?} else if neoforge {
+        /*NeoForgePlatform.enqueueWork(context, runnable);
 
-        //?}
+        *///?}
     }
 
     public static <T extends C2SNetworkContext> void enqueueWork(T context, Runnable runnable) {
@@ -172,11 +172,11 @@ public class Platform {
         /*FabricPlatform.enqueueWork(context, runnable);
 
         *///?} else if forge {
-        /*ForgePlatform.enqueueWork(context, runnable);
-         *///?} else if neoforge {
-        NeoForgePlatform.enqueueWork(context, runnable);
+        ForgePlatform.enqueueWork(context, runnable);
+         //?} else if neoforge {
+        /*NeoForgePlatform.enqueueWork(context, runnable);
 
-        //?}
+        *///?}
     }
 
     public static void sendToPlayer(ICHandlePacket packet, Iterable<ServerPlayer> serverPlayers) {
@@ -184,11 +184,11 @@ public class Platform {
         /*FabricPlatform.sendToPlayer(packet, serverPlayers);
 
         *///?} else if forge {
-        /*ForgePlatform.sendToPlayer(packet, serverPlayers);
-         *///?} else if neoforge {
-        NeoForgePlatform.sendToPlayer(packet, serverPlayers);
+        ForgePlatform.sendToPlayer(packet, serverPlayers);
+         //?} else if neoforge {
+        /*NeoForgePlatform.sendToPlayer(packet, serverPlayers);
 
-        //?}
+        *///?}
     }
 
     public static void sendToAllPlayers(ICHandlePacket packet) {
@@ -200,11 +200,11 @@ public class Platform {
         /*FabricPlatform.sendToServer(packet);
 
         *///?} else if forge {
-        /*ForgePlatform.sendToServer(packet);
-         *///?} else if neoforge {
-        NeoForgePlatform.sendToServer(packet);
+        ForgePlatform.sendToServer(packet);
+         //?} else if neoforge {
+        /*NeoForgePlatform.sendToServer(packet);
 
-        //?}
+        *///?}
     }
 
     public static Set<ResourceID> networkChannels(Connection connection, ConnectionProtocol protocol) {
@@ -212,11 +212,11 @@ public class Platform {
         /*return FabricPlatform.networkChannels(connection, protocol);
 
         *///?} else if forge {
-        /*return ForgePlatform.networkChannels(connection, protocol);
-         *///?} else if neoforge {
-        return NeoForgePlatform.networkChannels(connection, protocol);
+        return ForgePlatform.networkChannels(connection, protocol);
+         //?} else if neoforge {
+        /*return NeoForgePlatform.networkChannels(connection, protocol);
 
-        //?}
+        *///?}
     }
 
     // ===========================
@@ -252,16 +252,16 @@ public class Platform {
                 i2.setDamageValue(0);
             }
             //? if >= 1.20.6 {
-            if (i1.isEmpty()) {
+            /*if (i1.isEmpty()) {
                 return i2.isEmpty();
             } else {
                 return !i2.isEmpty() && i1.getCount() == i2.getCount() && i1.getItem() == i2.getItem() &&
                         (Objects.equals(i1.getComponentsPatch(), i2.getComponentsPatch()));
             }
 
-            //?} elif > 1.19.4 {
-            /*return ItemStack.isSameItem(i1, i2);
-            *///?} else {
+            *///?} elif > 1.19.4 {
+            return ItemStack.isSameItem(i1, i2);
+            //?} else {
             /*return ItemStack.isSameItemSameTags(i1, i2);
 
             *///?}
@@ -286,11 +286,11 @@ public class Platform {
         HashMap<Pair<VillagerProfession, Integer>, ArrayList<VillagerTrades.ItemListing>> map = new HashMap<>();
         for (VillagerTradeEntry entry : BrickRegistries.VILLAGER_TRADE) {
             //? if >= 1.21.5 {
-            Pair<VillagerProfession, Integer> key = Pair.of(BuiltInRegistries.VILLAGER_PROFESSION.getValueOrThrow(entry.profession()), entry.level());
+            /*Pair<VillagerProfession, Integer> key = Pair.of(BuiltInRegistries.VILLAGER_PROFESSION.getValueOrThrow(entry.profession()), entry.level());
 
-            //?} else {
-            /*Pair<VillagerProfession, Integer> key = Pair.of(entry.profession(), entry.level());
-            *///?}
+            *///?} else {
+            Pair<VillagerProfession, Integer> key = Pair.of(entry.profession(), entry.level());
+            //?}
             ArrayList<VillagerTrades.ItemListing> list = map.getOrDefault(key, new ArrayList<>());
             list.add(entry.trade());
             map.put(key, list);
@@ -313,7 +313,7 @@ public class Platform {
 
     static void registerVillagerOffers(VillagerProfession profession, int level, List<VillagerTrades.ItemListing> trades) {
         //? if < 1.21.5 {
-        /*Int2ObjectMap<VillagerTrades.ItemListing[]> map = VillagerTrades.TRADES.getOrDefault(profession, new Int2ObjectOpenHashMap<>());
+        Int2ObjectMap<VillagerTrades.ItemListing[]> map = VillagerTrades.TRADES.getOrDefault(profession, new Int2ObjectOpenHashMap<>());
         Optional<VillagerTrades.ItemListing[]> optional = Optional.ofNullable(map.get(level));
         if (optional.isPresent()) {
             ArrayList<VillagerTrades.ItemListing> list = new ArrayList<>(Arrays.asList(optional.get()));
@@ -321,8 +321,8 @@ public class Platform {
             map.put(level, list.toArray(new VillagerTrades.ItemListing[0]));
             VillagerTrades.TRADES.put(profession, map);
         }
-        *///?} else {
-        BuiltInRegistries.VILLAGER_PROFESSION.getResourceKey(profession).ifPresentOrElse(resourceKey -> {
+        //?} else {
+        /*BuiltInRegistries.VILLAGER_PROFESSION.getResourceKey(profession).ifPresentOrElse(resourceKey -> {
             Int2ObjectMap<VillagerTrades.ItemListing[]> map = VillagerTrades.TRADES.getOrDefault(resourceKey, new Int2ObjectOpenHashMap<>());
             Optional<VillagerTrades.ItemListing[]> optional = Optional.ofNullable(map.get(level));
             if (optional.isPresent()) {
@@ -335,12 +335,12 @@ public class Platform {
             BrickLibAPI.LOGGER.error("No profession " + profession.name().toString());
         });
 
-        //?}
+        *///?}
     }
 
     static void registerWanderingOffers(int level, List<VillagerTrades.ItemListing> trades) {
         //? if < 1.21.5 {
-        /*Int2ObjectMap<VillagerTrades.ItemListing[]> map = VillagerTrades.WANDERING_TRADER_TRADES;
+        Int2ObjectMap<VillagerTrades.ItemListing[]> map = VillagerTrades.WANDERING_TRADER_TRADES;
         Optional<VillagerTrades.ItemListing[]> optional = Optional.ofNullable(map.get(level));
         if (optional.isPresent()) {
             ArrayList<VillagerTrades.ItemListing> list = new ArrayList<>(Arrays.asList(optional.get()));
@@ -348,13 +348,13 @@ public class Platform {
             map.put(level, list.toArray(new VillagerTrades.ItemListing[0]));
             VillagerTrades.WANDERING_TRADER_TRADES.put(level, list.toArray(new VillagerTrades.ItemListing[0]));
         }
-        *///?} else {
-        List<Pair<VillagerTrades.ItemListing[], Integer>> map = VillagerTrades.WANDERING_TRADER_TRADES;
+        //?} else {
+        /*List<Pair<VillagerTrades.ItemListing[], Integer>> map = VillagerTrades.WANDERING_TRADER_TRADES;
         Optional<Pair<VillagerTrades.ItemListing[], Integer>> optional = Optional.ofNullable(map.get(level));
         if (optional.isPresent()) {
             VillagerTrades.WANDERING_TRADER_TRADES.add(Pair.of(trades.toArray(new VillagerTrades.ItemListing[0]), level));
         }
 
-        //?}
+        *///?}
     }
 }

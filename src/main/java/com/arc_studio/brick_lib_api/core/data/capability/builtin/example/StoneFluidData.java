@@ -30,7 +30,7 @@ public class StoneFluidData extends BrickSavedData {
     private static final long CAPACITY = IFluidStorage.BUCKET * 32;
 
     //? if >= 1.21.5 {
-    private static final com.mojang.serialization.Codec<StoneFluidData> CODEC =
+    /*private static final com.mojang.serialization.Codec<StoneFluidData> CODEC =
         CompoundTag.CODEC.xmap(StoneFluidData::new, data -> data.saveData(new CompoundTag()));
     private static final net.minecraft.world.level.saveddata.SavedDataType<StoneFluidData> TYPE =
         new net.minecraft.world.level.saveddata.SavedDataType<>(
@@ -39,7 +39,7 @@ public class StoneFluidData extends BrickSavedData {
             CODEC,
             null
         );
-    //?}
+    *///?}
 
     private final Map<BlockPos, SimpleFluidStorage> storageMap = new HashMap<>();
 
@@ -48,7 +48,7 @@ public class StoneFluidData extends BrickSavedData {
 
     public StoneFluidData(CompoundTag tag) {
         //? if >= 1.21.5 {
-        ListTag list = tag.getListOrEmpty("entries");
+        /*ListTag list = tag.getListOrEmpty("entries");
         for (int i = 0; i < list.size(); i++) {
             CompoundTag entry = list.getCompound(i).orElseThrow();
             BlockPos pos = new BlockPos(
@@ -57,17 +57,17 @@ public class StoneFluidData extends BrickSavedData {
                 entry.getInt("z").orElse(0)
             );
             long amount = entry.getLong("amount").orElse(0L);
-        //?} else {
-        /*ListTag list = tag.getList("entries", Tag.TAG_COMPOUND);
+        *///?} else {
+        ListTag list = tag.getList("entries", Tag.TAG_COMPOUND);
         for (int i = 0; i < list.size(); i++) {
             CompoundTag entry = list.getCompound(i);
             //? if >= 1.20.6 {
-            BlockPos pos = NbtUtils.readBlockPos(entry, "pos").orElse(BlockPos.ZERO);
-            //?} else {
-            /^BlockPos pos = NbtUtils.readBlockPos(entry.getCompound("pos"));
-            ^///?}
+            /*BlockPos pos = NbtUtils.readBlockPos(entry, "pos").orElse(BlockPos.ZERO);
+            *///?} else {
+            BlockPos pos = NbtUtils.readBlockPos(entry.getCompound("pos"));
+            //?}
             long amount = entry.getLong("amount");
-        *///?}
+        //?}
             // 只存储水，所以重建时设置水
             SimpleFluidStorage storage = new SimpleFluidStorage(CAPACITY);
             if (amount > 0) {
@@ -85,12 +85,12 @@ public class StoneFluidData extends BrickSavedData {
             if (!storage.isEmpty()) {
                 CompoundTag entry = new CompoundTag();
                 //? if >= 1.21.5 {
-                entry.putInt("x", pos.getX());
+                /*entry.putInt("x", pos.getX());
                 entry.putInt("y", pos.getY());
                 entry.putInt("z", pos.getZ());
-                //?} else {
-                /*entry.put("pos", NbtUtils.writeBlockPos(pos));
-                *///?}
+                *///?} else {
+                entry.put("pos", NbtUtils.writeBlockPos(pos));
+                //?}
                 entry.putLong("amount", storage.getFluidAmountInTank(0));
                 list.add(entry);
             }
@@ -125,8 +125,8 @@ public class StoneFluidData extends BrickSavedData {
      */
     public static StoneFluidData get(ServerLevel level) {
         //? if >= 1.21.5 {
-        return level.getDataStorage().computeIfAbsent(TYPE);
-        //?} else if >= 1.20.6 {
+        /*return level.getDataStorage().computeIfAbsent(TYPE);
+        *///?} else if >= 1.20.6 {
         /*return level.getDataStorage().computeIfAbsent(
             new SavedData.Factory<>(StoneFluidData::new, (compoundTag, provider) ->
                 new StoneFluidData(compoundTag), DataFixTypes.CHUNK),
@@ -139,10 +139,10 @@ public class StoneFluidData extends BrickSavedData {
             DATA_NAME
         );
         *///?} else {
-        /*return level.getDataStorage().computeIfAbsent(
+        return level.getDataStorage().computeIfAbsent(
             StoneFluidData::new, StoneFluidData::new, DATA_NAME
         );
-        *///?}
+        //?}
     }
 
     /**

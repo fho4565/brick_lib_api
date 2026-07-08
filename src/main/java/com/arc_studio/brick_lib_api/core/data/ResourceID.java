@@ -5,17 +5,19 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 
 //? if > 1.18.2 {
-import net.minecraft.IdentifierException;
+//? if > 1.21.5 {
+/*import net.minecraft.IdentifierException;
+*///? }
 import net.minecraft.network.chat.Component;
 //?} else {
 /*import net.minecraft.network.chat.TranslatableComponent;
 *///?}
 
-//? if > 1.12.5 {
-import net.minecraft.resources.Identifier;
-//? } else {
-/*import net.minecraft.resources.ResourceLocation;
-import net.minecraft.ResourceLocationException;*/
+//? if > 1.21.5 {
+/*import net.minecraft.resources.Identifier;
+*///? } else {
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.ResourceLocationException;
 //? }
 
 
@@ -24,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class ResourceID extends
     //~ if > 1.21.5 'ResourceLocation' -> 'Identifier'
-    Identifier
+    ResourceLocation
 {
     protected static final SimpleCommandExceptionType ERROR_INVALID =
         new SimpleCommandExceptionType(
@@ -36,10 +38,10 @@ public class ResourceID extends
         );
     public ResourceID(String location) {
         //? if > 1.20.6 {
-        this(decompose(location, ':'));
-        //?} else {
-        /*super(location);
-        *///?}
+        /*this(decompose(location, ':'));
+        *///?} else {
+        super(location);
+        //?}
     }
 
     public ResourceID(String namespace, String path) {
@@ -66,16 +68,24 @@ public class ResourceID extends
     public static ResourceID tryParse(String location) {
         try {
             return new ResourceID(location);
-        } catch (/*? if < 1.21.5 {*/ /*ResourceLocationException*/ /*?} else {*/ IdentifierException /*?}*/ var2) {
+        } catch (/*? if < 1.21.8 {*/ ResourceLocationException /*?} else {*/ /*IdentifierException*/ /*?}*/ var2) {
             return null;
         }
+    }
+
+    public String getNamespace() {
+        return super.getNamespace();
+    }
+
+    public String getPath() {
+        return super.getPath();
     }
 
     @Nullable
     public static ResourceID tryBuild(String namespace, String path) {
         try {
             return new ResourceID(namespace, path);
-        } catch (/*? if < 1.21.5 {*/ /*ResourceLocationException*/ /*?} else {*/ IdentifierException /*?}*/ var3) {
+        } catch (/*? if < 1.21.8 {*/ ResourceLocationException /*?} else {*/ /*IdentifierException*/ /*?}*/ var3) {
             return null;
         }
     }
@@ -104,7 +114,7 @@ public class ResourceID extends
 
         try {
             return new ResourceID(s);
-        } catch (/*? if < 1.21.5 {*/ /*ResourceLocationException*/ /*?} else {*/ IdentifierException /*?}*/ var4) {
+        } catch (/*? if < 1.21.8 {*/ ResourceLocationException /*?} else {*/ /*IdentifierException*/ /*?}*/ var4) {
             reader.setCursor(i);
             throw ERROR_INVALID.createWithContext(reader);
         }
@@ -136,7 +146,7 @@ public class ResourceID extends
 
     private static String assertValidNamespace(String namespace, String path) {
         if (!isValidNamespace(namespace)) {
-            throw new /*? if < 1.21.5 {*/ /*ResourceLocationException*/ /*?} else {*/ IdentifierException /*?}*/("Non [a-z0-9_.-] character in namespace of ResourceID: " + namespace + ":" + path);
+            throw new /*? if < 1.21.8 {*/ ResourceLocationException /*?} else {*/ /*IdentifierException*/ /*?}*/("Non [a-z0-9_.-] character in namespace of ResourceID: " + namespace + ":" + path);
         } else {
             return namespace;
         }
@@ -157,7 +167,7 @@ public class ResourceID extends
 
     private static String assertValidPath(String namespace, String path) {
         if (!isValidPath(path)) {
-            throw new /*? if < 1.21.5 {*/ /*ResourceLocationException*/ /*?} else {*/ IdentifierException /*?}*/("Non [a-z0-9/._-] character in path of ResourceID: " + namespace + ":" + path);
+            throw new /*? if < 1.21.8 {*/ ResourceLocationException /*?} else {*/ /*IdentifierException*/ /*?}*/("Non [a-z0-9/._-] character in path of ResourceID: " + namespace + ":" + path);
         } else {
             return path;
         }

@@ -21,13 +21,15 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.*;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-
+//? if > 1.21.8 {
+/*import net.minecraft.server.permissions.Permissions;
+*///? }
 //? if > 1.20.4 {
-import net.minecraft.server.permissions.Permissions;
-import net.minecraft.world.item.trading.ItemCost;
-//?}
+/*import net.minecraft.world.item.trading.ItemCost;
+*///?}
 import com.mojang.logging.LogUtils;
-import net.neoforged.neoforge.server.permission.PermissionAPI;
+//? if neoforge
+//import net.neoforged.neoforge.server.permission.PermissionAPI;
 import org.slf4j.Logger;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -84,7 +86,7 @@ public final class BrickLibAPI {
         );
         BrickRegisterManager.register(BrickRegistries.COMMAND, () -> buildContext ->
                 Commands.literal("brick_lib")
-                        .requires(stack ->/*? if < 1.21.5 {*/ /*stack.hasPermission(2)*/ /*?} else {*/ stack.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER) /*?}*/)
+                        .requires(stack ->/*? if < 1.21.8 {*/ stack.hasPermission(2) /*?} else {*/ /*stack.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER)*/ /*?}*/)
                         .then(
                             Commands.literal("config")
                                 .then(Commands.literal("list")
@@ -204,10 +206,10 @@ public final class BrickLibAPI {
             //? if > 1.18.2 {
             context.getSource().sendFailure(Component.literal("Error when generate data").withStyle(style -> style.withHoverEvent(
                 //? if < 1.21.5 {
-                /*new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(e.getMessage()))
-                *///?} else {
-                new HoverEvent.ShowText(Component.literal(e.getMessage()))
-                 //?}
+                new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(e.getMessage()))
+                //?} else {
+                /*new HoverEvent.ShowText(Component.literal(e.getMessage()))
+                 *///?}
             )));
             //?} else {
             /*context.getSource().sendFailure(new TextComponent("Error when generate data").withStyle(style -> style.withHoverEvent(

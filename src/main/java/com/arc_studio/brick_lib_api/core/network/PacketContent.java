@@ -1,6 +1,7 @@
 package com.arc_studio.brick_lib_api.core.network;
 
 
+import com.arc_studio.brick_lib_api.core.data.ResourceID;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
@@ -9,8 +10,8 @@ import io.netty.buffer.Unpooled;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 //? if > 1.20.4 {
-import net.minecraft.core.component.DataComponentMap;
- //?}
+/*import net.minecraft.core.component.DataComponentMap;
+ *///?}
 //? if > 1.19.2 {
 import net.minecraft.core.registries.BuiltInRegistries;
 import org.joml.Vector3f;
@@ -23,7 +24,6 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
@@ -97,7 +97,7 @@ public class PacketContent {
 
     public PacketContent writeItemStack(ItemStack itemStack) {
         //? if >= 1.20.6 {
-        if (itemStack.isEmpty()) {
+        /*if (itemStack.isEmpty()) {
             friendlyByteBuf.writeBoolean(false);
         } else {
             friendlyByteBuf.writeBoolean(true);
@@ -116,9 +116,9 @@ public class PacketContent {
                 }
             });
         }
-        //?} else {
-        /*friendlyByteBuf.writeItem(itemStack);
-        *///?}
+        *///?} else {
+        friendlyByteBuf.writeItem(itemStack);
+        //?}
         return this;
     }
 
@@ -157,8 +157,8 @@ public class PacketContent {
         return this;
     }
 
-    public PacketContent writeResourceLocation(ResourceLocation resourceLocation) {
-        friendlyByteBuf.writeResourceLocation(resourceLocation);
+    public PacketContent writeResourceLocation(ResourceID resourceLocation) {
+        friendlyByteBuf./*~ if > 1.21.8 'writeResourceLocation' -> 'writeIdentifier' {*/writeResourceLocation/*~}*/(resourceLocation);
         return this;
     }
 
@@ -178,6 +178,22 @@ public class PacketContent {
 
     public PacketContent writeGameProfile(GameProfile gameProfile) {
         //? if >= 1.20.6 {
+        /*//? if > 1.21.8 {
+        /^friendlyByteBuf.writeUUID(gameProfile.id());
+        friendlyByteBuf.writeUtf(gameProfile.name());
+        friendlyByteBuf.writeCollection(gameProfile.properties().values(), (buf, property) -> {
+            buf.writeUtf(property.name());
+            buf.writeUtf(property.value());
+            if (property.hasSignature()) {
+                buf.writeBoolean(true);
+                if (property.signature() != null) {
+                    buf.writeUtf(property.signature());
+                }
+            } else {
+                buf.writeBoolean(false);
+            }
+        });
+        ^///? } else {
         friendlyByteBuf.writeUUID(gameProfile.getId());
         friendlyByteBuf.writeUtf(gameProfile.getName());
         friendlyByteBuf.writeCollection(gameProfile.getProperties().values(), (buf, property) -> {
@@ -192,9 +208,10 @@ public class PacketContent {
                 buf.writeBoolean(false);
             }
         });
-        //?} elif > 1.18.2 {
-        /*friendlyByteBuf.writeGameProfile(gameProfile);
-        *///?} else {
+        //? }
+        *///?} elif > 1.18.2 {
+        friendlyByteBuf.writeGameProfile(gameProfile);
+        //?} else {
         /*friendlyByteBuf.writeUUID(gameProfile.getId());
         friendlyByteBuf.writeUtf(gameProfile.getName());
         friendlyByteBuf.writeCollection(gameProfile.getProperties().values(), (friendlyByteBuf, property) -> {
@@ -250,7 +267,7 @@ public class PacketContent {
 
     public ItemStack readItemStack() {
         //? if >= 1.20.6 {
-        if (!friendlyByteBuf.readBoolean()) {
+        /*if (!friendlyByteBuf.readBoolean()) {
             return ItemStack.EMPTY;
         } else {
             int varInt = friendlyByteBuf.readVarInt();
@@ -261,9 +278,9 @@ public class PacketContent {
             result.ifPresent(pair -> itemstack.applyComponents(pair.getFirst()));
             return itemstack;
         }
-        //?} else {
-        /*return friendlyByteBuf.readItem();
-        *///?}
+        *///?} else {
+        return friendlyByteBuf.readItem();
+        //?}
     }
 
     public String readUTF() {
@@ -293,15 +310,15 @@ public class PacketContent {
         return new float[]{friendlyByteBuf.readFloat(), friendlyByteBuf.readFloat(), friendlyByteBuf.readFloat()};
     }
 
-    public ResourceLocation readResourceLocation() {
-        return friendlyByteBuf.readResourceLocation();
+    public ResourceID readResourceLocation() {
+        return (ResourceID) friendlyByteBuf./*~ if > 1.21.8 'readResourceLocation' -> 'readIdentifier' {*/readResourceLocation/*~}*/();
     }
 
     public <T> ResourceKey<T> readResourceKey(ResourceKey<? extends Registry<T>> registryKey) {
         //? if > 1.18.2 {
         return friendlyByteBuf.readResourceKey(registryKey);
         //?} else {
-        /*ResourceLocation resourceLocation = this.readResourceLocation();
+        /*ResourceID resourceLocation = this.readResourceLocation();
         return ResourceKey.create(registryKey, resourceLocation);
         *///?}
     }
@@ -312,7 +329,7 @@ public class PacketContent {
 
     public GameProfile readGameProfile() {
         //? if >= 1.20.6 {
-        UUID uuid = friendlyByteBuf.readUUID();
+        /*UUID uuid = friendlyByteBuf.readUUID();
         String s0 = friendlyByteBuf.readUtf(16);
         GameProfile gameprofile = new GameProfile(uuid, s0);
         friendlyByteBuf.readWithCount((buf) -> {
@@ -325,12 +342,12 @@ public class PacketContent {
             } else {
                 property = new Property(s, s1);
             }
-            gameprofile.getProperties().put(property.name(), property);
+            gameprofile./^~ if > 1.21.8 'getProperties' -> 'properties' {^/getProperties/^~}^/().put(property.name(), property);
         });
         return gameprofile;
-        //?} elif > 1.18.2 {
-        /*return friendlyByteBuf.readGameProfile();
-        *///?} else {
+        *///?} elif > 1.18.2 {
+        return friendlyByteBuf.readGameProfile();
+        //?} else {
         /*UUID uUID = friendlyByteBuf.readUUID();
         String string = friendlyByteBuf.readUtf(16);
         GameProfile gameProfile = new GameProfile(uUID, string);

@@ -5,19 +5,19 @@ import com.arc_studio.brick_lib_api.core.data.ResourceID;
 import com.arc_studio.brick_lib_api.core.network.context.S2CNetworkContext;
 import com.arc_studio.brick_lib_api.core.SideExecutor;
 //? if >= 1.20.4 {
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-//?}
+/*import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+*///?}
 
 /**
  * 从服务端单向发送到客户端的包
  */
 public abstract class S2CPacket extends Packet implements ICHandlePacket {
     //? if > 1.20.4 {
-    @Override
+    /*@Override
     public Type<? extends CustomPacketPayload> type() {
         return new Type<>(id());
     }
-    //?}
+    *///?}
     public final void handler(S2CNetworkContext context) {
         context.enqueueWork(() -> SideExecutor.runOnClientOrException(() -> clientHandle(context)));
     }

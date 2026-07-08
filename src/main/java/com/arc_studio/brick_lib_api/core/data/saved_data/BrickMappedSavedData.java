@@ -6,9 +6,9 @@ import com.mojang.serialization.Codec;
 import net.minecraft.nbt.*;
 import net.minecraft.server.level.ServerLevel;
 //? if >1.20.1 {
-import net.minecraft.util.datafix.DataFixTypes;
+/*import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.saveddata.SavedData;
-//? }
+*///? }
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,7 +26,7 @@ public class BrickMappedSavedData<K,V> extends BrickSavedData {
     private static final String DATA_NAME = "brick_mapped_data";
 
     //? if >= 1.21.5 {
-    private static final com.mojang.serialization.Codec<BrickMappedSavedData> CODEC =
+    /*private static final com.mojang.serialization.Codec<BrickMappedSavedData> CODEC =
         CompoundTag.CODEC.xmap(BrickMappedSavedData::new, data -> data.saveData(new CompoundTag()));
     private static final net.minecraft.world.level.saveddata.SavedDataType<BrickMappedSavedData> TYPE =
         new net.minecraft.world.level.saveddata.SavedDataType<>(
@@ -36,7 +36,7 @@ public class BrickMappedSavedData<K,V> extends BrickSavedData {
             null
         );
 
-    //?}
+    *///?}
 
     private static final Map<Codec<?>, SavedDataCodec<?>> CODEC_CACHE = new ConcurrentHashMap<>();
     private static final Map<ResourceID, SavedDataCodec<?>> CODEC_ID_CACHE = new ConcurrentHashMap<>();
@@ -66,20 +66,20 @@ public class BrickMappedSavedData<K,V> extends BrickSavedData {
     @SuppressWarnings("unchecked")
     public BrickMappedSavedData(CompoundTag compoundTag) {
         //? if >= 1.21.5 {
-        ListTag tag = compoundTag.getList("entries").orElse(new ListTag());
+        /*ListTag tag = compoundTag.getList("entries").orElse(new ListTag());
         loadEntryList(tag);
-        //?} else {
-        /*ListTag tag = compoundTag.getList("entries", Tag.TAG_COMPOUND);
+        *///?} else {
+        ListTag tag = compoundTag.getList("entries", Tag.TAG_COMPOUND);
         loadEntryList(tag);
 
-        *///? }
+        //? }
     }
 
     @SuppressWarnings("unchecked")
     protected void loadEntryList(ListTag tag) {
         for (int i = 0; i < tag.size(); i++) {
             //? if >= 1.21.5 {
-            CompoundTag it = tag.getCompound(i).orElseThrow();
+            /*CompoundTag it = tag.getCompound(i).orElseThrow();
             CompoundTag k = it.getCompound("k").orElseThrow();
             CompoundTag v = it.getCompound("v").orElseThrow();
             SavedDataCodec<K> kSavedDataCodec = (SavedDataCodec<K>) getSavedDataCodec(
@@ -92,8 +92,8 @@ public class BrickMappedSavedData<K,V> extends BrickSavedData {
                     .getOrThrow()
                 .getFirst();
             V value = vCodec.decode(NbtOps.INSTANCE,v.getCompound("v").orElseThrow()).getOrThrow().getFirst();
-            //?} else {
-            /*CompoundTag it = tag.getCompound(i);
+            *///?} else {
+            CompoundTag it = tag.getCompound(i);
             CompoundTag k = it.getCompound("k");
             CompoundTag v = it.getCompound("v");
             SavedDataCodec<K> kSavedDataCodec = (SavedDataCodec<K>) getSavedDataCodec(ResourceID.tryParse(k.getString("c")));
@@ -102,21 +102,21 @@ public class BrickMappedSavedData<K,V> extends BrickSavedData {
             Codec<V> vCodec = vSavedDataCodec.codec();
             K key = kCodec.decode(NbtOps.INSTANCE, k.getCompound("v"))
                     //? if >= 1.20.6 {
-                    .getOrThrow()
+                    /*.getOrThrow()
 
-                    //?} else {
-                    /^.get().orThrow()
-                    ^///?}
+                    *///?} else {
+                    .get().orThrow()
+                    //?}
                     .getFirst();
             V value = vCodec.decode(NbtOps.INSTANCE,v.getCompound("v"))
                     //? if >= 1.20.6 {
-                    .getOrThrow()
+                    /*.getOrThrow()
 
-                    //? } else {
-                    /^.get().orThrow()
-                    ^///? }
+                    *///? } else {
+                    .get().orThrow()
+                    //? }
                     .getFirst();
-            *///?}
+            //?}
             StoredEntry<K, V> loaded = new StoredEntry<>(
                 kCodec,
                 kSavedDataCodec.resourceID(),
@@ -145,10 +145,10 @@ public class BrickMappedSavedData<K,V> extends BrickSavedData {
         keyTag.putString("c", entry.keyCodecId.toString());
         keyTag.put("v",entry.keyCodec.encodeStart(NbtOps.INSTANCE,key)
                 //? if >= 1.20.6 {
-                .getOrThrow()
-                //? } else {
-                /*.get().orThrow()
-            *///? }
+                /*.getOrThrow()
+                *///? } else {
+                .get().orThrow()
+            //? }
         );
         compoundTag.put("k", keyTag);
 
@@ -156,10 +156,10 @@ public class BrickMappedSavedData<K,V> extends BrickSavedData {
         valueTag.putString("c", entry.valueCodecId.toString());
         valueTag.put("v",entry.valueCodec.encodeStart(NbtOps.INSTANCE,entry.value)
                 //? if >= 1.20.6 {
-                .getOrThrow()
-                //? } else {
-                /*.get().orThrow()
-            *///? }
+                /*.getOrThrow()
+                *///? } else {
+                .get().orThrow()
+            //? }
         );
         compoundTag.put("v", valueTag);
         return compoundTag;
@@ -330,10 +330,10 @@ public class BrickMappedSavedData<K,V> extends BrickSavedData {
         try {
             codec.encodeStart(NbtOps.INSTANCE, value)
                 //? if >= 1.20.6 {
-                .getOrThrow();
-                //? } else {
-                /*.get().orThrow();
-                *///? }
+                /*.getOrThrow();
+                *///? } else {
+                .get().orThrow();
+                //? }
             return true;
         } catch (RuntimeException ignored) {
             return false;
@@ -392,9 +392,9 @@ public class BrickMappedSavedData<K,V> extends BrickSavedData {
 
     public<T extends BrickMappedSavedData> T get(ServerLevel level, Function<CompoundTag, T> loadFunction, Supplier<T> createFunction) {
         //? if >= 1.21.5 {
-        return (T) level.getDataStorage().computeIfAbsent(TYPE);
+        /*return (T) level.getDataStorage().computeIfAbsent(TYPE);
 
-        //?} else if >= 1.20.6 {
+        *///?} else if >= 1.20.6 {
         /*return level.getDataStorage().computeIfAbsent(
             new SavedData.Factory<>(createFunction, (compoundTag, provider) ->
                 loadFunction.apply(compoundTag), DataFixTypes.CHUNK),
@@ -409,7 +409,7 @@ public class BrickMappedSavedData<K,V> extends BrickSavedData {
         );
 
         *///?} else {
-        /*return level.getDataStorage().computeIfAbsent(loadFunction, createFunction, dataName());
-        *///?}
+        return level.getDataStorage().computeIfAbsent(loadFunction, createFunction, dataName());
+        //?}
     }
 }

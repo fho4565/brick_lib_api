@@ -7,3 +7,5 @@ accessible method net/minecraft/resources/Identifier <init> (Ljava/lang/String;L
 accessible method net/minecraft/resources/ResourceKey create (Lnet/minecraft/resources/Identifier;Lnet/minecraft/resources/Identifier;)Lnet/minecraft/resources/ResourceKey;
 extendable class net/neoforged/neoforge/transfer/transaction/TransactionContext
 extendable class net/neoforged/neoforge/transfer/transaction/Transaction
+accessible field net/neoforged/neoforge/transfer/item/ItemResource innerStack Lnet/minecraft/world/item/ItemStack;
+

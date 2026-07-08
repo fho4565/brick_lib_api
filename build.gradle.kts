@@ -236,7 +236,7 @@ class Env {
     }
 
     fun awName() = when {
-        env.atMost("1.21.10") -> "brick_lib_api"
+        env.atMost("1.21.10") -> "brick_lib_api1211l"
         env.loader == "neoforge" -> "brick_lib_api1211nf"
         else -> "brick_lib_api1211"
     }

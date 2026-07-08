@@ -6,3 +6,5 @@ extendable class net/minecraft/resources/Identifier
 accessible method net/minecraft/resources/Identifier <init> (Ljava/lang/String;Ljava/lang/String;)V
 accessible method net/minecraft/resources/ResourceKey create (Lnet/minecraft/resources/Identifier;Lnet/minecraft/resources/Identifier;)Lnet/minecraft/resources/ResourceKey;
 accessible field net/minecraft/resources/ResourceKey VALUES Ljava/util/concurrent/ConcurrentMap;
+accessible field net/minecraft/server/level/ServerPlayer server Lnet/minecraft/server/MinecraftServer;
+

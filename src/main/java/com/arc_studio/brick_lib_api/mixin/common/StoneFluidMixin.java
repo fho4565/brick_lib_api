@@ -25,7 +25,7 @@ public abstract class StoneFluidMixin {
 
 
     //? if >= 1.20.6 {
-    @Inject(method = "useWithoutItem", at = @At("HEAD"), cancellable = true)
+    /*@Inject(method = "useWithoutItem", at = @At("HEAD"), cancellable = true)
     private void brickLib$onUseStone(
             BlockState state, Level level, BlockPos pos,
             Player player, BlockHitResult hitResult,
@@ -38,8 +38,8 @@ public abstract class StoneFluidMixin {
             cir.setReturnValue(result);
         }
     }
-    //?} else {
-    /*@Inject(method = "use", at = @At("HEAD"), cancellable = true)
+    *///?} else {
+    @Inject(method = "use", at = @At("HEAD"), cancellable = true)
     private void brickLib$onUseStone(
         BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand,
         BlockHitResult hit, CallbackInfoReturnable<InteractionResult> cir
@@ -51,5 +51,5 @@ public abstract class StoneFluidMixin {
             cir.setReturnValue(InteractionResult.CONSUME);
         }
     }
-    *///?}
+    //?}
 }

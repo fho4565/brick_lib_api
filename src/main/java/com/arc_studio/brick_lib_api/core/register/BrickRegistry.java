@@ -155,10 +155,10 @@ public class BrickRegistry<T> extends RegistryType<T> implements Iterable<T> {
 
     public T register(String name, Supplier<T> value) {
         //? if >= 1.21 {
+        /*return register(new ResourceID("minecraft",name), value.get());
+         *///?} else {
         return register(new ResourceID("minecraft",name), value.get());
-         //?} else {
-        /*return register(new ResourceLocation("minecraft",name), value.get());
-        *///?}
+        //?}
     }
 
     public T register(ResourceID resourceLocation, Supplier<T> value) {
@@ -167,10 +167,10 @@ public class BrickRegistry<T> extends RegistryType<T> implements Iterable<T> {
 
     public T register(String name, T value) {
         //? if >= 1.21 {
+        /*return register(new ResourceID("minecraft",name), value);
+         *///?} else {
         return register(new ResourceID("minecraft",name), value);
-         //?} else {
-        /*return register(new ResourceLocation("minecraft",name), value);
-        *///?}
+        //?}
     }
 
     public T register(ResourceID name, T value) {

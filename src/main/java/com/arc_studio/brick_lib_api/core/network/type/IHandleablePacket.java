@@ -6,19 +6,19 @@ import com.arc_studio.brick_lib_api.core.data.ResourceID;
 import com.arc_studio.brick_lib_api.core.network.PacketContent;
 
 //? if >= 1.20.4 {
-import net.minecraft.network.FriendlyByteBuf;
+/*import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-//?} else {
-/*//? if fabric {
+*///?} else {
+//? if fabric {
 //?}
-*///?}
+//?}
 
 import org.jetbrains.annotations.ApiStatus;
 
 interface IHandleablePacket
         //? if >=1.20.4 {
-         extends CustomPacketPayload
-        //?}
+         /*extends CustomPacketPayload
+        *///?}
 {
     void encoder(PacketContent content);
 

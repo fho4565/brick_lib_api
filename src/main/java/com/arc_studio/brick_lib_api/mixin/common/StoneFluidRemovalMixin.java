@@ -6,8 +6,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 //? if >= 1.21.5 {
-import net.minecraft.world.level.block.Block;
-//?}
+/*import net.minecraft.world.level.block.Block;
+*///?}
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
@@ -23,15 +23,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  */
 @Mixin(
         //? if >= 1.21.5 {
-        Block.class
-        //?} else {
-        /*BlockBehaviour.class
-        *///?}
+        /*Block.class
+        *///?} else {
+        BlockBehaviour.class
+        //?}
 )
 public abstract class StoneFluidRemovalMixin {
 
     //? if < 1.21.5 {
-    /*@Inject(method = "onRemove", at = @At("HEAD"))
+    @Inject(method = "onRemove", at = @At("HEAD"))
     private void brickLib$onRemoveStoneFluidStorage(
             BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston, CallbackInfo ci
     ) {
@@ -56,7 +56,7 @@ public abstract class StoneFluidRemovalMixin {
             FurnaceEnergyData.get(serverLevel).remove(pos);
         }
     }
-    *///?}
+    //?}
 }
 
 

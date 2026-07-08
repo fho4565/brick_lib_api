@@ -2,7 +2,7 @@ package com.arc_studio.brick_lib_api.platform;
 
 
 //? if neoforge {
-import com.arc_studio.brick_lib_api.BrickLibAPI;
+/*import com.arc_studio.brick_lib_api.BrickLibAPI;
 import com.arc_studio.brick_lib_api.core.data.ResourceID;
 import com.arc_studio.brick_lib_api.core.data.capability.*;
 import com.arc_studio.brick_lib_api.core.data.capability.context.BlockCapabilityContext;
@@ -21,7 +21,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -34,19 +34,23 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+
 import net.neoforged.neoforge.fluids.FluidStack;
-//? if < 1.21.5 {
-/*import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.items.IItemHandler;*/
+//? if < 1.21.8 {
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.items.IItemHandler;
 //? }
 import net.neoforged.neoforge.network.registration.NetworkPayloadSetup;
 import net.neoforged.neoforge.registries.RegisterEvent;
+//? if > 1.21.8 {
+/^import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+^///? }
 import org.jetbrains.annotations.Nullable;
 import com.arc_studio.brick_lib_api.Constants;
 import com.arc_studio.brick_lib_api.core.PlatformInfo;
@@ -57,12 +61,12 @@ import net.minecraft.core.Registry;
 import net.minecraft.network.Connection;
 import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.resources.ResourceKey;
-//? if < 1.21.5 {
-/*import net.minecraft.world.entity.npc.VillagerProfession;
-import net.minecraft.world.entity.npc.VillagerTrades;*/
+//? if < 1.21.8 {
+import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.entity.npc.VillagerTrades;
 //? } else {
-import net.minecraft.world.entity.npc.villager.VillagerProfession;
-import net.minecraft.world.entity.npc.villager.VillagerTrades;
+/^import net.minecraft.world.entity.npc.villager.VillagerProfession;
+import net.minecraft.world.entity.npc.villager.VillagerTrades;^/
 //? }
 import net.minecraft.world.level.storage.LevelResource;
 import net.neoforged.fml.loading.FMLEnvironment;
@@ -79,12 +83,15 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 //? if >= 1.21.5 {
-import net.minecraft.core.registries.BuiltInRegistries;
-//?}
-
+/^import net.minecraft.core.registries.BuiltInRegistries;
+^///?}
+//? if > 1.20.4 && < 1.21.11 {
+/^import net.neoforged.neoforge.network.handling.DirectionalPayloadHandler;
+^///? }
 //? if < 1.20.4 {
-//?} else if <1.20.6 {
-/*import net.neoforged.bus.api.SubscribeEvent;
+
+//?} else if < 1.20.6 {
+/^import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.network.configuration.ICustomConfigurationTask;
 import net.neoforged.neoforge.network.event.OnGameConfigurationEvent;
@@ -94,14 +101,15 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
-*///?} else {
-import net.neoforged.bus.api.SubscribeEvent;
+^///?} else {
+/^import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.network.configuration.ICustomConfigurationTask;
 import net.neoforged.neoforge.network.event.RegisterConfigurationTasksEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 //? if <1.21.5 {
-/*import net.neoforged.neoforge.network.handling.DirectionalPayloadHandler;*/
+import net.neoforged.neoforge.network.handling.DirectionalPayloadHandler;
 //? }
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.minecraft.network.codec.StreamCodec;
@@ -114,27 +122,27 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-//?}
+^///?}
 //? if < 1.20.6 {
-/*@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
-*///?} else {
-@EventBusSubscriber(
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
+//?} else {
+/^@EventBusSubscriber(
         //? if < 1.21.1 {
-        /*bus = EventBusSubscriber.Bus.MOD
-        *///?}
+        bus = EventBusSubscriber.Bus.MOD
+        //?}
 )
-//?}
+^///?}
 @SuppressWarnings({"unchecked", "rawtypes"})
 
-//? }
+*///? }
 public class NeoForgePlatform {
     //? if neoforge {
-    @SubscribeEvent(priority = EventPriority.LOWEST)
+    /*@SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onCommonSetup(
-            /*? >1.20.4 {*/ RegisterPayloadHandlersEvent /*?} else {*//*RegisterPayloadHandlerEvent*//*?}*/
+            /^? >1.20.4 {^/ /^RegisterPayloadHandlersEvent ^//^?} else {^/RegisterPayloadHandlerEvent/^?}^/
                     events) {
-        /*? >1.20.4 {*/ PayloadRegistrar /*?} else {*/
-        /*IPayloadRegistrar*//*?}*/ registrar = events.registrar(BrickLibAPI.MOD_ID);
+        /^? >1.20.4 {^/ /^PayloadRegistrar ^//^?} else {^/
+        IPayloadRegistrar/^?}^/ registrar = events.registrar(BrickLibAPI.MOD_ID);
         BrickRegistries.NETWORK_PACKET.foreachRegisteredValue(packetConfig -> {
             if (packetConfig instanceof PacketConfig.C2S c2S) {
                 c2s(registrar, c2S);
@@ -149,9 +157,9 @@ public class NeoForgePlatform {
 
     }
 
-    private static <T extends C2SPacket> void c2s(/*? >=1.20.6 {*/ PayloadRegistrar /*?} else {*//*IPayloadRegistrar*//*?}*/ registrar, PacketConfig.C2S<T> c2S) {
+    private static <T extends C2SPacket> void c2s(/^? >=1.20.6 {^/ /^PayloadRegistrar ^//^?} else {^/IPayloadRegistrar/^?}^/ registrar, PacketConfig.C2S<T> c2S) {
         //? if > 1.20.4 {
-        StreamCodec<RegistryFriendlyByteBuf, T> codec = StreamCodec.of(
+        /^StreamCodec<RegistryFriendlyByteBuf, T> codec = StreamCodec.of(
                 (buf, packet) -> c2S.encoder().accept(packet, new PacketContent(buf)),
                 buf -> c2S.decoder().apply(new PacketContent(buf)));
         CustomPacketPayload.Type<T> type = new CustomPacketPayload.Type<>(c2S.id());
@@ -162,8 +170,8 @@ public class NeoForgePlatform {
                     c2S.packetHandler().accept(packet, new C2SNetworkContext((ServerPlayer) context.player()));
                 }
         );
-        //?} else {
-        /*registrar.play(c2S.id(),
+        ^///?} else {
+        registrar.play(c2S.id(),
                 buf -> c2S.decoder().apply(new PacketContent(buf)),
                 (arg, playPayloadContext) -> {
                     if (c2S.netHandle()) {
@@ -175,12 +183,12 @@ public class NeoForgePlatform {
                         });
                     }
                 });
-        *///?}
+        //?}
     }
 
-    private static <T extends S2CPacket> void s2c(/*? >=1.20.6 {*/ PayloadRegistrar /*?} else {*//*IPayloadRegistrar*//*?}*/ registrar, PacketConfig.S2C<T> s2C) {
+    private static <T extends S2CPacket> void s2c(/^? >=1.20.6 {^/ /^PayloadRegistrar ^//^?} else {^/IPayloadRegistrar/^?}^/ registrar, PacketConfig.S2C<T> s2C) {
         //? if > 1.20.4 {
-        StreamCodec<RegistryFriendlyByteBuf, T> codec = StreamCodec.of(
+        /^StreamCodec<RegistryFriendlyByteBuf, T> codec = StreamCodec.of(
                 (buf, packet) -> s2C.encoder().accept(packet, new PacketContent(buf)),
                 buf -> s2C.decoder().apply(new PacketContent(buf)));
         CustomPacketPayload.Type<T> type = new CustomPacketPayload.Type<>(s2C.id());
@@ -191,8 +199,8 @@ public class NeoForgePlatform {
                     s2C.packetHandler().accept(packet, new S2CNetworkContext());
                 }
         );
-        //?} else {
-        /*registrar.play(s2C.id(),
+        ^///?} else {
+        registrar.play(s2C.id(),
                 buf -> s2C.decoder().apply(new PacketContent(buf)),
                 (arg, playPayloadContext) -> {
                     if (s2C.netHandle()) {
@@ -204,30 +212,30 @@ public class NeoForgePlatform {
                         });
                     }
                 });
-        *///?}
+        //?}
     }
 
-    private static <T extends SACPacket> void sac(/*? >=1.20.6 {*/ PayloadRegistrar /*?} else {*//*IPayloadRegistrar*//*?}*/ registrar, PacketConfig.SAC<T> sAC) {
+    private static <T extends SACPacket> void sac(/^? >=1.20.6 {^/ /^PayloadRegistrar ^//^?} else {^/IPayloadRegistrar/^?}^/ registrar, PacketConfig.SAC<T> sAC) {
         //? if > 1.20.4 {
-        StreamCodec<RegistryFriendlyByteBuf, T> codec = StreamCodec.of(
+        /^StreamCodec<RegistryFriendlyByteBuf, T> codec = StreamCodec.of(
                 (buf, packet) -> sAC.encoder().accept(packet, new PacketContent(buf)),
                 buf -> sAC.decoder().apply(new PacketContent(buf)));
         CustomPacketPayload.Type<T> sacT = new CustomPacketPayload.Type<>(sAC.s2cID());
         registrar.executesOn(sAC.clientNetHandle() ? HandlerThread.NETWORK : HandlerThread.MAIN).playBidirectional(
                 sacT,
                 codec,
-            //? if < 1.21.5 {
-                    /*new DirectionalPayloadHandler<>(
+            //? if < 1.21.8 {
+                    new DirectionalPayloadHandler<>(
                         (packet, context) -> sAC.clientHandler().accept(packet, new S2CNetworkContext()),
                         (packet, context) -> sAC.serverHandler().accept(packet, new C2SNetworkContext((ServerPlayer) context.player()))
-                )*/
+                )
             //? } else {
-            (packet, context) -> sAC.clientHandler().accept(packet, new S2CNetworkContext()),
-            (packet, context) -> sAC.serverHandler().accept(packet, new C2SNetworkContext((ServerPlayer) context.player()))
+            /^¹(packet, context) -> sAC.clientHandler().accept(packet, new S2CNetworkContext()),
+            (packet, context) -> sAC.serverHandler().accept(packet, new C2SNetworkContext((ServerPlayer) context.player()))¹^/
             //? }
         );
-        //?} else {
-            /*registrar.play(sAC.id(),
+        ^///?} else {
+            registrar.play(sAC.id(),
                     buf -> sAC.decoder().apply(new PacketContent(buf)),
                     handler -> handler
                             .client((arg, playPayloadContext) -> {
@@ -253,12 +261,12 @@ public class NeoForgePlatform {
                                 }
                             })
             );
-            *///?}
+            //?}
     }
 
-    private static <T extends LoginPacket> void login(/*? >=1.20.6 {*/ PayloadRegistrar /*?} else {*//*IPayloadRegistrar*//*?}*/ registrar, PacketConfig.Login<T> login) {
+    private static <T extends LoginPacket> void login(/^? >=1.20.6 {^/ /^PayloadRegistrar ^//^?} else {^/IPayloadRegistrar/^?}^/ registrar, PacketConfig.Login<T> login) {
         //? if > 1.20.4 {
-        StreamCodec<FriendlyByteBuf, T> codec = StreamCodec.of(
+        /^StreamCodec<FriendlyByteBuf, T> codec = StreamCodec.of(
                 (buf, packet) -> login.encoder().accept(packet, new PacketContent(buf)),
                 buf -> login.decoder().apply(new PacketContent(buf)));
         CustomPacketPayload.Type<T> type = new CustomPacketPayload.Type<>(login.id());
@@ -267,21 +275,21 @@ public class NeoForgePlatform {
                 codec,
                 (arg, iPayloadContext) -> login.clientHandler().accept(arg, new S2CNetworkContext())
         );
-        //?} else {
-        /*registrar.common(login.id(),
+        ^///?} else {
+        registrar.common(login.id(),
                 buf -> login.decoder().apply(new PacketContent(buf)),
                 (arg, playPayloadContext) -> playPayloadContext.workHandler().submitAsync(()-> login.clientHandler().accept(arg, new S2CNetworkContext())).exceptionally(throwable -> {
                     BrickLibAPI.LOGGER.error(throwable.getMessage());
                     return null;
                 }));
 
-        *///?}
+        //?}
     }
 
     //? if < 1.20.6 {
-    /*@SubscribeEvent
+    @SubscribeEvent
     public static void onOnGameConfiguration(OnGameConfigurationEvent event) {
-        for (ResourceLocation resourceLocation : BrickRegistries.NETWORK_PACKET.keySet()) {
+        for (ResourceID resourceLocation : BrickRegistries.NETWORK_PACKET.keySet()) {
             PacketConfig config = BrickRegistries.NETWORK_PACKET.get(resourceLocation);
             if(config != null){
                 if (event.getListener().isConnected(config.id())) {
@@ -294,8 +302,8 @@ public class NeoForgePlatform {
             }
         }
     }
-    *///?} else {
-    @SubscribeEvent
+    //?} else {
+    /^@SubscribeEvent
     public static void onRegisterConfigurationTasks(RegisterConfigurationTasksEvent event) {
         for (ResourceID resourceLocation : BrickRegistries.NETWORK_PACKET.keySet()) {
             PacketConfig config = BrickRegistries.NETWORK_PACKET.get(resourceLocation);
@@ -311,24 +319,24 @@ public class NeoForgePlatform {
         }
     }
 
-    //?}
+    ^///?}
 
     private static class MyICustomConfigurationTask implements ICustomConfigurationTask {
         private final PacketConfig.Login config;
         private final
         //? if < 1.20.6 {
-        /*OnGameConfigurationEvent
-        *///?} else {
-                RegisterConfigurationTasksEvent
-                //?}
+        OnGameConfigurationEvent
+        //?} else {
+                /^RegisterConfigurationTasksEvent
+                ^///?}
                 event;
 
         public MyICustomConfigurationTask(PacketConfig.Login config,
                                           //? if < 1.20.6 {
-                /*OnGameConfigurationEvent
-                                          *///?} else {
-                                          RegisterConfigurationTasksEvent
-                                                  //?}
+                OnGameConfigurationEvent
+                                          //?} else {
+                                          /^RegisterConfigurationTasksEvent
+                                                  ^///?}
                                           event) {
             this.config = config;
             this.event = event;
@@ -360,7 +368,7 @@ public class NeoForgePlatform {
             }
             if (entry.capability() == BuiltinCapabilities.ITEM_HANDLER) {
                 event.registerBlock(
-                        Capabilities./*~ if > 1.21.5 'ItemHandler' -> 'Item' {*/Item/*~}*/.BLOCK,
+                        Capabilities./^~ if > 1.21.5 'ItemHandler' -> 'Item' {^/ItemHandler/^~}^/.BLOCK,
                         (level, pos, state, be, side) -> {
                             if (!(level instanceof ServerLevel serverLevel)) return null;
                             BlockCapabilityContext context = CapabilityEntries.blockContext(entry, serverLevel, pos, state, be);
@@ -376,7 +384,7 @@ public class NeoForgePlatform {
                 );
             } else if (entry.capability() == BuiltinCapabilities.ENERGY) {
                 event.registerBlock(
-                        Capabilities./*~ if > 1.21.5 'EnergyStorage' -> 'Energy' {*/Energy/*~}*/.BLOCK,
+                        Capabilities./^~ if > 1.21.5 'EnergyStorage' -> 'Energy' {^/EnergyStorage/^~}^/.BLOCK,
                         (level, pos, state, be, side) -> {
                             if (!(level instanceof ServerLevel serverLevel)) return null;
                             BlockCapabilityContext context = CapabilityEntries.blockContext(entry, serverLevel, pos, state, be);
@@ -395,7 +403,7 @@ public class NeoForgePlatform {
                 );
             } else if (entry.capability() == BuiltinCapabilities.FLUID_HANDLER) {
                 event.registerBlock(
-                        Capabilities./*~ if > 1.21.5 'FluidHandler' -> 'Fluid' {*/Fluid/*~}*/.BLOCK,
+                        Capabilities./^~ if > 1.21.5 'FluidHandler' -> 'Fluid' {^/FluidHandler/^~}^/.BLOCK,
                         (level, pos, state, be, side) -> {
                             if (!(level instanceof ServerLevel serverLevel)) return null;
                             BlockCapabilityContext context = CapabilityEntries.blockContext(entry, serverLevel, pos, state, be);
@@ -421,8 +429,8 @@ public class NeoForgePlatform {
     // NeoForge Wrapper — 物品
     // ========================
 
-    //? if < 1.21.5 {
-/*    @SuppressWarnings("unused")
+    //? if < 1.21.8 {
+    @SuppressWarnings("unused")
     public static class NeoForgeItemHandlerWrapper implements IItemHandler {
         private final ServerLevel level;
         private final BlockPos pos;
@@ -738,7 +746,7 @@ public class NeoForgePlatform {
             }
             long droplets = IFluidStorage.mbToDroplets(maxDrain);
             try (BrickTransaction tx = BrickTransaction.openOuter()) {
-                long drained = s.drain(droplets, side, tx);
+                long drained = s.drain(fluid,side,droplets, tx);
                 if (drained > 0) {
                     tx.commit();
                     markDirty();
@@ -751,9 +759,9 @@ public class NeoForgePlatform {
         private void markDirty() {
             if (dirtyNotifier != null) dirtyNotifier.accept(level, pos);
         }
-    }*/
+    }
     //? } else {
-    public static class NeoForgeItemHandlerWrapper implements ResourceHandler<ItemResource> {
+    /^public static class NeoForgeItemHandlerWrapper implements ResourceHandler<ItemResource> {
         private final ServerLevel level;
         private final BlockPos pos;
         private final BlockState state;
@@ -986,7 +994,7 @@ public class NeoForgePlatform {
             if (!isValid() || resource == null || resource.isEmpty() || amount <= 0) return 0;
             long droplets = IFluidStorage.mbToDroplets(amount);
             try (BrickTransaction tx = BrickTransaction.openOuter()) {
-                long drained = ucs.drain(droplets, side, tx);
+                long drained = ucs.drain(resource.getFluid(),side,droplets, tx);
                 if (drained > 0) {
                     tx.commit();
                     markDirty();
@@ -999,7 +1007,7 @@ public class NeoForgePlatform {
             if (dirtyNotifier != null) dirtyNotifier.accept(level, pos);
         }
     }
-    //? }
+    ^///? }
 
     // ===========================
     //  Platform 委托实现 (NeoForge)
@@ -1014,7 +1022,7 @@ public class NeoForgePlatform {
     }
 
     public static boolean isDev() {
-        return !FMLEnvironment./*~ if > 1.21.5 'production' -> 'isProduction()' {*/isProduction()/*~}*/;
+        return !FMLEnvironment./^~ if > 1.21.5 'production' -> 'isProduction()' {^/production/^~}^/;
     }
 
     public static PlatformInfo platform() {
@@ -1029,11 +1037,11 @@ public class NeoForgePlatform {
     }
 
     public static boolean isClient() {
-        return FMLEnvironment./*~ if > 1.21.5 'dist' -> 'getDist()' {*/getDist()/*~}*/.isClient();
+        return FMLEnvironment./^~ if > 1.21.5 'dist' -> 'getDist()' {^/dist/^~}^/.isClient();
     }
 
     public static boolean isServer() {
-        return FMLEnvironment./*~ if > 1.21.5 'dist' -> 'getDist()' {*/getDist()/*~}*/.isDedicatedServer();
+        return FMLEnvironment./^~ if > 1.21.5 'dist' -> 'getDist()' {^/dist/^~}^/.isDedicatedServer();
     }
 
     public static <T extends S2CNetworkContext> void enqueueWork(T context, Runnable runnable) {
@@ -1065,23 +1073,23 @@ public class NeoForgePlatform {
     public static void sendToPlayer(ICHandlePacket packet, Iterable<ServerPlayer> serverPlayers) {
         for (ServerPlayer serverPlayer : serverPlayers) {
             //? if <=1.20.4 {
-            /*PacketDistributor.PLAYER.with(serverPlayer).send(packet);
-            *///?} else {
-            PacketDistributor.sendToPlayer(serverPlayer, packet);
-            //?}
+            PacketDistributor.PLAYER.with(serverPlayer).send(packet);
+            //?} else {
+            /^PacketDistributor.sendToPlayer(serverPlayer, packet);
+            ^///?}
         }
     }
 
     public static void sendToServer(ISHandlePacket packet) {
         //? if <=1.20.4 {
-        /*PacketDistributor.SERVER.noArg().send(packet);
-        *///?} else {
-        //? if < 1.21.5 {
-        /*PacketDistributor.sendToServer(packet);*/
+        PacketDistributor.SERVER.noArg().send(packet);
+        //?} else {
+        /^//? if < 1.21.8 {
+        PacketDistributor.sendToServer(packet);
         //? } else {
-        ClientPacketDistributor.sendToServer(packet);
+        /^¹ClientPacketDistributor.sendToServer(packet);¹^/
         //? }
-        //?}
+        ^///?}
     }
 
     public static Set<ResourceID> networkChannels(Connection connection, ConnectionProtocol protocol) {
@@ -1091,20 +1099,20 @@ public class NeoForgePlatform {
         }
         if (protocol != null) {
             //? if =1.20.4 {
-            /*HashSet<ResourceLocation> set = new HashSet<>();
-            set.addAll(payloadSetup.play().keySet());
-            set.addAll(payloadSetup.configuration().keySet());
+            /^HashSet<ResourceID> set = new HashSet<>();
+            set.addAll(payloadSetup.play().keySet().stream().map(rl -> ResourceID.of(rl.getNamespace(),rl.getPath())).collect(Collectors.toSet()));
+            set.addAll(payloadSetup.configuration().keySet().stream().map(rl -> ResourceID.of(rl.getNamespace(),rl.getPath())).collect(Collectors.toSet()));
             return set;
-            *///?} else {
-            return payloadSetup.getChannels(protocol).keySet()/*? if > 1.21.5 {*/ .stream().map(identifier -> new  ResourceID(identifier.getNamespace(), identifier.getPath())).collect(Collectors.toSet()) /*?}*/;
+            ^///?} else {
+            return payloadSetup.getChannels(protocol).keySet().stream().map(identifier -> new  ResourceID(identifier.getNamespace(), identifier.getPath())).collect(Collectors.toSet());
             //?}
         } else {
             HashSet<ResourceID> set = new HashSet<>();
             //? if =1.20.4 {
-            /*set.addAll(payloadSetup.play().keySet());
-            set.addAll(payloadSetup.configuration().keySet());
-            *///?} else {
-            payloadSetup.channels().values().stream().map(Map::keySet).forEach(/*? if > 1.21.5 {*/ identifiers -> identifiers.forEach(identifier -> set.add(new ResourceID(identifier.getNamespace(), identifier.getPath()))) /*?} else {*/ /*set::addAll*/ /*?}*/);
+            /^set.addAll(payloadSetup.play().keySet().stream().map(rl -> ResourceID.of(rl.getNamespace(),rl.getPath())).collect(Collectors.toSet()));
+            set.addAll(payloadSetup.configuration().keySet().stream().map(rl -> ResourceID.of(rl.getNamespace(),rl.getPath())).collect(Collectors.toSet()));
+            ^///?} else {
+            payloadSetup.channels().values().stream().map(Map::keySet).forEach(identifiers -> identifiers.forEach(identifier -> set.add(new ResourceID(identifier.getNamespace(), identifier.getPath()))));
             //?}
             return set;
         }
@@ -1133,10 +1141,10 @@ public class NeoForgePlatform {
         HashMap<Pair<VillagerProfession,Integer>,ArrayList<VillagerTrades.ItemListing>> map = new HashMap<>();
         for (VillagerTradeEntry entry : BrickRegistries.VILLAGER_TRADE) {
             //? if >= 1.21.5 {
-            Pair<VillagerProfession, Integer> key = Pair.of(BuiltInRegistries.VILLAGER_PROFESSION.getValueOrThrow(entry.profession()), entry.level());
-            //?} else {
-            /*Pair<VillagerProfession, Integer> key = Pair.of(entry.profession(), entry.level());
-            *///?}
+            /^Pair<VillagerProfession, Integer> key = Pair.of(BuiltInRegistries.VILLAGER_PROFESSION.getValueOrThrow(entry.profession()), entry.level());
+            ^///?} else {
+            Pair<VillagerProfession, Integer> key = Pair.of(entry.profession(), entry.level());
+            //?}
             ArrayList<VillagerTrades.ItemListing> list = map.getOrDefault(key, new ArrayList<>());
             list.add(entry.trade());
             map.put(key, list);
@@ -1151,6 +1159,6 @@ public class NeoForgePlatform {
         map1.forEach(Platform::registerWanderingOffers);
     }
 
-    //?}
+    *///?}
 }
 

@@ -36,8 +36,8 @@ public class ConfigSyncPacket extends LoginPacket {
                 try {
                     decompress = NbtIo.readCompressed(new ByteArrayInputStream(content.readByteArray())
                             //? if >= 1.20.4 {
-                            , NbtAccounter.unlimitedHeap()
-                            //?}
+                            /*, NbtAccounter.unlimitedHeap()
+                            *///?}
                     );
                 } catch (IOException e) {
                     LOGGER.error(e.toString());
@@ -46,12 +46,12 @@ public class ConfigSyncPacket extends LoginPacket {
             }
             if (decompress != null) {
                 //? if >= 1.21.5 {
-                fileName = decompress.keySet().stream().findFirst().orElseThrow();
+                /*fileName = decompress.keySet().stream().findFirst().orElseThrow();
                 fileData = decompress.getByteArray(fileName).orElseThrow();
-                //?} else {
-                /*fileName = decompress.getAllKeys().stream().findFirst().orElseThrow();
+                *///?} else {
+                fileName = decompress.getAllKeys().stream().findFirst().orElseThrow();
                 fileData = decompress.getByteArray(fileName);
-                *///?}
+                //?}
             } else {
                 fileName = "";
                 fileData = new byte[0];

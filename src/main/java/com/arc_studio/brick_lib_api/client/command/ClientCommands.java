@@ -70,7 +70,7 @@ public final class ClientCommands {
             Minecraft client = Minecraft.getInstance();
             //? if > 1.18.2 {
             client.gui.getChat().addMessage(message);
-            client.getNarrator()./*~ if >1.21.5 'sayNow' -> 'sayChatQueued' {*/sayChatQueued/*~}*/(message);
+            client.getNarrator()./*~ if >1.21.5 'sayNow' -> 'sayChatQueued' {*/sayNow/*~}*/(message);
             //?} else {
             /*client.gui.handleChat(ChatType.SYSTEM,message, Util.NIL_UUID);
             *///?}
@@ -85,7 +85,7 @@ public final class ClientCommands {
             Minecraft client = Minecraft.getInstance();
             //? if > 1.18.2 {
             client.gui.getChat().addMessage(Component.literal("").append(message).withStyle(ChatFormatting.RED));
-            client.getNarrator()./*~ if >1.21.5 'sayNow' -> 'sayChatQueued' {*/sayChatQueued/*~}*/(Component.literal("").append(message).withStyle(ChatFormatting.RED));
+            client.getNarrator()./*~ if >1.21.5 'sayNow' -> 'sayChatQueued' {*/sayNow/*~}*/(Component.literal("").append(message).withStyle(ChatFormatting.RED));
             //?} else {
             /*client.gui.handleChat(ChatType.SYSTEM,new TextComponent("").append(message).withStyle(ChatFormatting.RED), Util.NIL_UUID);
             *///?}

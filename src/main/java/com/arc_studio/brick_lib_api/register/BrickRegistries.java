@@ -16,7 +16,7 @@ import com.arc_studio.brick_lib_api.core.data.datagen.DataGenerateEntry;
 import com.arc_studio.brick_lib_api.update_checker.UpdateChecker;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.serialization.Codec;
-
+import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 //? if > 1.18.2 {
@@ -30,15 +30,19 @@ import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 //?}
 import net.minecraft.core.Registry;
 //? if >= 1.20.6 {
-import com.mojang.serialization.MapCodec;
+/*import com.mojang.serialization.MapCodec;
 import net.minecraft.core.component.DataComponentType;
-//?}
+*///?}
 import net.minecraft.core.particles.ParticleType;
 //? if > 1.19.2 {
 import net.minecraft.core.registries.BuiltInRegistries;
 //?} else {
 
 //?}
+
+//? if < 1.21.5 {
+import net.minecraft.resources.ResourceLocation;
+//? }
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.stats.StatType;
@@ -51,29 +55,34 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 //? if > 1.18.2 {
-import net.minecraft.world.entity.decoration.painting.PaintingVariant;
-import net.minecraft.world.entity.npc.villager.VillagerProfession;
-import net.minecraft.world.entity.npc.villager.VillagerType;
 import net.minecraft.world.level.levelgen.structure.StructureType;
 import net.minecraft.world.level.levelgen.feature.rootplacers.RootPlacerType;
 import net.minecraft.world.item.Instrument;
-
-//? if < 1.21.5 {
-/*import net.minecraft.world.entity.animal.FrogVariant;
+//? if >= 1.21.5 {
+/*import net.minecraft.world.entity.animal.frog.FrogVariant;
+*///? } else {
+import net.minecraft.world.entity.animal.FrogVariant;
+//? }
+//? if > 1.21.8 {
+/*import net.minecraft.world.entity.animal.feline.CatVariant;
+import net.minecraft.world.entity.decoration.painting.PaintingVariant;
+import net.minecraft.world.entity.npc.villager.VillagerProfession;
+import net.minecraft.world.entity.npc.villager.VillagerType;
+*/
+//? } else {
+import net.minecraft.world.entity.animal.CatVariant;
+import net.minecraft.world.entity.decoration.PaintingVariant;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.VillagerType;
 import net.minecraft.world.entity.schedule.Schedule;
-import net.minecraft.world.entity.animal.CatVariant;
-import net.minecraft.world.entity.decoration.PaintingVariant;
-*///?} else {
-import net.minecraft.world.entity.animal.frog.FrogVariant;
-import net.minecraft.world.entity.animal.feline.CatVariant;
- //?}
+//? }
 
 //?}
-
-import net.minecraft.world.entity.schedule.Activity;
-
+//? if <= 1.19.2 {
+/*import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.entity.npc.VillagerType;
+import net.minecraft.world.entity.schedule.Schedule;
+*///?}
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -87,10 +96,10 @@ import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 //? if < 1.20.6 {
-/*import net.minecraft.world.level.chunk.ChunkStatus;
-*///?} else {
-import net.minecraft.world.level.chunk.status.ChunkStatus;
-//?}
+import net.minecraft.world.level.chunk.ChunkStatus;
+//?} else {
+/*import net.minecraft.world.level.chunk.status.ChunkStatus;
+*///?}
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.gameevent.PositionSourceType;
 import net.minecraft.world.level.levelgen.DensityFunction;
@@ -141,23 +150,23 @@ public class BrickRegistries {
     public static final VanillaRegistry<Fluid> FLUID = new VanillaRegistry<>(BuiltInRegistries.FLUID);
     public static final VanillaRegistry<MobEffect> MOB_EFFECT = new VanillaRegistry<>(BuiltInRegistries.MOB_EFFECT);
     //? if >= 1.21 {
-    public static final BrickRegistry<Enchantment> ENCHANTMENT = placeholder("enchantment_placeholder");
-     //?} else {
-    /*public static final VanillaRegistry<Enchantment> ENCHANTMENT = new VanillaRegistry<>(BuiltInRegistries.ENCHANTMENT);
-    *///?}
+    /*public static final BrickRegistry<Enchantment> ENCHANTMENT = placeholder("enchantment_placeholder");
+     *///?} else {
+    public static final VanillaRegistry<Enchantment> ENCHANTMENT = new VanillaRegistry<>(BuiltInRegistries.ENCHANTMENT);
+    //?}
     public static final VanillaRegistry<Potion> POTION = new VanillaRegistry<>(BuiltInRegistries.POTION);
     public static final VanillaRegistry<ParticleType<?>> PARTICLE_TYPE = new VanillaRegistry<>(BuiltInRegistries.PARTICLE_TYPE);
     //? if >= 1.21 {
-    public static final BrickRegistry<PaintingVariant> PAINTING_VARIANT = placeholder("painting_variant_placeholder");
-     //?} else {
-    /*public static final VanillaRegistry<PaintingVariant> PAINTING_VARIANT = new VanillaRegistry<>(BuiltInRegistries.PAINTING_VARIANT);
-    *///?}
+    /*public static final BrickRegistry<PaintingVariant> PAINTING_VARIANT = placeholder("painting_variant_placeholder");
+     *///?} else {
+    public static final VanillaRegistry<PaintingVariant> PAINTING_VARIANT = new VanillaRegistry<>(BuiltInRegistries.PAINTING_VARIANT);
+    //?}
     public static final VanillaRegistry<? super ResourceID> CUSTOM_STAT = new VanillaRegistry<>(BuiltInRegistries.CUSTOM_STAT);
     //? if <= 1.20.4 {
-    /*public static final VanillaRegistry<ChunkStatus> CHUNK_STATUS = new VanillaRegistry<>(BuiltInRegistries.CHUNK_STATUS);
-    *///?} else {
-    public static final BrickRegistry<ChunkStatus> CHUNK_STATUS = placeholder("chunk_status_placeholder");
-     //?}
+    public static final VanillaRegistry<ChunkStatus> CHUNK_STATUS = new VanillaRegistry<>(BuiltInRegistries.CHUNK_STATUS);
+    //?} else {
+    /*public static final BrickRegistry<ChunkStatus> CHUNK_STATUS = placeholder("chunk_status_placeholder");
+     *///?}
     public static final VanillaRegistry<RuleTestType<?>> RULE_TEST = new VanillaRegistry<>(BuiltInRegistries.RULE_TEST);
     //? if > 1.19.4 {
     public static final VanillaRegistry<RuleBlockEntityModifierType<?>> RULE_BLOCK_ENTITY_MODIFIER = new VanillaRegistry<>(BuiltInRegistries.RULE_BLOCK_ENTITY_MODIFIER);
@@ -178,17 +187,17 @@ public class BrickRegistries {
     public static final VanillaRegistry<MemoryModuleType<?>> MEMORY_MODULE_TYPE = new VanillaRegistry<>(BuiltInRegistries.MEMORY_MODULE_TYPE);
     public static final VanillaRegistry<SensorType<?>> SENSOR_TYPE = new VanillaRegistry<>(BuiltInRegistries.SENSOR_TYPE);
     //? if > 1.21.5 {
-    public static final BrickRegistry<Object> SCHEDULE = create("schedule");
-    //? } else {
-    /*public static final VanillaRegistry<Schedule> SCHEDULE = new VanillaRegistry<>(BuiltInRegistries.SCHEDULE);*/
+    /*public static final BrickRegistry<Object> SCHEDULE = create("schedule");
+    *///? } else {
+    public static final VanillaRegistry<Schedule> SCHEDULE = new VanillaRegistry<>(BuiltInRegistries.SCHEDULE);
     //? }
     public static final VanillaRegistry<Activity> ACTIVITY = new VanillaRegistry<>(BuiltInRegistries.ACTIVITY);
     public static final VanillaRegistry<LootPoolEntryType> LOOT_POOL_ENTRY_TYPE = new VanillaRegistry<>(BuiltInRegistries.LOOT_POOL_ENTRY_TYPE);
     //? if <=1.20.4 {
-    /*public static final VanillaRegistry<LootItemFunctionType> LOOT_FUNCTION_TYPE = new VanillaRegistry<>(BuiltInRegistries.LOOT_FUNCTION_TYPE);
-    *///?} else {
-    public static final BrickRegistry<LootItemFunctionType<?>> LOOT_FUNCTION_TYPE = placeholder("loot_function_type");
-     //?}
+    public static final VanillaRegistry<LootItemFunctionType> LOOT_FUNCTION_TYPE = new VanillaRegistry<>(BuiltInRegistries.LOOT_FUNCTION_TYPE);
+    //?} else {
+    /*public static final BrickRegistry<LootItemFunctionType<?>> LOOT_FUNCTION_TYPE = placeholder("loot_function_type");
+     *///?}
     public static final VanillaRegistry<LootItemConditionType> LOOT_CONDITION_TYPE = new VanillaRegistry<>(BuiltInRegistries.LOOT_CONDITION_TYPE);
     public static final VanillaRegistry<LootNumberProviderType> LOOT_NUMBER_PROVIDER_TYPE = new VanillaRegistry<>(BuiltInRegistries.LOOT_NUMBER_PROVIDER_TYPE);
     public static final VanillaRegistry<LootNbtProviderType> LOOT_NBT_PROVIDER_TYPE = new VanillaRegistry<>(BuiltInRegistries.LOOT_NBT_PROVIDER_TYPE);
@@ -210,52 +219,52 @@ public class BrickRegistries {
     public static final VanillaRegistry<TreeDecoratorType<?>> TREE_DECORATOR_TYPE = new VanillaRegistry<>(BuiltInRegistries.TREE_DECORATOR_TYPE);
     public static final VanillaRegistry<FeatureSizeType<?>> FEATURE_SIZE_TYPE = new VanillaRegistry<>(BuiltInRegistries.FEATURE_SIZE_TYPE);
     //? if <= 1.20.4 {
-    /*public static final VanillaRegistry<Codec<? extends BiomeSource>> BIOME_SOURCE = new VanillaRegistry<>(BuiltInRegistries.BIOME_SOURCE);
+    public static final VanillaRegistry<Codec<? extends BiomeSource>> BIOME_SOURCE = new VanillaRegistry<>(BuiltInRegistries.BIOME_SOURCE);
     public static final VanillaRegistry<Codec<? extends ChunkGenerator>> CHUNK_GENERATOR = new VanillaRegistry<>(BuiltInRegistries.CHUNK_GENERATOR);
     public static final VanillaRegistry<Codec<? extends SurfaceRules.ConditionSource>> MATERIAL_CONDITION = new VanillaRegistry<>(BuiltInRegistries.MATERIAL_CONDITION);
     public static final VanillaRegistry<Codec<? extends SurfaceRules.RuleSource>> MATERIAL_RULE = new VanillaRegistry<>(BuiltInRegistries.MATERIAL_RULE);
     public static final VanillaRegistry<Codec<? extends DensityFunction>> DENSITY_FUNCTION_TYPE = new VanillaRegistry<>(BuiltInRegistries.DENSITY_FUNCTION_TYPE);
-    *///?} else {
-        public static final VanillaRegistry<MapCodec<? extends BiomeSource>> BIOME_SOURCE = new VanillaRegistry<>(BuiltInRegistries.BIOME_SOURCE);
+    //?} else {
+        /*public static final VanillaRegistry<MapCodec<? extends BiomeSource>> BIOME_SOURCE = new VanillaRegistry<>(BuiltInRegistries.BIOME_SOURCE);
         public static final VanillaRegistry<MapCodec<? extends ChunkGenerator>> CHUNK_GENERATOR = new VanillaRegistry<>(BuiltInRegistries.CHUNK_GENERATOR);
         public static final VanillaRegistry<MapCodec<? extends SurfaceRules.ConditionSource>> MATERIAL_CONDITION = new VanillaRegistry<>(BuiltInRegistries.MATERIAL_CONDITION);
         public static final VanillaRegistry<MapCodec<? extends SurfaceRules.RuleSource>> MATERIAL_RULE = new VanillaRegistry<>(BuiltInRegistries.MATERIAL_RULE);
         public static final VanillaRegistry<MapCodec<? extends DensityFunction>> DENSITY_FUNCTION_TYPE = new VanillaRegistry<>(BuiltInRegistries.DENSITY_FUNCTION_TYPE);
-        //?}
+        *///?}
     public static final VanillaRegistry<StructureProcessorType<?>> STRUCTURE_PROCESSOR = new VanillaRegistry<>(BuiltInRegistries.STRUCTURE_PROCESSOR);
     public static final VanillaRegistry<StructurePoolElementType<?>> STRUCTURE_POOL_ELEMENT = new VanillaRegistry<>(BuiltInRegistries.STRUCTURE_POOL_ELEMENT);
     //? if >= 1.21.5 {
-        public static final BrickRegistry<CatVariant> CAT_VARIANT = placeholder("cat_variant");
+        /*public static final BrickRegistry<CatVariant> CAT_VARIANT = placeholder("cat_variant");
         public static final BrickRegistry<FrogVariant> FROG_VARIANT = placeholder("frog_variant");
-        //?} else {
-    /*public static final VanillaRegistry<CatVariant> CAT_VARIANT = new VanillaRegistry<>(BuiltInRegistries.CAT_VARIANT);
+        *///?} else {
+    public static final VanillaRegistry<CatVariant> CAT_VARIANT = new VanillaRegistry<>(BuiltInRegistries.CAT_VARIANT);
     public static final VanillaRegistry<FrogVariant> FROG_VARIANT = new VanillaRegistry<>(BuiltInRegistries.FROG_VARIANT);
-    *///?}
+    //?}
     //? if <= 1.20.4 {
-    /*public static final VanillaRegistry<BannerPattern> BANNER_PATTERN = new VanillaRegistry<>(BuiltInRegistries.BANNER_PATTERN);
-    *///?} else {
-    public static final BrickRegistry<BannerPattern> BANNER_PATTERN = placeholder("banner_pattern");
-     //?}
+    public static final VanillaRegistry<BannerPattern> BANNER_PATTERN = new VanillaRegistry<>(BuiltInRegistries.BANNER_PATTERN);
+    //?} else {
+    /*public static final BrickRegistry<BannerPattern> BANNER_PATTERN = placeholder("banner_pattern");
+     *///?}
     //? if >= 1.21.2 {
-    public static final BrickRegistry<Instrument> INSTRUMENT = placeholder("instrument");
-     //?} else {
-    /*public static final VanillaRegistry<Instrument> INSTRUMENT = new VanillaRegistry<>(BuiltInRegistries.INSTRUMENT);
-    *///?}
+    /*public static final BrickRegistry<Instrument> INSTRUMENT = placeholder("instrument");
+     *///?} else {
+    public static final VanillaRegistry<Instrument> INSTRUMENT = new VanillaRegistry<>(BuiltInRegistries.INSTRUMENT);
+    //?}
     //? if >= 1.21 {
-    public static final BrickRegistry<String> DECORATED_POT_PATTERNS = placeholder("decorated_pot_patterns");
-     //?} else {
-    /*public static final VanillaRegistry<String> DECORATED_POT_PATTERNS = new VanillaRegistry<>(BuiltInRegistries.DECORATED_POT_PATTERNS);
-    *///?}
+    /*public static final BrickRegistry<String> DECORATED_POT_PATTERNS = placeholder("decorated_pot_patterns");
+     *///?} else {
+    public static final VanillaRegistry<String> DECORATED_POT_PATTERNS = new VanillaRegistry<>(BuiltInRegistries.DECORATED_POT_PATTERNS);
+    //?}
     //? if > 1.19.4 {
     public static final VanillaRegistry<CreativeModeTab> CREATIVE_MODE_TAB = new VanillaRegistry<>(BuiltInRegistries.CREATIVE_MODE_TAB);
      //?} else {
     /*public static final BrickRegistry<CreativeModeTab> CREATIVE_MODE_TAB = placeholder("creative_mode_tab");
     *///?}
     //? if >= 1.20.6 {
-    public static final VanillaRegistry<DataComponentType<?>> DATA_COMPONENT_TYPE = new VanillaRegistry<>(BuiltInRegistries.DATA_COMPONENT_TYPE);
-     //?} else {
-    /*public static final BrickRegistry<Object> DATA_COMPONENT_TYPE = placeholder("data_component_type");
-    *///?}
+    /*public static final VanillaRegistry<DataComponentType<?>> DATA_COMPONENT_TYPE = new VanillaRegistry<>(BuiltInRegistries.DATA_COMPONENT_TYPE);
+     *///?} else {
+    public static final BrickRegistry<Object> DATA_COMPONENT_TYPE = placeholder("data_component_type");
+    //?}
     //?} else {
     /*public static final VanillaRegistry<Item> ITEM = new VanillaRegistry<>(Registry.ITEM);
     public static final VanillaRegistry<Block> BLOCK = new VanillaRegistry<>(Registry.BLOCK);
